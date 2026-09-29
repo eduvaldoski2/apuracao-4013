@@ -951,9 +951,10 @@ async function atualizar(){
     if (novo || !ZONAS || Date.now()-ultZonas > CFG.intervaloZonas*1000 || CFG.ambiente==='demo') atualizarZonas();
   } catch(e) {
     console.error(e); diag('Erro: '+e.message);
-    if (CFG.ambiente==='oficial' && (e.status===404 || /ele-c|ainda não lista/.test(e.message))) {
+    const antesDas17 = new Date() < new Date('2026-10-04T17:00:00-03:00');
+    if (CFG.ambiente==='oficial' && (e.status===404 || /ele-c|ainda não lista/.test(e.message) || (e instanceof TypeError && antesDas17))) {
       setChip('err', 'Aguardando o TSE');
-      $('meta').textContent = 'Resultados oficiais a partir de domingo, 4/10, às 17h. Antes disso, veja o simulado em Configurações.';
+      $('meta').textContent = antesDas17 ? 'Resultados oficiais a partir de domingo, 4/10, às 17h. Antes disso, veja o simulado em Configurações.' : 'O TSE ainda não publicou os arquivos. Nova tentativa em instantes.';
     } else {
       setChip('err', 'Sem conexão com o TSE');
       $('meta').textContent = e.message.slice(0,140);
