@@ -305,6 +305,25 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 }
 @keyframes tk-roll{from{transform:translateX(var(--tkIni,100vw))}to{transform:translateX(var(--tkFim,-100%))}}
 
+
+/* ===== box da candidatura em destaque (tela 1) ===== */
+.tr-box{margin-top:14px;border:2px solid var(--accent);border-radius:12px;overflow:hidden;background:var(--panel)}
+.tr-head{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--brand);color:#fff;padding:9px 14px}
+.tr-head h3{font-size:20px;color:#fff;font-weight:900}
+.tr-head h3 span{color:var(--accent)}
+.tr-head .tr-n{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--brand-muted)}
+.tr-body{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 14px;padding:12px 14px 14px;align-items:end}
+.tr-body .eyebrow{font-size:10.5px}
+.tr-v{font-family:var(--f-display);font-weight:900;font-size:30px;line-height:1.05;color:var(--ink)}
+.tr-v.big{color:var(--accent)}
+.tr-s{font-size:12px;color:var(--muted)}
+.tr-sit{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px dashed var(--line);padding-top:10px}
+.tr-chip{font-weight:900;font-size:15px;letter-spacing:.04em;border-radius:6px;padding:4px 12px}
+.tr-chip.eleita{background:var(--ok);color:#fff}
+.tr-chip.suplente{background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn)}
+.tr-chip.sem{background:var(--red);color:#fff}
+.tr-sit .tr-s{font-size:12.5px}
+@media (max-width:560px){.tr-body{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 
 <header class="top">
@@ -334,6 +353,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         </div>
         <div class="qe num" id="qeLine"></div>
         <p class="note">Cadeiras calculadas pelo painel com os votos da parcial: quociente eleitoral, quociente partidário (10% do QE) e sobras (80%/20% e 3ª fase).</p>
+        <section class="tr-box" id="trBox" aria-label="Votação da candidatura em destaque"><div class="tr-head"><h3>Tatiana Roque <span>4013</span></h3><span class="tr-n">PSB · DEPUTADA FEDERAL</span></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Votação, posições e situação aparecem aqui quando o TSE começar a divulgar.</p></div></section>
       </div>
       <div class="t1-right">
         <div class="eyebrow">Cadeiras nesta parcial</div>
@@ -872,6 +892,7 @@ function render(d, calc){
   $('vagasLbl').textContent = VAGAS+' vagas';
   $('qeLine').innerHTML = `<span>Quociente eleitoral <b>${fmt(calc.QE_TSE||calc.QE)}</b>${calc.QE_TSE?' (TSE)':''}</span><span>10% QE <b>${fmt(calc.QE*.1)}</b></span><span>20% QE <b>${fmt(calc.QE*.2)}</b></span><span>80% QE <b>${fmt(calc.QE*.8)}</b></span>`;
 
+  renderCandidata(d, calc);
   const cont = desenharHemiciclo(calc.eleitos, VAGAS);
   $('seatList').innerHTML = Object.entries(cont).sort((a,b)=>b[1]-a[1]).map(([p,n])=>{
     const ag = d.agrs.find(a=>a.partidos.includes(p)); const fed = ag && ag.tipo!=='Partido' && ag.id!==p ? ` <span class="pt">${esc(ag.nome)}</span>` : '';
@@ -1055,6 +1076,37 @@ async function atualizarTarja(){
     TK_DADOS = CFG.ambiente==='demo' ? dadosTarjaDemo() : await dadosTarjaReal();   // entra na próxima modalidade exibida
     if (TK_IDX < 0) tarjaProxima();
   } catch(e){ diag('Tarja: '+e.message); }
+}
+
+
+/* ============ BOX DA CANDIDATURA EM DESTAQUE (4013) ============ */
+function renderCandidata(d, calc){
+  const box = $('trBox'); if (!box) return;
+  const foco = CFG.partidoFoco.toUpperCase();
+  const c = d.cands.find(x=>x.n===CFG.candidata);
+  if (!c) { box.innerHTML = `<div class="tr-head"><h3>Candidatura <span>${esc(CFG.candidata)}</span></h3></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Candidatura ${esc(CFG.candidata)} ainda não aparece nos dados desta parcial.</p></div>`; return; }
+  const todos = [...d.cands].sort((a,b)=>b.votos-a.votos);
+  const doPartido = todos.filter(x=>x.partido.toUpperCase()===c.partido.toUpperCase());
+  const posGeral = todos.findIndex(x=>x.n===c.n)+1, posPart = doPartido.findIndex(x=>x.n===c.n)+1;
+  const cadeiras = calc.eleitos.filter(e=>e.partido.toUpperCase()===c.partido.toUpperCase()).length;
+  const eleita = calc.setE.has(c.n);
+  let chip, detalhe;
+  if (eleita) { const e = calc.eleitos.find(x=>x.n===c.n); chip = '<span class="tr-chip eleita">ELEITA</span>'; detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}${e && e.via ? ' · vaga por '+(e.via==='QP'?'quociente partidário':e.via.toLowerCase()) : ''}`; }
+  else if (cadeiras > 0) {
+    const acimaFora = doPartido.slice(0, posPart-1).filter(x=>!calc.setE.has(x.n)).length;
+    chip = `<span class="tr-chip suplente">${acimaFora+1}ª SUPLENTE</span>`;
+    const ultimo = doPartido.filter(x=>calc.setE.has(x.n)).pop();
+    detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}` + (ultimo && ultimo.votos >= c.votos ? ` · faltam ${fmt(ultimo.votos - c.votos + 1)} votos para passar ${esc(ultimo.nome)}, a última eleita do partido` : '');
+  } else { chip = `<span class="tr-chip sem">${esc(c.partido)} SEM CADEIRA</span>`; detalhe = `o ${esc(c.partido)} ainda não faz nenhuma cadeira nesta parcial`; }
+  const pj = projDe(c);
+  box.innerHTML = `<div class="tr-head"><h3>${esc(c.nome)} <span>${esc(c.n)}</span></h3><span class="tr-n">${esc(c.partido)} · DEPUTADA FEDERAL</span></div>
+    <div class="tr-body">
+      <div><div class="eyebrow">Votação</div><div class="tr-v big num">${fmt(c.votos)}</div><div class="tr-s num">${fmtP(100*c.votos/calc.validos)} dos válidos</div></div>
+      <div><div class="eyebrow">Posição no ${esc(c.partido)}</div><div class="tr-v num">${posPart}º</div><div class="tr-s">de ${doPartido.length}</div></div>
+      <div><div class="eyebrow">Posição geral</div><div class="tr-v num">${posGeral}º</div><div class="tr-s">de ${todos.length}</div></div>
+      <div><div class="eyebrow">Projeção final</div><div class="tr-v num">${isNaN(pj)?'—':fmt(pj)}</div><div class="tr-s">${RANK_PROJ[c.n] ? RANK_PROJ[c.n]+'º geral na projeção' : 'aguardando zonas'}</div></div>
+      <div class="tr-sit">${chip}<span class="tr-s">${detalhe}</span></div>
+    </div>`;
 }
 
 /* ============ CICLO ============ */
