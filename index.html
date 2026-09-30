@@ -457,8 +457,22 @@ const CAMPOS = {
 let CFG = {...PADRAO};
 try { Object.assign(CFG, JSON.parse(localStorage.getItem('painelDepFed2') || '{}')); } catch(e){}
 const ehLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
-if (MODO_APP) { PADRAO.ambiente = 'oficial'; PADRAO.intervaloZonas = 600; try { const sv = JSON.parse(localStorage.getItem('painelDepFed2')||'{}'); if (!sv.ambiente) CFG.ambiente = 'oficial'; if (!sv.intervaloZonas) CFG.intervaloZonas = 600; } catch(e){ CFG.ambiente='oficial'; CFG.intervaloZonas=600; } }
-else if (!ehLocal) CFG.ambiente = 'demo';
+// Padrões: modo Oficial; zonas a cada 2 min no computador e a cada 10 min no celular.
+{
+  let sv = {}; try { sv = JSON.parse(localStorage.getItem('painelDepFed2')||'{}'); } catch(e){}
+  const telaGrande = matchMedia('(min-width: 900px)').matches;
+  PADRAO.ambiente = 'oficial';
+  PADRAO.intervaloZonas = (MODO_APP && !telaGrande) ? 600 : 120;
+  if (!sv.ambiente) CFG.ambiente = 'oficial';
+  if (!sv.intervaloZonas) CFG.intervaloZonas = PADRAO.intervaloZonas;
+  // No dia da eleição, a partir das 16h, quem ficou em Simulado ou Demonstração passa sozinho para Oficial (uma vez)
+  const virada = new Date('2026-10-04T16:00:00-03:00');
+  if (new Date() >= virada && CFG.ambiente !== 'oficial' && !sv.viradaFeita) {
+    CFG.ambiente = 'oficial';
+    try { localStorage.setItem('painelDepFed2', JSON.stringify({...sv, ambiente:'oficial', viradaFeita:true})); } catch(e){}
+  }
+}
+if (!ehLocal && !MODO_APP) CFG.ambiente = 'demo';   // prévia publicada: só dados fictícios
 
 /* ============ UTILIDADES ============ */
 const $ = id => document.getElementById(id);
@@ -1091,6 +1105,7 @@ $('btnConfig').onclick = ()=>{
 $('cfSalvar').onclick = ()=>{
   const novo = { ambiente:$('cfAmb').value, eleicao:$('cfEle').value.trim(), partidoFoco:$('cfPart').value.trim().toUpperCase()||'PSB', candidata:$('cfCand').value.trim()||'4013',
     intervalo:Math.max(20,+$('cfInt').value||120), intervaloZonas:Math.max(60,+$('cfZint').value||120), padraoZona:$('cfZpat').value.trim()||PADRAO.padraoZona };
+  if (new Date() >= new Date('2026-10-04T16:00:00-03:00')) novo.viradaFeita = true;
   try { localStorage.setItem('painelDepFed2', JSON.stringify(novo)); } catch(e){}
   Object.assign(CFG, novo); if (!ehLocal && !MODO_APP) CFG.ambiente='demo';
   TK_CONF = null; TK_PENDENTE = null; delete $('tkTrack').dataset.iniciada;
