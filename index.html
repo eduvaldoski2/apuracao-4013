@@ -283,25 +283,36 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .tabbar button[aria-current="true"] b{color:var(--accent)}
 }
 
-/* ===== tarja de notícias (só no computador) ===== */
-.ticker{display:none}
+/* ===== tarja de notícias ===== */
+.ticker{display:none;align-items:stretch;background:#241c52;color:#fff;overflow:hidden;border-top:3px solid var(--accent)}
+.tk-label{flex:none;display:flex;align-items:center;gap:8px;padding:0 26px 0 16px;background:var(--accent);color:#2a1600;font-weight:900;font-size:12.5px;line-height:1.05;letter-spacing:.06em;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%)}
+.tk-dot{width:9px;height:9px;border-radius:50%;background:#c4161c;animation:pulse 1.2s infinite}
+.tk-cat{flex:none;display:flex;flex-direction:column;justify-content:center;padding:0 22px 0 10px;background:#2f2566;border-right:2px solid var(--accent);min-width:250px}
+.tk-cat b{font-size:17px;font-weight:900;color:var(--accent);letter-spacing:.03em;line-height:1.1}
+.tk-cat .tk-parc{font-size:12.5px;line-height:1.2}
+.tk-view{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent 100%)}
+.tk-track{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform;transform:translateX(100vw)}
+.tk-item{font-size:19px;font-weight:600;padding-right:56px;font-variant-numeric:tabular-nums}
+.tk-parc{color:#c9c2ec;font-weight:600;font-size:15px}
+.tk-sep{color:#8f84d6;padding:0 8px}
+.tk-nome{font-weight:800}
+.tk-st{font-size:12px;font-weight:900;background:var(--accent);color:#2a1600;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 @media (min-width:900px){
-  body.apres .ticker{display:flex;align-items:stretch;margin:10px calc(-1 * var(--gut)) 0;height:50px;background:#241c52;color:#fff;overflow:hidden;border-top:3px solid var(--accent)}
-  .tk-label{flex:none;display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--accent);color:#2a1600;font-weight:900;font-size:12.5px;line-height:1.05;letter-spacing:.06em;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);padding-right:26px}
-  .tk-dot{width:9px;height:9px;border-radius:50%;background:#c4161c;animation:pulse 1.2s infinite}
-  .tk-view{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent 100%)}
-  .tk-cat{flex:none;display:flex;flex-direction:column;justify-content:center;padding:0 22px 0 10px;background:#2f2566;border-right:2px solid var(--accent);min-width:250px}
-  .tk-cat b{font-size:17px;font-weight:900;color:var(--accent);letter-spacing:.03em;line-height:1.1}
-  .tk-cat .tk-parc{font-size:12.5px;line-height:1.2}
-  .tk-track{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform;transform:translateX(100vw)}
-  .tk-track.parado{animation-play-state:paused}
-  .tk-item{font-size:19px;font-weight:600;padding-right:56px;font-variant-numeric:tabular-nums}
-  .tk-item b{font-weight:900;color:var(--accent);letter-spacing:.02em}
-  .tk-parc{color:#c9c2ec;font-weight:600;font-size:15px}
-  .tk-sep{color:#8f84d6;padding:0 8px}
-  .tk-nome{font-weight:800}
-  .tk-st{font-size:12px;font-weight:900;background:var(--accent);color:#2a1600;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
-  .tk-div{flex:none;width:10px;height:10px;background:var(--accent);transform:rotate(45deg);margin-right:56px}
+  body.apres .ticker{display:flex;margin:10px calc(-1 * var(--gut)) 0;height:50px}
+}
+/* celular: tarja compacta fixa logo acima da barra de abas */
+@media (max-width:899px){
+  body.mob .ticker{display:flex;position:fixed;left:0;right:0;bottom:var(--tabH,64px);height:46px;z-index:9;border-top-width:2px}
+  body.mob{padding-bottom:calc(var(--tabH,64px) + 56px)}
+  body.mob .tk-label{padding:0 16px 0 8px;font-size:9.5px;gap:5px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+  body.mob .tk-label br{display:none}
+  body.mob .tk-label .tk-lbl2{display:none}
+  body.mob .tk-cat{min-width:0;max-width:44vw;padding:0 8px 0 6px}
+  body.mob .tk-cat b{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.mob .tk-cat .tk-parc{font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.mob .tk-item{font-size:15px;padding-right:32px}
+  body.mob .tk-st{font-size:10px}
+  body.mob .tk-view{mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 calc(100% - 10px),transparent 100%)}
 }
 @keyframes tk-roll{from{transform:translateX(var(--tkIni,100vw))}to{transform:translateX(var(--tkFim,-100%))}}
 
@@ -403,7 +414,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 </div>
 
 <div class="ticker" id="ticker" aria-label="Apuração presidente, governador e senado">
-  <div class="tk-label"><span class="tk-dot"></span>APURAÇÃO<br>AO VIVO</div>
+  <div class="tk-label"><span class="tk-dot"></span><span><span class="tk-lbl2">APURAÇÃO<br></span>AO VIVO</span></div>
   <div class="tk-cat" id="tkCat"><b>APURAÇÃO 2026</b><span class="tk-parc">carregando…</span></div>
   <div class="tk-view"><div class="tk-track" id="tkTrack"><span class="tk-item">Carregando resultados de presidente, governador e senado…</span></div></div>
 </div>
@@ -1056,7 +1067,7 @@ function dadosTarjaDemo(){
   });
 }
 let TK_DADOS = null, TK_IDX = -1;
-const TK_VEL = 110;   // velocidade da rolagem (px por segundo)
+const tkVel = () => mqApres.matches ? 110 : 70;   // velocidade da rolagem (px por segundo); mais lenta no celular
 function tarjaProxima(){
   if (!TK_DADOS || !TK_DADOS.length) return;
   TK_IDX = (TK_IDX + 1) % TK_DADOS.length;
@@ -1067,11 +1078,10 @@ function tarjaProxima(){
   const vista = tr.parentElement.clientWidth, larg = tr.scrollWidth;
   tr.style.setProperty('--tkIni', vista + 'px');
   tr.style.setProperty('--tkFim', (-larg) + 'px');
-  tr.style.animation = `tk-roll ${Math.max(6, (vista + larg) / TK_VEL)}s linear 1 forwards`;
+  tr.style.animation = `tk-roll ${Math.max(6, (vista + larg) / tkVel())}s linear 1 forwards`;
 }
 $('tkTrack').addEventListener('animationend', tarjaProxima);   // terminou de passar: próxima modalidade
 async function atualizarTarja(){
-  if (!mqApres.matches) return;                     // tarja só no computador
   try {
     TK_DADOS = CFG.ambiente==='demo' ? dadosTarjaDemo() : await dadosTarjaReal();   // entra na próxima modalidade exibida
     if (TK_IDX < 0) tarjaProxima();
@@ -1225,6 +1235,7 @@ function ajustarEscala(){
   document.body.style.height = (innerHeight/f) + 'px';
 }
 // altura real do cabeçalho do celular, para os títulos das tabelas grudarem logo abaixo dele
+try { new ResizeObserver(es=>document.documentElement.style.setProperty('--tabH', es[0].target.getBoundingClientRect().height+'px')).observe($('tabbar')); } catch(e){}
 try { new ResizeObserver(es=>document.documentElement.style.setProperty('--topH', es[0].target.getBoundingClientRect().height+'px')).observe(document.querySelector('.top')); } catch(e){}
 $('tabbar').onclick = e=>{ const b=e.target.closest('button'); if (b) mostrarTela(+b.dataset.tela); };
 addEventListener('resize', ajustarEscala); ajustarEscala(); mostrarTela(0);
