@@ -132,6 +132,27 @@ tr.cand td:first-child{box-shadow:inset 4px 0 0 var(--accent)}
 tr.out td{color:var(--muted)}
 .scroll{max-height:760px;overflow-y:auto}
 .status{font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px;white-space:nowrap}
+.selo{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.03em;border-radius:4px;padding:0 5px;white-space:nowrap;border:1.5px solid transparent;line-height:1.5}
+.selo.conf{background:var(--ok);color:var(--panel);border-color:var(--ok)}
+.selo.proj{background:transparent;color:var(--ok);border:1.5px dashed var(--ok)}
+.selo.sup{background:transparent;color:var(--warn);border:1.5px dashed var(--warn)}
+.selo.sup.conf{background:var(--warn-soft);color:var(--warn);border:1.5px solid var(--warn)}
+.selo.fora{background:var(--bar);color:var(--muted)}
+.selo.fora.conf{border-color:var(--muted)}
+.hemi-leg{font-size:11.5px;color:var(--muted);margin:2px 0 8px;text-align:center}
+.hemi-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--ink);vertical-align:-1px;margin:0 3px 0 8px}
+.t22bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;background:#1f1a3d;color:#fff;padding:6px 16px;font-size:13px}
+.t22bar[hidden]{display:none}
+.t22bar b{background:var(--accent);color:#1f1a3d;border-radius:4px;padding:1px 7px;font-size:12px;letter-spacing:.05em}
+.t22bar label{display:flex;align-items:center;gap:6px}
+.t22bar input{width:180px;accent-color:var(--accent)}
+.t22bar button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:6px;padding:2px 8px;font:inherit;font-size:12px;cursor:pointer}
+.t22bar button.on{background:var(--accent);color:#1f1a3d;border-color:var(--accent)}
+@media (max-width:899px){ .t22bar .t22-txt{display:none} .t22bar input{width:110px} }
+.n-conf{font-size:11px;font-weight:800;color:var(--ok);margin-right:2px}
+.selo-leg{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.9}
+.selo-leg .selo{font-size:9.5px}
+.tr-chip.parcial{background:transparent;color:var(--ok);border:2px dashed var(--ok)}
 .status.in{background:var(--ok-soft);color:var(--ok)}
 .status.out{background:var(--bar);color:var(--muted)}
 
@@ -223,10 +244,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.apres .col-eleitos td{padding-top:2px;padding-bottom:2px}
   body.apres .col-eleitos .pt{font-size:11.5px}
   body.apres .col-eleitos .nm{display:inline;margin-right:6px}
-  body.apres .col-foco table{font-size:17px}
-  body.apres .col-foco td{padding-top:6px;padding-bottom:6px}
-  body.apres .col-foco .nm{display:inline;margin-right:8px}
-  body.apres .col-foco .pt{font-size:14px}
+  body.apres .foco-cols{grid-template-columns:repeat(2,minmax(0,1fr));flex:1;min-height:0}
+  body.apres .foco-cols .tbl-wrap{min-height:0}
+  body.apres .col-foco table{font-size:14px}
+  body.apres .col-foco td{padding-top:2px;padding-bottom:2px}
+  body.apres .col-foco .nm{display:inline;margin-right:6px}
+  body.apres .col-foco .pt{font-size:12px}
   body.apres .card table{font-size:14.5px}
   body.apres .card .zinfo{font-size:12.5px}
   body.apres .cards{flex:1;min-height:0}
@@ -276,8 +299,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.mob .top .tit{flex:1 1 60%;min-width:0}
   body.mob #chipModo{font-size:11px}
   body.mob .cards,.cidades{grid-template-columns:minmax(0,1fr)}
-  .tabbar{display:grid;grid-template-columns:repeat(8,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--brand);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.18)}
-  .tabbar button{background:transparent;border:0;color:#d8d2f4;font-size:11px;font-weight:600;display:grid;justify-items:center;gap:1px;padding:4px 0;border-radius:8px}
+  .tabbar{display:flex;overflow-x:auto;scrollbar-width:none;position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--brand);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.18)}
+  .tabbar button{flex:1 0 56px;background:transparent;border:0;color:#d8d2f4;font-size:11px;font-weight:600;display:grid;justify-items:center;gap:1px;padding:4px 0;border-radius:8px}
   .tabbar button b{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.01em}
   .tabbar button[aria-current="true"]{background:rgba(246,135,18,.22);color:#fff}
   .tabbar button[aria-current="true"] b{color:var(--accent)}
@@ -359,50 +382,65 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 }
 @media (max-width:899px){ body.mob .tabbar button{font-size:10px} body.mob .tabbar button b{font-size:13px} }
 
-/* ===== deputados estaduais ===== */
-:root{ --g-psb:#F68712; --g-fe:#C4161C; --g-psol:#D9A400; }
-.de-wrap{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
-.de-resumo{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-.de-chip{display:flex;align-items:center;gap:8px;border-radius:8px;padding:5px 10px;background:var(--bar);font-weight:700;font-size:13px}
-.de-chip b{font-family:var(--f-display);font-size:22px;font-weight:900;line-height:1}
-.de-chip i{width:10px;height:10px;border-radius:3px;display:inline-block}
-.de-cols{display:grid;gap:10px 16px;grid-template-columns:minmax(0,1fr)}
-.de-lista td{padding-top:3px;padding-bottom:3px}
-.de-lista tr.g-psb td{background:color-mix(in srgb, var(--g-psb) 16%, transparent)}
-.de-lista tr.g-fe td{background:color-mix(in srgb, var(--g-fe) 13%, transparent)}
-.de-lista tr.g-psol td{background:color-mix(in srgb, var(--g-psol) 18%, transparent)}
-.de-lista tr.g-psb td:first-child{box-shadow:inset 4px 0 0 var(--g-psb)}
-.de-lista tr.g-fe td:first-child{box-shadow:inset 4px 0 0 var(--g-fe)}
-.de-lista tr.g-psol td:first-child{box-shadow:inset 4px 0 0 var(--g-psol)}
-.de-grupos{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
-.de-g{background:var(--panel);border:1px solid var(--line);border-top:6px solid var(--gc);border-radius:10px;padding:12px 14px;min-width:0;display:flex;flex-direction:column}
-.de-g h3{font-size:18px;color:var(--ink)}
-.de-g .de-n{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px}
-.de-g .de-n b{font-family:var(--f-display);font-size:40px;font-weight:900;color:var(--gc);line-height:1}
-.de-g .de-n span{font-size:13px;color:var(--muted)}
-.de-g table{font-size:13.5px}
-.de-g td{padding:3px 4px}
-.de-g td.r{white-space:nowrap}
-.de-g table{table-layout:fixed}
-.de-g th:nth-child(1){width:1.9em}.de-g th:nth-child(3){width:4.6em}.de-g th:nth-child(4){width:4.4em}
-.de-g .status{font-size:10px;padding:1px 4px}
-.de-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.de-sub{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0}
-.de-lista .pt{white-space:nowrap}
+/* ===== município em destaque ===== */
+.mu-sel{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:end;padding:10px 14px}
+.mu-sel label{display:grid;gap:3px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.mu-sel select{font:inherit;font-size:15px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:190px;max-width:100%}
+.mu-sel .mu-cand{flex:1 1 300px}
+.mu-sel .mu-cand select{width:100%}
+#munBNota{font-size:11px;line-height:1.35;margin-top:6px}
+.mu-pos{font-weight:800;color:var(--accent-ink)}
+@media (max-width:899px){ .mu-sel{gap:6px 8px;padding:8px 10px} .mu-sel label{flex:1 1 40%;font-size:9.5px} .mu-sel .mu-cand{flex-basis:100%} .mu-sel select{width:100%;font-size:14px;padding:4px 6px;min-width:0} }
 @media (min-width:900px){
-  .de-wrap{grid-template-columns:minmax(0,1.2fr) minmax(0,1.8fr)}
-  .de-grupos{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .mu-cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.apres .mu-sel{padding:6px 14px}
+  body.apres .mu-sel select{font-size:14px;padding:4px 8px}
+}
+
+/* ===== deputados estaduais ===== */
+.de-wrap{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.de-top{padding-bottom:10px}
+.de-partidos{display:flex;flex-wrap:wrap;gap:6px}
+.de-pchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:4px 9px;background:var(--panel);color:var(--ink);font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.de-pchip i{width:10px;height:10px;border-radius:3px;background:var(--pc)}
+.de-pchip b{font-family:var(--f-display);font-size:19px;font-weight:900;line-height:1}
+.de-pchip small{font-size:10.5px;font-weight:800;color:var(--ok)}
+.de-pchip.zero{opacity:.55}
+.de-pchip.sel{border-color:var(--pc);box-shadow:inset 0 0 0 2px var(--pc);background:color-mix(in srgb, var(--pc) 14%, var(--panel));opacity:1}
+.de-main{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.de-cols{display:grid;gap:10px 16px;grid-template-columns:minmax(0,1fr)}
+.de-lista td,.de-det td{padding-top:3px;padding-bottom:3px}
+.de-lista .pt,.de-det .pt{white-space:nowrap}
+.de-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.de-lista table,.de-det table{table-layout:fixed}
+.de-lista th:nth-child(1),.de-det th:nth-child(1){width:2.2em}
+.de-lista th:nth-child(3),.de-det th:nth-child(3){width:5.2em}
+.de-lista th:nth-child(4){width:4.8em}
+.de-lista th:nth-child(5),.de-det th:nth-child(4){width:10.4em}
+.de-lista tr.sel td{background:color-mix(in srgb, var(--pc) 14%, transparent)}
+.de-lista tr.sel td:first-child{box-shadow:inset 4px 0 0 var(--pc)}
+.de-det{border-top:6px solid var(--pc,var(--brand))}
+.de-det h2 i{display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--pc);margin-right:6px;vertical-align:1px}
+.de-det-res{font-size:13px;color:var(--muted);margin:0 0 6px}
+.de-det-res b{color:var(--ink)}
+@media (max-width:899px){ .de-top .box-head{display:block} .de-top h2{font-size:18px;margin-bottom:2px} .de-pchip{padding:2px 7px;font-size:12px;gap:4px} .de-pchip b{font-size:15px} .de-partidos{gap:5px} }
+@media (min-width:900px){
+  .de-main{grid-template-columns:minmax(0,2.1fr) minmax(0,1fr)}
   .de-cols{grid-template-columns:repeat(2,minmax(0,1fr))}
-  body.apres .de-wrap{height:100%;min-height:0}
-  body.apres .de-lista{display:flex;flex-direction:column;min-height:0}
+  body.apres .de-wrap{height:100%;min-height:0;display:flex;flex-direction:column;gap:10px}
+  body.apres .de-top{padding:8px 14px}
+  body.apres .de-pchip{padding:2px 7px;font-size:12px}
+  body.apres .de-pchip b{font-size:16px}
+  body.apres .de-main{flex:1;min-height:0}
+  body.apres .de-lista,body.apres .de-det{display:flex;flex-direction:column;min-height:0}
   body.apres .de-cols{flex:1;min-height:0}
-  body.apres .de-cols .scroll{min-height:0;overflow-y:auto}
-  body.apres .de-lista table{font-size:12.5px}
+  body.apres .de-cols .scroll,body.apres .de-det .scroll{min-height:0;overflow-y:auto;flex:1;max-height:none}
+  body.apres .de-lista table,body.apres .de-det table{font-size:12.5px}
   body.apres .de-lista th:nth-child(4),body.apres .de-lista td:nth-child(4){display:none}
-  body.apres .de-grupos{min-height:0}
-  body.apres .de-g{min-height:0}
-  body.apres .de-g .tbl-wrap{flex:1;min-height:0;overflow-y:auto}
-  body.apres .de-g thead th{position:sticky;top:0;background:var(--panel);box-shadow:inset 0 -1px 0 var(--line)}
+  body.apres .de-lista .selo-leg{margin-top:4px;line-height:1.6}
+  body.apres .de-lista td:nth-child(2),body.apres .de-det td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  body.apres .de-lista .de-nm,body.apres .de-det .de-nm{display:inline;margin-right:6px}
+  body.apres .de-lista .pt,body.apres .de-det .pt{font-size:11px}
 }
 @media (max-width:899px){ body.mob .tabbar button{font-size:9.5px} body.mob .tabbar button b{font-size:12px} }
 </style>
@@ -420,6 +458,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button id="btnConfig" type="button">Configurações</button>
 </header>
 <div class="progress" aria-hidden="true"><i id="barApur" style="width:0%"></i></div>
+<div class="t22bar" id="t22bar" hidden>
+  <b>AMBIENTE DE TESTE</b><span class="t22-txt">Eleição 2022 · dados oficiais do TSE · apuração simulada</span>
+  <label>Seções apuradas <input type="range" id="t22p" min="0" max="100" step="1" value="100"> <output id="t22v" class="num">100%</output></label>
+  <button type="button" id="t22auto">▶ Avançar sozinho</button>
+  <button type="button" data-p="10">10%</button><button type="button" data-p="50">50%</button><button type="button" data-p="85">85%</button><button type="button" data-p="100">100%</button>
+</div>
 
 <div class="telas" id="telas">
   <!-- Tela 1: totalização + cadeiras -->
@@ -439,6 +483,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="t1-right">
         <div class="eyebrow">Cadeiras nesta parcial</div>
         <svg class="hemi" id="hemi" viewBox="0 0 200 106" role="img" aria-label="Distribuição das cadeiras"></svg>
+        <p class="hemi-leg" id="hemiLeg"></p>
         <ul class="seats" id="seatList"></ul>
       </div>
     </div>
@@ -473,18 +518,20 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r pj">Projeção (pos.)</th><th></th></tr></thead><tbody id="tbEleitosA"></tbody></table></div>
         <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r pj">Projeção (pos.)</th><th></th></tr></thead><tbody id="tbEleitosB"></tbody></table></div>
       </div>
+      <p class="selo-leg"></p>
       <p class="legend-proj" id="projNota1"></p>
     </div>
   </section>
 
-  <!-- Tela 3: PSB top 15 -->
-  <section class="tela" data-nome="PSB top 15">
+  <!-- Tela 3: todas as candidaturas do partido em destaque -->
+  <section class="tela" data-nome="PSB">
     <div class="box col-foco">
-      <div class="box-head"><h2 id="focoTitulo">PSB · 15 mais votados</h2><span class="eyebrow" id="focoResumo"></span></div>
-      <div class="tbl-wrap scroll">
-        <table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% geral</th><th class="r pj">Projeção (pos.)</th><th></th></tr></thead>
-        <tbody id="tbFoco"></tbody></table>
+      <div class="box-head"><h2 id="focoTitulo">PSB · todas as candidaturas</h2><span class="eyebrow" id="focoResumo"></span></div>
+      <div class="eleitos-cols foco-cols">
+        <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% geral</th><th class="r pj">Projeção (pos.)</th><th class="r">Situação</th></tr></thead><tbody id="tbFoco"></tbody></table></div>
+        <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% geral</th><th class="r pj">Projeção (pos.)</th><th class="r">Situação</th></tr></thead><tbody id="tbFocoB"></tbody></table></div>
       </div>
+      <p class="selo-leg"></p>
       <p class="legend-proj" id="projNota2"></p>
     </div>
   </section>
@@ -503,17 +550,49 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="cidades" id="cidades"></div>
   </section>
 
-  <section class="tela" data-nome="Dep. estaduais">
-    <div class="de-wrap">
-      <div class="box de-lista">
-        <div class="box-head"><h2>Deputados estaduais eleitos · RJ</h2><span class="eyebrow" id="deMeta"></span></div>
-        <div class="de-resumo" id="deResumo"></div>
-        <div class="de-cols">
-          <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th></tr></thead><tbody id="deA"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
-          <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th></tr></thead><tbody id="deB"></tbody></table></div>
+  <section class="tela" id="telaMun" data-nome="Município">
+    <div class="tt-wrap mu-wrap">
+      <div class="box mu-sel">
+        <label for="munSel">Município <select id="munSel"></select></label>
+        <label for="munCargo">Cargo <select id="munCargo"><option value="6">Deputado federal</option><option value="7">Deputado estadual</option><option value="5">Senador</option><option value="3">Governador</option><option value="1">Presidente</option></select></label>
+        <label for="munCand" class="mu-cand">Candidatura <select id="munCand"><option value="">Carregando…</option></select></label>
+      </div>
+      <section class="tr-box tt-box" id="munBox" aria-label="Candidatura no município"><div class="tr-head"><h3>Município em destaque</h3><span class="tr-n"></span></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Escolha o município, o cargo e a candidatura.</p></div></section>
+      <div class="tt-cols mu-cols">
+        <div class="box tt-col">
+          <div class="box-head"><h2>Zonas eleitorais</h2><span class="eyebrow" id="munZMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Zona</th><th class="r">Votos</th><th class="r">% zona</th><th class="r">Posição</th></tr></thead><tbody id="munZonas"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
+        </div>
+        <div class="box tt-col">
+          <div class="box-head"><h2>Bairros</h2><span class="eyebrow" id="munBMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos</th><th class="r" id="munBPctH">% bairro</th><th class="r">% do total</th></tr></thead><tbody id="munBairros"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
+          <p class="legend-proj" id="munBNota"></p>
         </div>
       </div>
-      <div class="de-grupos" id="deGrupos"></div>
+    </div>
+  </section>
+
+  <section class="tela" id="telaEst" data-nome="Dep. estaduais">
+    <div class="de-wrap">
+      <div class="box de-top">
+        <div class="box-head"><h2>Alerj · deputados estaduais eleitos por partido</h2><span class="eyebrow" id="deMeta"></span></div>
+        <div class="de-partidos" id="dePartidos"><span class="empty">Aparece quando o TSE começar a divulgar.</span></div>
+      </div>
+      <div class="de-main">
+        <div class="box de-lista">
+          <div class="box-head"><h2>100 mais votados</h2><span class="eyebrow">clique num partido acima para ver a lista dele</span></div>
+          <div class="de-cols">
+            <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Situação</th></tr></thead><tbody id="deA"><tr><td colspan="5" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+            <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Situação</th></tr></thead><tbody id="deB"></tbody></table></div>
+          </div>
+          <p class="selo-leg"></p>
+        </div>
+        <div class="box de-det" id="deDet">
+          <div class="box-head"><h2 id="deDetTit">Partido</h2><span class="eyebrow" id="deDetMeta"></span></div>
+          <p class="de-det-res" id="deDetRes"></p>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">Situação</th></tr></thead><tbody id="deDetLista"></tbody></table></div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
@@ -531,7 +610,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button type="button" data-tela="4"><b>1-3</b>Fichas</button>
   <button type="button" data-tela="5"><b>4-5</b>Fichas</button>
   <button type="button" data-tela="6"><b>RJ</b>Cidades</button>
-  <button type="button" data-tela="7"><b>ALERJ</b>Estaduais</button>
+  <button type="button" data-tela="7"><b>MUN</b>Município</button>
+  <button type="button" data-tela="8"><b>ALERJ</b>Estaduais</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -548,7 +628,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <form class="form" id="frm" method="dialog">
     <h2 style="font-size:22px">Configurações</h2>
     <label for="cfAmb">Ambiente
-      <select id="cfAmb"><option value="simulado">Simulado do TSE (testes)</option><option value="oficial">Oficial (dia da eleição)</option><option value="demo">Demonstração (dados fictícios)</option></select>
+      <select id="cfAmb"><option value="simulado">Simulado do TSE (testes)</option><option value="oficial">Oficial (dia da eleição)</option><option value="demo">Demonstração (dados fictícios)</option><option value="2022">Teste · eleição 2022 (dados reais do TSE)</option></select>
     </label>
     <label for="cfEle">Código da eleição <span class="hint">Em branco para detectar sozinho. No simulado, Dep. Federal fica na eleição estadual.</span>
       <input id="cfEle" inputmode="numeric" placeholder="auto">
@@ -581,16 +661,21 @@ const PADRAO = {
 // Prefixos servidos pelo servidor.py (proxy local para o TSE)
 // Códigos da eleição estadual (onde fica Deputado Federal), conforme o TSE
 // Simulado 2026 conferido no ele-c.json do TSE. O oficial é lido do ele-c.json no dia (publicado perto da eleição).
-const ELEICAO_PADRAO = { simulado:'21272', oficial:'' };
+const ELEICAO_PADRAO = { simulado:'21272', oficial:'', '2022':'546' };
 // No app de celular (index.html com data-app="1") o navegador lê o TSE direto (o TSE aceita CORS).
 const MODO_APP = document.documentElement.dataset.app === '1';
 const PREFIXO = MODO_APP ? {
   simulado: 'https://resultados-sim.tse.jus.br/simulado/simulado2026',
   oficial:  'https://resultados.tse.jus.br/oficial',
+  '2022':   'tse2022',
 } : {
   simulado: '/tse-sim/simulado/simulado2026',
   oficial:  '/tse/oficial',
+  '2022':   'tse2022',             // ambiente de teste: eleição 2022 remontada no próprio navegador (T22)
 };
+// Página de teste (teste-2022/index.html) fixa o ambiente e guarda as preferências à parte
+const AMB_FIXO = document.documentElement.dataset.amb || '';
+const CHAVE = 'painelDepFed2' + (AMB_FIXO ? '-' + AMB_FIXO : '');
 // Nomes de campos dos JSON do TSE (ajuste aqui se a especificação mudar)
 const CAMPOS = {
   votosCand: ['vap'], pctCand: ['pvap'], nomeCand: ['nmu','nm'], numCand: ['n'], destino: ['dvt'],
@@ -599,11 +684,11 @@ const CAMPOS = {
 };
 
 let CFG = {...PADRAO};
-try { Object.assign(CFG, JSON.parse(localStorage.getItem('painelDepFed2') || '{}')); } catch(e){}
+try { Object.assign(CFG, JSON.parse(localStorage.getItem(CHAVE) || '{}')); } catch(e){}
 const ehLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 // Padrões: modo Oficial; zonas a cada 2 min no computador e a cada 10 min no celular.
 {
-  let sv = {}; try { sv = JSON.parse(localStorage.getItem('painelDepFed2')||'{}'); } catch(e){}
+  let sv = {}; try { sv = JSON.parse(localStorage.getItem(CHAVE)||'{}'); } catch(e){}
   const telaGrande = matchMedia('(min-width: 900px)').matches;
   PADRAO.ambiente = 'oficial';
   PADRAO.intervaloZonas = (MODO_APP && !telaGrande) ? 600 : 120;
@@ -611,12 +696,15 @@ const ehLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
   if (!sv.intervaloZonas) CFG.intervaloZonas = PADRAO.intervaloZonas;
   // No dia da eleição, a partir das 16h, quem ficou em Simulado ou Demonstração passa sozinho para Oficial (uma vez)
   const virada = new Date('2026-10-04T16:00:00-03:00');
-  if (new Date() >= virada && CFG.ambiente !== 'oficial' && !sv.viradaFeita) {
-    CFG.ambiente = 'oficial';
-    try { localStorage.setItem('painelDepFed2', JSON.stringify({...sv, ambiente:'oficial', viradaFeita:true})); } catch(e){}
+  if (!AMB_FIXO && new Date() >= virada && CFG.ambiente !== 'oficial' && !sv.viradaFeita) {
+    CFG.ambiente = 'oficial'; CFG.eleicao = '';
+    try { localStorage.setItem(CHAVE, JSON.stringify({...sv, ambiente:'oficial', eleicao:'', viradaFeita:true})); } catch(e){}
   }
 }
+// código de eleição digitado vale só para o ambiente em que foi digitado
+if (CFG.eleicao && CFG.eleicaoAmb && CFG.eleicaoAmb !== CFG.ambiente) CFG.eleicao = '';
 if (!ehLocal && !MODO_APP) CFG.ambiente = 'demo';   // prévia publicada: só dados fictícios
+if (AMB_FIXO) CFG.ambiente = AMB_FIXO;
 
 /* ============ UTILIDADES ============ */
 const $ = id => document.getElementById(id);
@@ -632,10 +720,120 @@ let diagLog = [];
 const diag = m => { diagLog.push(m); if (diagLog.length>40) diagLog.shift(); $('diag').textContent = diagLog.join('\n'); };
 
 async function getJSON(url){
+  if (url.startsWith('tse2022/')) return T22.get(url.slice(8));
   const r = await fetch(url, {cache: MODO_APP ? 'no-cache' : 'no-store'});
   if (!r.ok) throw Object.assign(new Error('HTTP '+r.status+' em '+url), {status:r.status});
   return r.json();
 }
+/* ============ AMBIENTE DE TESTE: ELEIÇÃO 2022 COM DADOS OFICIAIS ============
+   Os arquivos de 2022 saíram do site de resultados do TSE. Aqui eles são remontados, no formato da
+   divulgação, a partir dos dados abertos do TSE (votação por município/zona, legenda, detalhe da
+   apuração e votação por seção -> bairros). A apuração é simulada: cada zona avança num ritmo próprio
+   até os 100%, quando aparecem as situações finais oficiais (eleito por QP/média, suplente...). */
+const T22 = (()=>{
+  const BASE = document.documentElement.dataset.t22 || 'https://eduvaldoski2.github.io/apuracao-4013/teste-2022/dados/';
+  const cache = {};
+  const carregar = nome => cache[nome] ??= fetch(BASE + nome).then(r=>{ if (!r.ok) throw Object.assign(new Error('HTTP '+r.status+' em '+nome), {status:r.status}); return r.json(); });
+  let P = 100;
+  try { const v = +localStorage.getItem('painelT22P'); if (v >= 0 && v <= 100 && localStorage.getItem('painelT22P') !== null) P = v; } catch(e){}
+  const h01 = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return ((h>>>0) % 100000) / 100000; };
+  // % apurado de cada zona: ritmos diferentes, todas chegam a 100% junto com o total
+  const pz = k => { if (P >= 100) return 1; if (P <= 0) return 0; const r = 0.7 + 0.6*h01(k); return Math.max(0, Math.min(1, (P/100)*r*1.12 - (r < 0.85 ? 0.04 : 0))); };
+  const hora = () => { const m = 17*60 + Math.round(P*3); return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}:00`; };
+  const fmtP = x => (Math.round(x*100)/100).toFixed(2).replace('.', ',');
+  const ELEC = { pl:[{ cd:'406', c:'ele2022', e:[
+    { cd:'544', t:'1', nm:'Eleição Geral Federal 2022 (teste)', abr:[{cd:'br', cp:[{cd:'1'}]}] },
+    { cd:'546', t:'1', nm:'Eleições Gerais Estaduais 2022 (teste)', abr:[{cd:'rj', cp:[{cd:'3'},{cd:'5'},{cd:'6'},{cd:'7'}]}] } ] }] };
+  const VAGAS = {6:46, 7:70, 5:1, 3:1, 1:1};
+  function chaves(meta, mun, zona){
+    const out = [];
+    for (const [cd, m] of Object.entries(meta.mun)) { if (mun && cd !== mun) continue; for (const z of m.z) if (!zona || z === zona) out.push(cd+'|'+z); }
+    return out;
+  }
+  function acomp(meta, cargo, ks){
+    let ts=0, st=0, te=0, c=0;
+    for (const k of ks) { const d = meta.det[cargo+'|'+k]; if (!d) continue; const p = pz(k); ts += d[1]; st += Math.round(d[1]*p); te += d[0]; c += Math.round(d[2]*p); }
+    const teAp = ks.reduce((s,k)=>{ const d = meta.det[cargo+'|'+k]; return s + (d ? d[0]*pz(k) : 0); }, 0);
+    return { ts, st, pst: ts ? 100*st/ts : 0, te, c, pc: teAp ? 100*c/teAp : 0, est: Math.round(teAp) };
+  }
+  function situacao(cargo, sit){
+    const S = String(sit||'').toUpperCase();
+    if (cargo===6 || cargo===7) {
+      if (P >= 100 || (P >= 85 && /QP/.test(S))) {          // na simulação o TSE "confirma" os eleitos por QP aos 85%
+        if (/ELEITO POR QP/.test(S)) return {e:'s', st:'Eleito por QP'};
+        if (/M[ÉE]DIA/.test(S)) return {e:'s', st:'Eleito por média'};
+        if (P >= 100 && /SUPLENTE/.test(S)) return {e:'n', st:'Suplente'};
+        if (P >= 100) return {e:'n', st:'Não eleito'};
+      }
+      return {e:'n', st:''};
+    }
+    if (P < 100) return {e:'n', st:''};
+    if (/^ELEITO/.test(S)) return {e:'s', st:'Eleito'};
+    if (/2º TURNO|2O TURNO/.test(S)) return {e:'n', st:'2º turno'};
+    return {e:'n', st:'Não eleito'};
+  }
+  async function montarU(cargo, ele, mun, zona){
+    const meta = await carregar('meta.json'), B = await carregar(`c${cargo}.json`);
+    const ks = chaves(meta, mun, zona);
+    const tot = new Array(B.cands.length).fill(0), leg = {};
+    for (const k of ks) { const p = pz(k); for (const [i,v] of (B.mz[k]||[])) tot[i] += Math.round(v*p); for (const [sg,v] of Object.entries((B.leg||{})[k]||{})) leg[sg] = (leg[sg]||0) + Math.round(v*p); }
+    const valido = i => !/anulad|cassad|indefer/i.test(B.cands[i][4]);
+    let vv = Object.values(leg).reduce((s,v)=>s+v,0); B.cands.forEach((c,i)=>{ if (valido(i)) vv += tot[i]; });
+    const agr = B.agrs.map(([id, nm, tp, partidos])=>({ n:id, nm, tp, par: partidos.map(sg=>({ sg, n:sg, tval:String(leg[sg]||0), cand:[] })) }));
+    B.cands.forEach(([n, nome, sg, ai, dvt, sit], i)=>{
+      const par = agr[ai].par.find(p=>p.sg===sg) || (agr[ai].par[0]);
+      const s = situacao(cargo, sit);
+      par.cand.push({ n, nm:nome, nmu:nome, vap:String(tot[i]), pvap: vv && valido(i) ? fmtP(100*tot[i]/vv) : '0,00', dvt: /legenda/i.test(dvt) ? 'Válido (legenda)' : dvt, e:s.e, st:s.st });
+    });
+    const a = acomp(meta, cargo, ks);
+    return { ele, dg:'02/10/2022', hg:hora(), carg:[{ cd:String(cargo), nv:String(VAGAS[cargo]||1), agr }],
+      s:{ ts:String(a.ts), st:String(a.st), pst:fmtP(a.pst) }, e:{ te:String(a.te), c:String(a.c), pc:fmtP(a.pc) }, v:{ vv:String(vv) } };
+  }
+  async function presidenteBR(){
+    const meta = await carregar('meta.json'), p = P >= 100 ? 1 : pz('br');
+    const vv = meta.br.cands.reduce((s,c)=>s+Math.round(+c[4]*p),0);
+    return { ele:'544', dg:'02/10/2022', hg:hora(), carg:[{ cd:'1', nv:'1', agr: meta.br.cands.map(([n,nome,sg,sit,v])=>{ const s = situacao(1, sit); return { n:sg, nm:sg, tp:'p', par:[{ sg, n:sg, tval:'0', cand:[{ n, nm:nome, nmu:nome, vap:String(Math.round(+v*p)), pvap: vv ? fmtP(100*Math.round(+v*p)/vv) : '0,00', dvt:'Válido', e:s.e, st:s.st }] }] }; }) }],
+      s:{ pst:fmtP(100*p) }, v:{ vv:String(vv) } };
+  }
+  async function get(caminho){
+    let m;
+    if (caminho === 'comum/config/ele-c.json') return ELEC;
+    if ((m = caminho.match(/^ele2022\/(544|546)\/config\/mun-e\d+-cm\.json$/))) {
+      const meta = await carregar('meta.json');
+      return { abr:[{ cd:'rj', ds:'RIO DE JANEIRO', mu: Object.entries(meta.mun).map(([cd,x])=>({cd, nm:x.nm, z:x.z})) }] };
+    }
+    if ((m = caminho.match(/^ele2022\/(544|546)\/dados\/(rj|br)\/(?:rj|br)-e\d+-ab\.json$/))) {
+      const meta = await carregar('meta.json'), cargo = m[1]==='544' ? 1 : 6;
+      if (m[2]==='br') { const p = pz('br'), a = acomp(meta, 1, chaves(meta)); return { abr:[{ cdabr:'br', tpabr:'br', ht:hora(), s:{ pst:fmtP(100*(P>=100?1:p)) } }, { cdabr:'rj', tpabr:'uf', ht:hora(), s:{ ts:String(a.ts), st:String(a.st), pst:fmtP(a.pst) } }] }; }
+      const abr = Object.keys(meta.mun).map(cd=>{ const a = acomp(meta, cargo, chaves(meta, cd)); return { cdabr:cd, tpabr:'mu', s:{ts:String(a.ts), st:String(a.st), pst:fmtP(a.pst)}, e:{te:String(a.te), est:String(a.est), c:String(a.c), pc:fmtP(a.pc)} }; });
+      const a = acomp(meta, cargo, chaves(meta));
+      abr.push({ cdabr:'rj', tpabr:'uf', ht:hora(), s:{ts:String(a.ts), st:String(a.st), pst:fmtP(a.pst)}, e:{te:String(a.te), est:String(a.est), c:String(a.c), pc:fmtP(a.pc)} });
+      return { abr };
+    }
+    if ((m = caminho.match(/^ele2022\/(544|546)\/dados\/(rj|br)\/(rj|br)(\d{5})?(?:-z(\d{4}))?-c(\d{4})-e\d+-u\.json$/))) {
+      const cargo = +m[6];
+      if (m[3]==='br') return presidenteBR();
+      return montarU(cargo, m[1], m[4]||null, m[5]||null);
+    }
+    throw Object.assign(new Error('HTTP 404 em (teste 2022) '+caminho), {status:404});
+  }
+  // votos reais por bairro (votação por seção de 2022), liberados no mesmo ritmo das zonas
+  async function reais(pref){
+    const b = await carregar('b6.json'), mz = {};
+    let lidas = 0;
+    for (const [mc, zonas] of Object.entries(b.mz)) for (const [zc, bairros] of Object.entries(zonas)) {
+      const p = pz(mc+'|'+zc); if (!p) continue;
+      for (const [bi, vs] of Object.entries(bairros)) {
+        const d = {_t: Math.round(vs._t*p)};
+        for (const [n,v] of Object.entries(vs)) if (n !== '_t' && n.startsWith(pref)) d[n] = Math.round(v*p);
+        ((mz[mc] ??= {})[zc] ??= {})[bi] = d;
+      }
+    }
+    return { atualizado: new Date().toISOString(), ambiente:'2022', totalizadas: Math.round(b.secoes*P/100), lidas: Math.round(b.secoes*P/100), mz };
+  }
+  return { get, reais, get P(){ return P; }, set P(v){ P = Math.max(0, Math.min(100, v)); try { localStorage.setItem('painelT22P', String(P)); } catch(e){} } };
+})();
+
 function bfs(root, pred){
   const q=[root];
   while(q.length){ const n=q.shift(); if(n&&typeof n==='object'){ if(!Array.isArray(n)&&pred(n)) return n; for(const k in n) if(n[k]&&typeof n[k]==='object') q.push(n[k]); } }
@@ -656,7 +854,7 @@ function extrair(json){
         const cc = String(node.cc); const m = cc.match(/\(([^)]+)\)/);
         agr = agrNome = cc; partido = m ? cc.split(/\s*-\s*|\s*\(/)[0].trim() : cc.trim(); tipo = m ? 'Federação' : 'Partido';
       }
-      cands.push({ n:String(pick(node,CAMPOS.numCand)||''), nome:String(pick(node,CAMPOS.nomeCand)), partido:partido||'?', agr:agr||partido||'?', votos:num(pick(node,CAMPOS.votosCand))||0, pct:pctNum(pick(node,CAMPOS.pctCand)), e:node.e, st:node.st||'' });
+      cands.push({ n:String(pick(node,CAMPOS.numCand)||''), nome:String(pick(node,CAMPOS.nomeCand)), partido:partido||'?', agr:agr||partido||'?', votos:num(pick(node,CAMPOS.votosCand))||0, pct:pctNum(pick(node,CAMPOS.pctCand)), e:node.e, st:node.st||'', soLegenda:/legenda/i.test(dvt) });
       const a = agr||partido||'?'; if(!agrs.has(a)) agrs.set(a,{id:a,nome:agrNome||a,tipo:tipo||'Partido',partidos:new Set()}); agrs.get(a).partidos.add(partido||'?');
       return;
     }
@@ -692,17 +890,48 @@ function extrair(json){
 }
 
 /* ============ CÁLCULO DAS CADEIRAS (Código Eleitoral arts. 106–109) ============ */
-function aplicarOficial(calc, d){
-  const of = d.cands.filter(c=>c.e==='s');
-  if (!of.length) return calc;
-  const eleitos = of.map(c=>({...c, via: /QP|quociente/i.test(c.st) ? 'QP' : (/m[ée]dia/i.test(c.st) ? 'Média' : (c.st||'Eleito'))})).sort((a,b)=>b.votos-a.votos);
+// Junta o cálculo do painel com o que o TSE já confirmou (e="s" / st "Eleito por QP|média").
+// O TSE confirma eleitos matematicamente antes dos 100%; os demais seguem como "eleito na parcial".
+function aplicarOficial(calc, d, vagas){
+  const eleitoTSE = c => c.e==='s' || (/eleit/i.test(c.st||'') && !/n[ãa]o\s*eleit/i.test(c.st||''));
+  const viaTSE = st => /QP|quociente/i.test(st||'') ? 'QP' : (/m[ée]dia/i.test(st||'') ? 'Média' : '');
+  const conf = new Map(d.cands.filter(eleitoTSE).map(c=>[c.n, c]));
+  let eleitos = calc.eleitos.map(c => conf.has(c.n) ? {...c, via: viaTSE(conf.get(c.n).st) || c.via, conf:true} : {...c, conf:false});
+  const faltam = [...conf.values()].filter(c=>!calc.setE.has(c.n)).map(c=>({...c, via: viaTSE(c.st) || 'Eleito', conf:true}));
+  if (faltam.length) {
+    const tirar = new Set(eleitos.filter(c=>!c.conf).sort((a,b)=>a.votos-b.votos).slice(0, faltam.length).map(c=>c.n));
+    eleitos = eleitos.filter(c=>!tirar.has(c.n)).concat(faltam);
+  }
+  eleitos.sort((a,b)=>b.votos-a.votos);
   const setE = new Set(eleitos.map(e=>e.n));
-  return { ...calc, eleitos, setE, naoEleitos: d.cands.filter(c=>!setE.has(c.n)).sort((a,b)=>b.votos-a.votos), oficial:true };
+  const naoEleitos = d.cands.filter(c=>!setE.has(c.n)).sort((a,b)=>b.votos-a.votos);
+  // situação de cada candidatura: eleito (confirmado ou parcial), suplente (ordem da agremiação), fora
+  const sit = new Map(), comCadeira = new Set(eleitos.map(e=>e.agr)), nSup = {};
+  eleitos.forEach(e=>sit.set(e.n, {tipo:'eleito', via:e.via, conf:e.conf}));
+  naoEleitos.forEach(c=>{
+    const supTSE = /suplente/i.test(c.st||'');
+    if (!c.soLegenda && (comCadeira.has(c.agr) || supTSE)) { nSup[c.agr] = (nSup[c.agr]||0) + 1; sit.set(c.n, {tipo:'suplente', ord:nSup[c.agr], conf:supTSE}); }
+    else sit.set(c.n, {tipo:'fora', conf:/n[ãa]o\s*eleit/i.test(c.st||'')});
+  });
+  const nConf = eleitos.filter(e=>e.conf).length;
+  return { ...calc, eleitos, setE, naoEleitos, sit, nConf, oficial: nConf>0 && nConf>=(vagas||eleitos.length) };
 }
+// Selo de situação: cheio com ✓ = confirmado pelo TSE; tracejado = posição na parcial (cálculo do painel)
+const viaTxt = v => v==='QP' ? 'QP' : (v && v!=='Eleito' ? 'MÉDIA' : '');
+function selo(c, calc){
+  const s = calc && calc.sit && calc.sit.get(c.n); if (!s) return '';
+  const via = viaTxt(s.via);
+  if (s.tipo==='eleito') return s.conf
+    ? `<span class="selo conf" title="Eleição confirmada pelo TSE">✓ ELEITO${via?' · '+via:''}</span>`
+    : `<span class="selo proj" title="Eleito nesta parcial pelo cálculo do painel; ainda não confirmado pelo TSE">ELEITO${via?' · '+via:''}</span>`;
+  if (s.tipo==='suplente') return `<span class="selo sup${s.conf?' conf':''}" title="${s.conf?'Suplência informada pelo TSE':'Suplência nesta parcial (ordem da agremiação)'}">${s.conf?'✓ ':''}${s.ord}º SUPL.</span>`;
+  return s.conf ? '<span class="selo fora conf">✓ NÃO ELEITO</span>' : '<span class="selo fora">FORA</span>';
+}
+const LEGENDA_SELO = '<span class="selo conf">✓ ELEITO</span> confirmado pelo TSE (costuma sair antes dos 100%) · <span class="selo proj">ELEITO</span> eleito nesta parcial, pelo cálculo do painel · <span class="selo sup">1º SUPL.</span> suplente na parcial';
 function calcularCadeiras(agrs, cands, vagas){
   const validos = agrs.reduce((s,a)=>s+a.votos,0);
   const q = validos/vagas, fl = Math.floor(q), QE = (q-fl>0.5) ? fl+1 : fl;
-  const porAgr = {}; agrs.forEach(a=>porAgr[a.id]={...a, lista:cands.filter(c=>c.agr===a.id).sort((x,y)=>y.votos-x.votos), eleitos:[]});
+  const porAgr = {}; agrs.forEach(a=>porAgr[a.id]={...a, lista:cands.filter(c=>c.agr===a.id && !c.soLegenda).sort((x,y)=>y.votos-x.votos), eleitos:[]});
   const eleitos = [];
   const eleger = (A,c,via)=>{ A.eleitos.push(c); eleitos.push({...c, via}); };
   if (QE>0) {
@@ -864,12 +1093,12 @@ async function carregarZonasReal(){
     A.secTot += tot; A.secAp += ap;
     if (!isNaN(M.pc)) { A.compSoma += M.pc*tot; A.compPeso += tot; }
   }
-  CIDADES = [...aggC.values()].map(C=>({...C, rotulo:titulo(C.rotulo)}));
+  const cidades = [...aggC.values()].map(C=>({...C, rotulo:titulo(C.rotulo)}));
   ESTADO.fontePct = secoes ? 'seções recebidas de cada zona' : 'seções totalizadas do município';
-  return [...agg.values()].map(A=>({ rotulo:A.rotulo, zona:A.zona, munRio:A.munRio, sub:[...A.subs].slice(0,2).join(' / ')+(A.subs.size>2?' e outros':''), votos:A.votos, validos:A.validos,
+  return { cidades, zonas: [...agg.values()].map(A=>({ rotulo:A.rotulo, zona:A.zona, munRio:A.munRio, sub:[...A.subs].slice(0,2).join(' / ')+(A.subs.size>2?' e outros':''), votos:A.votos, validos:A.validos,
     eleit: A.secTot,                                     // unidade da projeção: seções
     pctApurado: A.secTot ? 100*A.secAp/A.secTot : NaN,
-    pctComp: A.compPeso ? A.compSoma/A.compPeso : NaN }));
+    pctComp: A.compPeso ? A.compSoma/A.compPeso : NaN })) };
 }
 
 /* ============ DADOS: DEMONSTRAÇÃO (fictícios) ============ */
@@ -909,6 +1138,8 @@ const DEMO = (()=>{
       const agrs = Object.values(agrMap).map(a=>({...a,partidos:[...a.partidos]}));
       const validos = agrs.reduce((s,a)=>s+a.votos,0);
       cs.forEach(c=>c.pct=100*c.votos/validos);
+      // demonstração: o TSE vai confirmando os mais votados à medida que a apuração avança
+      [...cs].sort((a,b)=>b.votos-a.votos).slice(0, Math.max(0, Math.floor((this.pct()-40)/60*30))).forEach(c=>{ c.e='s'; c.st='Eleito por QP'; });
       const eleitorado = Z.reduce((s,z)=>s+z.eleit,0);
       const elApur = Z.reduce((s,z)=>s+z.eleit*z.pctApurado/100,0);
       const comparecimento = Math.round(Z.reduce((s,z)=>s+z.eleit*z.pctApurado/100*z.pctComp/100,0));
@@ -994,11 +1225,13 @@ function desenharHemiciclo(eleitos, vagas){
   let porLinha = radii.map(r=>Math.round(vagas*r/soma)); porLinha[rows-1] += vagas - porLinha.reduce((a,b)=>a+b,0);
   const pos=[]; radii.forEach((r,i)=>{ const k=porLinha[i]; for(let j=0;j<k;j++){ const th=Math.PI*(1-(k===1?0.5:j/(k-1))); pos.push({x:100+92*r*Math.cos(th), y:100-92*r*Math.sin(th), th}); } });
   pos.sort((a,b)=>b.th-a.th);
-  const cont = {}; eleitos.forEach(e=>cont[e.partido]=(cont[e.partido]||0)+1);
+  const cont = {}, contC = {}; eleitos.forEach(e=>{ cont[e.partido]=(cont[e.partido]||0)+1; if (e.conf) contC[e.partido]=(contC[e.partido]||0)+1; });
   const ordem = Object.entries(cont).sort((a,b)=>b[1]-a[1]).flatMap(([p,n])=>Array(n).fill(p));
-  svg.innerHTML = pos.map((p,i)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.1" fill="${ordem[i]?corPartido(ordem[i]):'var(--seat-empty)'}"><title>${esc(ordem[i]||'Vaga ainda não definida')}</title></circle>`).join('')
+  const confIdx = new Set(); { let i=0; Object.entries(cont).sort((a,b)=>b[1]-a[1]).forEach(([p,n])=>{ for (let k=0;k<n;k++,i++) if (k < (contC[p]||0)) confIdx.add(i); }); }
+  const temConf = Object.keys(contC).length > 0;
+  svg.innerHTML = pos.map((p,i)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.1" fill="${ordem[i]?corPartido(ordem[i]):'var(--seat-empty)'}"${ordem[i] && temConf && !confIdx.has(i) ? ' fill-opacity=".45"' : ''}><title>${esc(ordem[i] ? ordem[i]+(confIdx.has(i)?' · confirmado pelo TSE':' · parcial') : 'Vaga ainda não definida')}</title></circle>`).join('')
     + `<text x="100" y="97" text-anchor="middle" font-family="Albert Sans, Helvetica, Arial, sans-serif" font-weight="900" font-size="20" fill="var(--ink)">${eleitos.length}/${vagas}</text>`;
-  return cont;
+  return {cont, contC};
 }
 
 function render(d, calc){
@@ -1013,26 +1246,31 @@ function render(d, calc){
   $('qeLine').innerHTML = `<span>Quociente eleitoral <b>${fmt(calc.QE_TSE||calc.QE)}</b>${calc.QE_TSE?' (TSE)':''}</span><span>10% QE <b>${fmt(calc.QE*.1)}</b></span><span>20% QE <b>${fmt(calc.QE*.2)}</b></span><span>80% QE <b>${fmt(calc.QE*.8)}</b></span>`;
 
   renderCandidata(d, calc);
-  const cont = desenharHemiciclo(calc.eleitos, VAGAS);
+  const {cont, contC} = desenharHemiciclo(calc.eleitos, VAGAS);
+  $('hemiLeg').innerHTML = calc.nConf ? `<i></i>cor cheia: confirmado pelo TSE (${calc.nConf}) <i style="opacity:.4"></i>cor clara: eleito na parcial (${calc.eleitos.length-calc.nConf})` : 'Nenhuma cadeira confirmada pelo TSE ainda: todas são da parcial (cálculo do painel).';
   $('seatList').innerHTML = Object.entries(cont).sort((a,b)=>b[1]-a[1]).map(([p,n])=>{
     const ag = d.agrs.find(a=>a.partidos.includes(p)); const fed = ag && ag.tipo!=='Partido' && ag.id!==p ? ` <span class="pt">${esc(ag.nome)}</span>` : '';
-    return `<li class="${p.toUpperCase()===foco?'foco':''}"><span class="sw" style="background:${corPartido(p)}"></span><span>${esc(p)}${fed}</span><span class="n num">${n}</span></li>`; }).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
+    return `<li class="${p.toUpperCase()===foco?'foco':''}"><span class="sw" style="background:${corPartido(p)}"></span><span>${esc(p)}${fed}</span><span class="n num">${contC[p] ? `<small class="n-conf" title="confirmados pelo TSE">✓${contC[p]}</small> ` : ''}${n}</span></li>`; }).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
 
   const pctV = c => 100*c.votos/calc.validos;
   const linha = (c,i,extra='') => `<tr class="${c.n===CFG.candidata?'cand':(c.partido.toUpperCase()===foco?'foco':'')} ${extra}"><td class="rk">${i}</td><td><div class="nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pctV(c))}</td><td class="r num pj">${fmt(projDe(c))}${posProj(c)}</td>`;
-  $('eleitosLbl').textContent = `${calc.eleitos.length} de ${VAGAS} · ${calc.oficial ? 'situação oficial do TSE' : 'cálculo do painel'}`;
-  const rowsE = calc.eleitos.map((c,i)=>linha(c,i+1)+`<td><span class="via ${c.via==='QP'?'qp':''}">${c.via}</span></td></tr>`);
+  $('eleitosLbl').textContent = `${calc.eleitos.length} de ${VAGAS} · ${calc.oficial ? 'todos confirmados pelo TSE' : (calc.nConf ? calc.nConf+' confirmados pelo TSE' : 'cálculo do painel · nenhum confirmado pelo TSE ainda')}`;
+  document.querySelectorAll('.selo-leg').forEach(el=>el.innerHTML = LEGENDA_SELO);
+  const rowsE = calc.eleitos.map((c,i)=>linha(c,i+1)+`<td>${selo(c,calc)}</td></tr>`);
   const metade = Math.ceil(VAGAS/2);
   $('tbEleitosA').innerHTML = rowsE.slice(0,metade).join('');
   $('tbEleitosB').innerHTML = rowsE.slice(metade).join('')
-    + (calc.naoEleitos.length ? `<tr><td colspan="6" class="cut-label">Primeiros fora</td></tr>` + calc.naoEleitos.slice(0,5).map((c,i)=>linha(c,'',`out`)+'<td></td></tr>').join('') : '');
+    + (calc.naoEleitos.length ? `<tr><td colspan="6" class="cut-label">Primeiros fora</td></tr>` + calc.naoEleitos.slice(0,5).map((c,i)=>linha(c,'',`out`)+`<td>${selo(c,calc)}</td></tr>`).join('') : '');
 
   const doFoco = d.cands.filter(c=>c.partido.toUpperCase()===foco).sort((a,b)=>b.votos-a.votos);
   const eleitosFoco = doFoco.filter(c=>calc.setE.has(c.n)).length;
   const votosFoco = d.agrs.filter(a=>a.partidos.map(x=>x.toUpperCase()).includes(foco)).reduce((s,a)=>s+a.votos,0);
-  $('focoTitulo').textContent = `${foco} · 15 mais votados`;
+  $('focoTitulo').textContent = `${foco} · todas as ${doFoco.length} candidaturas`;
   $('focoResumo').textContent = `${eleitosFoco} eleito${eleitosFoco===1?'':'s'} · ${fmtP(100*votosFoco/calc.validos,1)} dos válidos`;
-  $('tbFoco').innerHTML = doFoco.slice(0,15).map((c,i)=>`<tr class="${c.n===CFG.candidata?'cand':''}"><td class="rk">${i+1}</td><td><div class="nm">${esc(c.nome)}</div><span class="pt">${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pctV(c))}</td><td class="r num pj">${fmt(projDe(c))}${posProj(c)}</td><td class="r">${calc.setE.has(c.n)?'<span class="status in">Eleito</span>':'<span class="status out">Fora</span>'}</td></tr>`).join('') || `<tr><td colspan="6" class="empty">Nenhum candidato do ${esc(foco)} encontrado.</td></tr>`;
+  const linhaF = (c,i)=>`<tr class="${c.n===CFG.candidata?'cand':''}"><td class="rk">${i+1}</td><td><div class="nm">${esc(c.nome)}</div><span class="pt">${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pctV(c))}</td><td class="r num pj">${fmt(projDe(c))}${posProj(c)}</td><td class="r">${selo(c,calc)}</td></tr>`;
+  const metF = Math.ceil(doFoco.length/2);
+  $('tbFoco').innerHTML = doFoco.slice(0,metF).map((c,i)=>linhaF(c,i)).join('') || `<tr><td colspan="6" class="empty">Nenhum candidato do ${esc(foco)} encontrado.</td></tr>`;
+  $('tbFocoB').innerHTML = doFoco.slice(metF).map((c,i)=>linhaF(c,metF+i)).join('');
   document.querySelectorAll('.cardsTitulo').forEach((el,k)=>el.textContent = `${k===0?'1º a 3º':'4º e 5º'} mais votados do ${foco} · zonas e cidades`);
   const recorte = ESTADO.modoZona==='municipio' ? 'municípios' : 'zonas eleitorais';
   const nota = PROJ ? `Projeção final somando todas as ${PROJ.nZonas} ${recorte} do estado, cada uma no ritmo das suas seções já apuradas${ESTADO.fontePct?' ('+ESTADO.fontePct+')':''}${PROJ.completo?'':'; zonas não lidas completadas pelo total do estado'}. Entre parênteses, a posição final geral segundo a projeção.` : 'Projeção aparece quando os dados por zona terminarem de carregar.';
@@ -1080,7 +1318,7 @@ function renderCards(){
         <div class="sec-t">Ranking de cidades</div>${tabela(CIDADES||[], 'cidade', LIMITE_C[c.n]||5, 'maisc', 'Cidade', '% cid.')}</div>`;
     }
     return `<article class="card ${c.n===CFG.candidata?'cand':''}"><div class="who"><div><div class="eyebrow">${esc(c.partido)} · ${esc(c.n)}</div><h3>${esc(c.nome)}</h3></div><div class="pos">${i+1}º</div></div>
-      <div class="tot num"><b>${fmt(c.votos)}</b> votos · ${fmtP(100*c.votos/calc.validos)} dos válidos<br>Projeção final <b style="color:var(--accent-ink)">${fmt(projDe(c))}</b>${RANK_PROJ[c.n]?` <b style="color:var(--accent-ink)">(${RANK_PROJ[c.n]}º geral)</b>`:''} · ${calc.setE.has(c.n)?'<span class="status in">Eleito</span>':'<span class="status out">Fora</span>'}</div>${corpo}</article>`;
+      <div class="tot num"><b>${fmt(c.votos)}</b> votos · ${fmtP(100*c.votos/calc.validos)} dos válidos<br>Projeção final <b style="color:var(--accent-ink)">${fmt(projDe(c))}</b>${RANK_PROJ[c.n]?` <b style="color:var(--accent-ink)">(${RANK_PROJ[c.n]}º geral)</b>`:''} · ${selo(c,calc)}</div>${corpo}</article>`;
   });
   // Tela de ranking de cidades: 10 primeiras cidades de cada candidatura
   $('cidTitulo').textContent = `Ranking de cidades · ${top5.length} mais votados do ${CFG.partidoFoco.toUpperCase()}`;
@@ -1214,11 +1452,17 @@ function renderCandidata(d, calc){
   let chip, detalhe;
   const fem = c.n==='4013', ELEITO = fem ? 'ELEITA' : 'ELEITO(A)';
   rotulosCandidata(c);
-  if (eleita) { const e = calc.eleitos.find(x=>x.n===c.n); chip = `<span class="tr-chip eleita">${ELEITO}</span>`; detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}${e && e.via ? ' · vaga por '+(e.via==='QP'?'quociente partidário':e.via.toLowerCase()) : ''}`; }
-  else if (cadeiras > 0) {
-    const acimaFora = doPartido.slice(0, posPart-1).filter(x=>!calc.setE.has(x.n)).length;
-    chip = `<span class="tr-chip suplente">${acimaFora+1}ª SUPLENTE</span>`;
-    const ultimo = doPartido.filter(x=>calc.setE.has(x.n)).pop();
+  const S = calc.sit ? calc.sit.get(c.n) : null;
+  if (eleita) {
+    const e = calc.eleitos.find(x=>x.n===c.n), conf = e && e.conf;
+    chip = conf ? `<span class="tr-chip eleita" title="Eleição confirmada pelo TSE">✓ ${ELEITO} · CONFIRMAD${fem?'A':'O(A)'} PELO TSE</span>`
+                : `<span class="tr-chip parcial" title="Posição na parcial; ainda não confirmada pelo TSE">${ELEITO} NA PARCIAL</span>`;
+    detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}${e && e.via ? ' · vaga por '+(e.via==='QP'?'quociente partidário':'média') : ''}${conf ? '' : ' · ainda sem confirmação do TSE'}`;
+  }
+  else if (cadeiras > 0 || (S && S.tipo==='suplente')) {
+    const ord = S && S.tipo==='suplente' ? S.ord : doPartido.slice(0, posPart-1).filter(x=>!calc.setE.has(x.n)).length + 1;
+    chip = `<span class="tr-chip suplente">${S && S.conf ? '✓ ' : ''}${ord}ª SUPLENTE${S && S.conf ? ' · TSE' : ' NA PARCIAL'}</span>`;
+    const ultimo = todos.filter(x=>x.agr===c.agr && calc.setE.has(x.n)).pop();   // lista da agremiação (federação conta junto)
     detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}` + (ultimo && ultimo.votos >= c.votos ? ` · faltam ${fmt(ultimo.votos - c.votos + 1)} votos para passar ${esc(ultimo.nome)}, ${fem?'a última eleita':'o(a) último(a) eleito(a)'} do partido` : '');
   } else { chip = `<span class="tr-chip sem">${esc(c.partido)} SEM CADEIRA</span>`; detalhe = `o ${esc(c.partido)} ainda não faz nenhuma cadeira nesta parcial`; }
   const pj = projDe(c);
@@ -1234,47 +1478,70 @@ function renderCandidata(d, calc){
 
 
 /* ============ TELA DA TATIANA: ZONAS, BAIRROS DO RIO E MUNICÍPIOS ============ */
-// Peso de cada bairro em cada zona da capital (eleitorado dos locais de votação). Fonte: TSE, Eleitorado por local de votação 2026.
-const RIO_BZ = {"fonte":"TSE · Eleitorado por local de votação 2026 (gerado em 29/09/2026)","bairros":["ACARI","ALTO DA BOA VISTA","ANCHIETA","ANDARAÍ","ANIL","AUGUSTO VASCONCELOS","BAIRRO DE FÁTIMA","BANCÁRIOS","BANGU","BARRA DA TIJUCA","BARRA DE GUARATIBA","BARRA OLÍMPICA","BARROS FILHO","BENFICA","BENTO RIBEIRO","BONSUCESSO","BOTAFOGO","BRÁS DE PINA","CACHAMBI","CACUIA","CAJU","CAMORIM","CAMPINHO","CAMPO GRANDE","CASCADURA","CATETE","CATIRI","CAVALCANTI","CENTRO","CIDADE DE DEUS","CIDADE NOVA","COCOTÁ","COELHO NETO","COLÉGIO","COPACABANA","CORDOVIL","COSME VELHO","COSMOS","COSTA BARROS","CURICICA","DEL CASTILHO","DEODORO","ENCANTADO","ENGENHEIRO LEAL","ENGENHO DA RAINHA","ENGENHO DE DENTRO","ENGENHO NOVO","ESTÁCIO","FLAMENGO","FREGUESIA (ILHA DO GOVERNADOR)","FREGUESIA JPA","FUNDÃO","GALEÃO","GAMBOA","GARDENIA AZUL","GLÓRIA","GRAJAÚ","GUADALUPE","GUARABU","GUARATIBA","GÁVEA","HIGIENÓPOLIS","HONÓRIO GURGEL","HUMAITA","ILHA DE GUARATIBA","INHAUMA","INHOAÍBA","IPANEMA","IRAJÁ","ITANHANGÁ","JACARÉ","JARDIM AMÉRICA","JARDIM BANGU","JARDIM BOTÂNICO","JARDIM CARIOCA","JARDIM GUANABARA","JARDIM SULACAP","LAGOA","LAPA","LARANJEIRAS","LEBLON","LEME","LINS DE VASCONCELOS","MADUREIRA","MAGALHÃES BASTOS","MANGUEIRA","MANGUINHOS","MARACANÃ","MARECHAL HERMES","MARIA DA GRAÇA","MEIER","MONERÓ","OLARIA","OSWALDO CRUZ","PACIÊNCIA","PADRE MIGUEL","PAQUETÁ","PARADA DE LUCAS","PARQUE ANCHIETA","PARQUE COLÚMBIA","PAVUNA","PECHINCHA","PEDRA DE GUARATIBA","PENHA","PENHA CIRCULAR","PIEDADE","PILARES","PITANGUEIRAS","PORTUGUESA","PRAÇA DA BANDEIRA","PRAÇA SECA","QUINTINO BOCAIUVA","RAMOS","REALENGO","RECREIO","RIACHUELO","RIBEIRA","RICARDO DE ALBUQUERQUE","RIO COMPRIDO","RIO DAS PEDRAS","ROCHA","ROCHA MIRANDA","ROCINHA","SANTA CRUZ","SANTA TERESA","SANTO CRISTO","SANTÍSSIMO","SAÚDE","SENADOR CAMARÁ","SENADOR VASCONCELOS","SEPETIBA","SÃO CONRADO","SÃO CRISTÓVÃO","SÃO FRANCISCO XAVIER","SÃO JORGE","TANQUE","TAQUARA","TAUÁ","TIJUCA","TODOS OS SANTOS","TOMAS COELHO","TOMÁS COELHO","TRIAGEM","TUBIACANGA","TURIAÇU","URCA","VARGEM GRANDE","VARGEM PEQUENA","VASCO DA GAMA","VAZ LOBO","VICENTE DE CARVALHO","VIDIGAL","VIGÁRIO GERAL","VILA DA PENHA","VILA ISABEL","VILA KENNEDY","VILA KOSMOS","VILA MILITAR","VILA VALQUEIRE","VISTA ALEGRE","ZUMBI","ÁGUA SANTA"],"zonas":{"0004":[[16,64875],[48,33183],[63,12673],[145,9222]],"0005":[[34,106743],[81,10756]],"0007":[[138,107301]],"0008":[[18,18297],[40,6446],[46,4259],[70,10700],[89,8804],[90,10169],[115,2958],[120,25012]],"0009":[[9,46874],[21,19228],[114,68042],[146,14087],[147,13784]],"0010":[[24,15633],[42,11195],[83,10321],[93,15021],[105,11115],[111,13876],[161,7744]],"0014":[[24,9045],[27,4352],[45,9994],[105,20298],[106,24647],[111,15024],[141,3108]],"0016":[[6,9567],[25,33041],[36,7365],[55,8770],[78,5176],[79,41270],[124,13832]],"0017":[[34,25402],[60,4883],[67,35533],[77,5751],[80,39053]],"0021":[[15,7318],[44,9085],[65,9652],[92,27111],[112,35358],[141,2294]],"0022":[[0,8457],[33,9597],[68,67781],[99,7733],[100,18731],[153,1764]],"0023":[[14,11439],[41,10773],[57,39084],[88,17013],[157,1372]],"0024":[[8,65062],[95,12593],[113,11242],[128,10172]],"0025":[[59,16002],[102,5183],[123,41641],[130,37493]],"0118":[[24,6508],[27,8281],[43,2969],[83,18978],[93,3104],[140,3796],[149,5611],[150,14289]],"0119":[[1,6342],[9,67296],[50,59387],[69,17463]],"0120":[[23,73435],[129,8430]],"0122":[[23,58544],[126,22782],[129,7292]],"0123":[[2,28587],[41,4727],[84,3454],[98,2620],[113,35947],[117,15056]],"0125":[[123,106137]],"0161":[[15,82909],[112,8957]],"0162":[[17,20677],[35,16835],[92,20127],[97,2984],[103,21360],[104,10426],[112,27021]],"0167":[[2,28728],[38,8346],[57,2179],[100,24317],[117,6287]],"0169":[[13,26606],[15,3392],[40,8507],[61,24507],[65,6855],[85,5380],[86,2542],[89,2590],[142,7734]],"0170":[[3,30624],[56,32744],[87,11261],[138,8420],[154,47493]],"0176":[[17,3273],[35,16253],[71,30415],[97,9443],[152,11415],[153,8555],[159,13302]],"0179":[[4,23405],[29,31149],[54,18273],[101,30265],[119,43467]],"0180":[[135,33081],[136,57732]],"0182":[[11,16013],[39,35654],[136,57806]],"0185":[[14,3782],[22,12951],[76,11615],[110,48497],[158,31194]],"0188":[[17,7290],[68,6955],[103,43466],[104,25840],[153,36111],[156,9760]],"0191":[[7,15111],[19,7773],[31,19535],[49,14757],[58,2555],[74,4589],[91,13229],[107,1688],[116,5577],[137,9681],[160,7615]],"0192":[[51,1420],[52,23415],[75,19502],[108,16736],[143,1460]],"0204":[[20,15301],[28,41923],[30,2776],[53,3399],[96,3128],[125,6008],[127,5100],[132,30498],[148,4699]],"0211":[[60,24204],[73,15695],[77,6988],[122,1638],[131,40432],[151,10938]],"0214":[[45,26159],[46,29193],[82,15751],[90,41304],[115,6901],[120,2520],[133,2979],[139,6418]],"0216":[[18,21546],[44,21262],[45,10067],[65,16152],[90,6442],[139,8750]],"0218":[[14,10059],[62,8298],[68,3746],[83,10595],[88,19852],[93,7613],[121,4512],[144,11177],[149,21872]],"0219":[[12,5678],[32,22338],[33,8905],[38,9373],[62,11891],[100,12778],[121,32897]],"0229":[[47,8979],[87,16666],[109,13706],[118,34729],[138,35421]],"0230":[[8,784],[26,3977],[72,17802],[155,39708]],"0233":[[8,16761],[95,52740],[113,34773]],"0234":[[84,25265],[113,58641]],"0238":[[5,6333],[8,42221],[126,13595],[128,47877]],"0241":[[37,10954],[94,44115],[123,19493]],"0242":[[23,51736],[66,19096],[134,1135]],"0243":[[10,5426],[59,43265],[64,12143],[102,27124]],"0245":[[23,96212],[66,10599]],"0246":[[23,18772],[37,35223],[66,7618],[94,47980],[123,1161]]}};
+// Peso de cada bairro em cada zona de cada município do RJ (eleitorado dos locais de votação).
+// Fonte: TSE, Eleitorado por local de votação 2026. Formato: mun > {nm, b:[bairros], z:{zona:[[bairro, eleitores]]}}
+const RJB = {"fonte":"TSE · Eleitorado por local de votação 2026 (gerado em 29/09/2026)","mun":{"58009":{"nm":"QUISSAMÃ","b":["ALTO ALEGRE","CENTRO","SANTA CATARINA","BARRA DO FURADO","SITIO QUISSAMÃ","CAXIAS","PENHA","MORRO ALTO"],"z":{"0255":[[0,3629],[1,6445],[2,1810],[3,1598],[4,1502],[5,3085],[6,935],[7,81]]}},"58017":{"nm":"ANGRA DOS REIS","b":["MONSUABA","ILHA DA GIPOIA","CENTRO","CAMORIM PEQUENO","JAPUÍBA","BRACUÍ","FRADE","CAMORIM","JACUECANGA","PARQUE MAMBUCABA","PARQUE BELÉM","BALNEÁRIO","VILA HISTÓRICA DE MAMBUCABA","GARATUCAIA","ENSEADA","PARQUE DAS PALMEIRAS","MORRO DA CRUZ","ILHA GRANDE","VILA VELHA","MARINAS","AREAL","CAMPO BELO","GAMBOA DO BELÉM","BANQUETA","SAO BENTO","PORTO GALO","CAPUTERA","PRAIA BRAVA","SERRA D'ÁGUA","SERTAO DO BRACUI","BONFIM","PONTAL","ARIRÓ"],"z":{"0116":[[0,5768],[1,177],[2,20941],[3,345],[7,5234],[8,10484],[11,4760],[13,2180],[15,3499],[18,659],[19,1129],[24,3073],[25,589],[26,600],[30,1078]],"0147":[[4,16383],[5,6453],[6,9538],[9,15475],[10,5331],[12,1095],[14,2350],[16,799],[17,4939],[20,3161],[21,4121],[22,945],[23,1729],[27,1394],[28,1358],[29,242],[31,1158],[32,84]]}},"58025":{"nm":"QUATIS","b":["CENTRO","JARDIM POLASTRI","NOSSA SENHORA DO ROSÁRIO","RIBEIRÃO DE SÃO JOAQUIM","FALCÃO"],"z":{"0183":[[0,6716],[1,649],[2,2343],[3,412],[4,385]]}},"58033":{"nm":"ARARUAMA","b":["PARACATU","AURORA","CLUBE DOS ENGENHEIROS","IGUABINHA","HOSPÍCIO","SÃO VICENTE","XV DE NOVEMBRO","OUTEIRO","PARATY","PARQUE HOTEL","REGAMÉ","CENTRO","FAZENDINHA","BOA PERNA","PRAIA SECA","MUTIRÃO","VILA CAPRI","PRODÍGIO","EDUCANDÁRIO","POSSE","BANANEIRAS","PONTE DOS LEITES","ITATIQUARA","ENGENHO NOVO","MORRO GRANDE","ENGENHO GRANDE","TRÊS VENDAS","BOA VISTA","SOBRADINHO","SOUBARA","MONTEIRO"],"z":{"0092":[[0,1221],[1,1076],[2,2089],[3,5938],[4,5294],[5,9487],[6,3141],[7,4198],[8,3820],[9,13013],[10,1222],[11,17981],[12,6692],[13,2429],[14,4207],[15,3070],[16,3841],[17,457],[18,3271],[19,290],[20,3502],[21,2073],[22,2959],[23,169],[24,3002],[25,2100],[26,1401],[27,950],[28,989],[29,534],[30,954]]}},"58041":{"nm":"BELFORD ROXO","b":["JARDIM REDENTOR","CENTRO","VILA PAULINE","JARDIM BOM PASTOR","SANTA AMELIA","PARQUE AMORIM","PARQUE SAO BERNARDO","HELIOPOLIS","LOTE XV","SANTA TEREZA","SHANGRILA","XAVANTE","VILAR NOVO","JARDIM GLAUCIA","NOVA AURORA","SAO BERNARDO","PIAM","PARQUE FLUMINENSE","PARQUE SAO VICENTE","PRATA","NOVA PIAM","JARDIM SANTA MARIA","SARGENTO RONCALLI","ITAIPU","PARQUE SAO JOSE","JARDIM AMERICA","BAIRRO DAS GRACAS","BELA VISTA","VALE DAS MANGUEIRAS","PARQUE ESPERANCA","WONA","RECANTUS","SAO FRANCISCO","VARZEA DA ALEGRIA","JARDIM DO IPE","AREIA BRANCA","PARQUE AFONSO","ANDRADE ARAÚJO","PARQUE FLORESTA","VILA HELIOPOLIS","PARQUE DOS FERREIRAS","BARRO VERMELHO","MARINGA","JARDIM BRASIL","SHANGRILA ROSA","VASCO","SITIO SANTA MARIA"],"z":{"0152":[[0,7892],[2,9605],[3,17600],[4,5687],[9,4087],[12,3281],[13,10623],[15,8486],[17,4255],[24,21285],[38,428],[41,5249]],"0153":[[5,2983],[8,12970],[18,12666],[21,3117],[22,9796],[28,1449],[29,2599],[30,9697],[33,2567],[34,6599],[36,3612],[40,2082],[42,6383],[43,3394],[45,1374],[46,101]],"0154":[[1,16420],[6,2791],[15,2554],[16,19222],[19,8215],[20,4599],[25,3373],[26,6916],[35,11645],[37,4330]],"0155":[[7,30840],[10,7975],[11,12763],[14,18315],[23,6422],[27,2119],[31,3332],[32,2475],[39,1278],[44,721]]}},"58050":{"nm":"BARRA DO PIRAÍ","b":["CENTRO","SANTANA","VARGEM ALEGRE","CALIFÓRNIA","QUIMICA","MATADOURO","OFICINAS VELHAS","SANTANA DE BARRA","PARQUE SAO JOAQUIM","ARTHUR CATALDI","CARVAO","BELVEDERE","DORÂNDIA","IPIABAS","PARQUE SANTANA","MORRO DO GAMA","VILA HELENA","PONTE VERMELHA","AREAL","MARACANA","BOA SORTE","CANTAO","BOCA DO MATO","SÃO JOSÉ DO TURVO","LAGO AZUL"],"z":{"0093":[[0,19152],[1,8098],[2,2721],[3,6488],[4,1184],[5,4724],[6,3772],[7,2313],[8,2432],[9,1373],[10,1325],[11,739],[12,1738],[13,3017],[14,1320],[15,1242],[16,77],[17,1715],[18,2378],[19,1827],[20,115],[21,537],[22,403],[23,532],[24,87]]}},"58068":{"nm":"CARDOSO MOREIRA","b":["CENTRO","USINA DE OUTEIRO","DOUTOR MATTOS","CACHOEIRO","SAO JOAQUIM"],"z":{"0141":[[0,4993],[1,1700],[2,392],[3,3276],[4,2255]]}},"58076":{"nm":"BARRA MANSA","b":["BOA VISTA III","LOTEAMENTO SOFIA","VILA MARIA","VILA NOVA","VILA URSULINO","SÃO LUIZ","VILA CORINGA","ANO BOM","VISTA ALEGRE","NOVA ESPERANÇA","JARDIM AMÉRICA","SÃO FRANCISCO DE ASSIS","SIDERLÂNDIA","VILA BARBARÁ","CENTRO","ROBERTO SILVEIRA","COLÔNIA SANTO ANTÔNIO","COTIARA","VILA ORLANDÉLIA","SANTA CLARA","PARAÍSO","SÃO SILVESTRE","SÃO PEDRO","CAJUEIRO","FLORIANO","NOVE DE ABRIL","SAUDADE","BOM PASTOR","BOA VISTA II","GETÚLIO VARGAS","RIALTO","ROSELÂNDIA","ESTAMPARIA","PITEIRAS","LOTEAMENTO BELO HORIZONTE","KM - 4","BOCAININHA","AMPARO","VILA INDEPENDÊNCIA","MONTE CRISTO","VILA PRINCIPAL","ANTÔNIO ROCHA","BOA SORTE","SÃO VICENTE"],"z":{"0091":[[0,6247],[1,2002],[3,9155],[5,4794],[6,4141],[7,11446],[8,6596],[9,3602],[11,2004],[13,2581],[18,1973],[19,5071],[20,3164],[22,1645],[23,1471],[24,876],[25,3170],[28,2380],[29,4429],[30,819],[31,2129],[32,719],[33,2911],[34,1508],[37,1183],[40,612],[41,454],[42,1036]],"0094":[[2,4011],[4,2745],[10,2366],[12,658],[14,12918],[15,1864],[16,5674],[17,1145],[21,3030],[26,1957],[27,2288],[35,459],[36,2632],[38,2321],[39,1436],[43,233]]}},"58084":{"nm":"VARRE-SAI","b":["CENTRO","SANTA TEREZINHA","VILA DA PRATA","SANTO ANTONIO"],"z":{"0043":[[0,7196],[1,170],[2,386],[3,1036]]}},"58092":{"nm":"BOM JARDIM","b":["DISTRITO","ALTO DE SÃO JOSÉ","MARAVILHA","CÓRREGO DE SANTO ANTONIO","CENTRO","BANQUETE","SÃO JOSÉ DO RIBEIRÃO","SÃO MIGUEL","RIBEIRÃO DE SÃO DOMINGOS","CAMPO BELO","PONTE BERÇOT","BEM-TE-VI AMARELO","BARRA ALEGRE"],"z":{"0042":[[0,224],[1,1714],[2,691],[3,829],[4,7567],[5,2492],[6,2869],[7,2959],[8,402],[9,612],[10,249],[11,648],[12,1372]]}},"58106":{"nm":"GUAPIMIRIM","b":["VALE DAS PEDRINHAS","CANECA FINA","CENTRO","VALE DO JEQUITIBÁ","MONTE OLIVETI","ORINDI","PARQUE SANTA EUGENIA","PARADA MODELO","VILA OLIMPIA","QUINTA MARIANA","PARADA IDEAL","PARQUE NOSSA SENHORA DA AJUDA","PARAÍSO","ICONHA","VARZEA ALEGRE"],"z":{"0149":[[0,4069],[1,1082],[2,13255],[3,1585],[4,678],[5,855],[6,1936],[7,12143],[8,2988],[9,2618],[10,1420],[11,657],[12,446],[13,1017],[14,192]]}},"58114":{"nm":"BOM JESUS DO ITABAPOANA","b":["CENTRO","USINA STA ISABEL - 9 DIST","CALHEIROS - 2 DIST","CARABUÇU - 4 DIST","LIA MÁRCIA","PIMENTEL MARQUES","ASA BRANCA","BAIRRO NOVO","ARRAIAL NOVO - 2 DIST","SANTA ROSA","BOM JARDIM - 10 DIST","ROSAL - 3 DIST","BARRA DO PIRAP. - 7 DIST","USINA STA MARIA - 8 DIST","SANTA TERESINHA","SERRINHA - 6 DIST","PIRAPETINGA - 5 DIST","MUTUM DE CIMA - 4 DIST"],"z":{"0095":[[0,9145],[1,1107],[2,727],[3,1450],[4,1913],[5,2260],[6,540],[7,4294],[8,388],[9,728],[10,466],[11,1207],[12,262],[13,882],[14,1469],[15,540],[16,632],[17,462]]}},"58122":{"nm":"QUEIMADOS","b":["CENTRO","VALDARIOSA","SÃO CRISTÓVÃO","JARDIM ALZIRA","VILA SAO JOAO","NOSSA SENHORA DA GLORIA","VILA DO TINGUÁ","SÃO FRANCISCO","FANCHEM","CAMARIM","SANTA CATARINA","VILA CENTRAL","PARAISO","JARDIM DA FONTE","BELMONTE","FLESMAM","SANTO EXPEDITO","VILA PACAEMBU","VILA CAMARIM","TRES FONTES","SÃO JORGE","NOVA CIDADE","SAO MIGUEL","VILA GUIMARÃES","VILA AMERICANA","SÃO ROQUE","VILA COIMBRA","INCONFIDENCIA","PARQUE SAO BARTOLOMEU"],"z":{"0138":[[0,13847],[1,3841],[2,2443],[3,4047],[4,3572],[5,8720],[6,11392],[7,2447],[8,7886],[9,5092],[10,2106],[11,1048],[12,6466],[13,3095],[14,5093],[15,2478],[16,903],[17,2359],[18,1012],[19,1810],[20,589],[21,1316],[22,3828],[23,1722],[24,1390],[25,2079],[26,1089],[27,2131],[28,801]]}},"58130":{"nm":"CABO FRIO","b":["AQUÁRIOS","PERÓ","CENTRO","JARDIM ESPERANÇA","PARQUE BURLE","UNAMAR","PRAIA DO SIQUEIRA","PORTINHO","GUARANI","BRAGA","COLINAS DO PERÓ","PASSAGEM","PORTO DO CARRO","GAMBOA","VILA NOVA","TANGARÁ","ARAÇÁ","JARDIM FLAMBOYANT","SÃO CRISTÓVÃO","JARDIM CAIÇARA","MONTE ALEGRE","JACARÉ","MARIA JOAQUINA","GURIRI","FLORESTINHA","SAMBURÁ","CAMPOS NOVOS","JARDIM EXCELSIOR","SANTO ANTÔNIO","PACHECO","BOTAFOGO","ANGELIM","SÃO JACINTO"],"z":{"0096":[[2,13116],[4,9121],[6,2102],[7,2863],[8,2397],[9,5718],[11,3389],[14,4576],[17,5462],[18,18300],[19,7257],[27,2766]],"0256":[[0,14532],[1,6322],[3,22359],[5,19222],[10,3275],[12,4536],[13,3041],[15,5115],[16,234],[20,2146],[21,6666],[22,2225],[23,2005],[24,1412],[25,4106],[26,1920],[28,724],[29,485],[30,1318],[31,397],[32,575]]}},"58149":{"nm":"JAPERI","b":["PARQUE MUCAJA","CENTRO","CHACRINHA","CENTRO ENG PEDREIRA","COSME E DAMIAO","ENGENHEIRO PEDREIRA","ALECRIM","VILA SANTA AMELIA","NOVA BELEM","VILA CENTRAL","JARDIM MARAJOARA","PEDRA LISA","JARDIM DELAMARE","RIO D'OURO","JARDIM AMARALINA"],"z":{"0139":[[0,10047],[1,5706],[2,5742],[3,13756],[4,8785],[5,5309],[6,3851],[7,3015],[8,9046],[9,2926],[10,2104],[11,1958],[12,2992],[13,447],[14,968]]}},"58157":{"nm":"CACHOEIRAS DE MACACU","b":["FARAO DE CIMA","CAMPO DO PRADO","JAPUIBA","PARQUE RIBEIRA","SAO FRANCISCO DE ASSIS","BOA SORTE","GANGURI DE BAIXO","VECCHI","AGRO BRASIL","PAPUCAIA","BOA VISTA","CASTALIA","VILA AGRO BONANZA","MARUBAI","BOCA DO MATO","SAO JOSE DA BOA MORTE","QUIZANGA","PARQUE SANTA LUIZA","FUNCHAL","MATUMBO","MARAPORA","CENTRO","GUAPIACU","SETENTA"],"z":{"0049":[[0,458],[1,7756],[2,7279],[3,3840],[4,1070],[5,181],[6,5208],[7,264],[8,1066],[9,9101],[10,897],[11,982],[12,194],[13,486],[14,622],[15,1737],[16,385],[17,1853],[18,604],[19,708],[20,668],[21,369],[22,618],[23,376]]}},"58165":{"nm":"COMENDADOR LEVY GASPARIAN","b":["AFONSO ARINOS","MONT SERRAT","FONSECA ALMEIDA","CENTRO","RETA","GROTAO","FABRICA","GULF"],"z":{"0040":[[0,604],[1,546],[2,2045],[3,2244],[4,329],[5,1143],[6,231],[7,891]]}},"58173":{"nm":"CAMBUCI","b":["CENTRO","FUNIL","SÃO JOÃO DO PARAÍSO","MONTE VERDE","TRES IRMAOS","CRUZEIRO"],"z":{"0097":[[0,6660],[1,815],[2,3118],[3,386],[4,867],[5,450]]}},"58181":{"nm":"APERIBÉ","b":["VERDES CAMPOS","CENTRO","PALMEIRAS"],"z":{"0034":[[0,3166],[1,3973],[2,2996]]}},"58190":{"nm":"CAMPOS DOS GOYTACAZES","b":["CENTRO","CUSTODOPOLIS","PARQUE NOVA BRASÍLIA","BREJO GRANDE 7º DISTRITO","LAPA","JARDIM CARIOCA","PARQUE TAMANDARÉ","PONTA GROSSA","PARQUE AURORA","SATURNINO BRAGA","PARQUE TROPICAL","PONTA DA LAMA","SANTO AMARO - FAZENDA AGUA FRIA","IBITIOCA","GUANDU 7º DISTRITO","PARQUE JOQUEI CLUB","CAJU","GOITACAZES","TURF CLUB","CARVAO","TRÊS VENDAS","PARQUE ESPLANADA","PARQUE SAO CAETANO","PARQUE ELDORADO","KM 13 7º DISTRITO","TRAVESSÃO 7 DISTRITO","PARQUE NOVO MUNDO","PARQUE GUARUS","MUSSUREPE","MARRECAS","DONANA","URURAI","PARQUE PENHA","DORES DE MACABU","PARQUE FUNDÃO","PARQUE PRAZERES","VILA NOVA 20 DISTRITO","COQUEIRO DE TOCOS","MORANGABA","PARQUE CODIN","USINA SANTA CRUZ","PARQUE PRESIDENTE VARGAS","BEIRA DO TAI","PARQUE CALABOUCO","ESPINHO","MORRO DO COCO 12 DISTRITO","QUILOMBO","PARQUE TURF CLUB","FAROL DE SAO TOME","PARQUE SÃO MATEUS","SANTA MARIA 18 DISTRITO","RETIRO","MARTINS LAGE","SANTO AMARO 3 DISTRITO","PARQUE LEOPOLDINA","PARQUE ALDEIA","RIBEIRO DO AMARO 7º DISTRITO","PARQUE SANTA ROSA","PARQUE ROSÁRIO","TOCOS","PARQUE SANTA ANA","HORTO","PARQUE RODOVIÁRIO","MINEIROS","ALTO DO ELIZEU","PARQUE NOVA CANAÃ 7º DISTRITO","SÃO LUIZ DE MUTUCA 12º DISTRITO","ALTO DO IMBÉ","NOVO JOCKEY","LAGOA DE CIMA","KM 08 - 7º DISTRITO","MARCELO","PARQUE JOÃO MARIA","CABOIO","SAO BENTO","PELINCA","SANTO EDUARDO 13 DISTRITO","PARQUE CIDADE LUZ","BAIXA GRANDE","VENDA NOVA","PARQUE SANTA HELENA","MURUNDU 13º DISTRITO","LARGO DO GARCIA","JARDIM AEROPORTO","PARQUE SAO JORGE","FAZENDA DA PENHA - FAZENDA CHALITA","CAMPO NOVO","PONTO DE COQUEIROS","POCO GORDO","SESMARIA 12º DISTRITO","CONSELHEIRO JOSINO 20 DISTRITO","BABOSA","SAO SEBASTIAO","CHAVE DE PARAISO 20 DISTRITO","ITERERE","PARQUE SÃO JOSE","AREIA BRANCA 12º DISTRITO","ESPIRITO SANTINHO 13º DISTRITO","CALABOUCO","PARQUE SANTA MARIA","USINA SAPUCAIA","PALMARES 18º DISTRITO","PARQUE IMPERIAL","TAPERA","SAO MARTINHO","USINA DO QUEIMADO","CAIXETA - IBITIOCA 10º DISTRITO","BOA VISTA","MATA DA CRUZ 18º DISTRITO","SANTA BÁRBARA 18º DISTRITO","SERRINHA","PQ CALIFORNIA","PECUÁRIA","BALANÇA RANGEL 7º DISTRITO","PARQUE LEBRET","FAZENDINHA","PERNAMBUCA","GURIRI","CONCEIÇÃO DO IMBE","PARQUE JULIÃO NOGUEIRA","ALTO DA AREIA"],"z":{"0075":[[7,1185],[8,16566],[9,3206],[10,1940],[17,15789],[28,915],[29,550],[30,5310],[32,9090],[37,546],[42,390],[44,791],[47,8578],[48,5925],[51,405],[52,1133],[53,1003],[58,7571],[59,5299],[63,2059],[64,614],[68,4355],[71,123],[72,3093],[73,904],[74,166],[78,2888],[79,1505],[82,297],[86,1161],[87,399],[88,2523],[91,1235],[92,1448],[99,2162],[102,2017],[104,769],[107,868],[115,673],[120,247]],"0076":[[1,6678],[3,899],[5,15518],[14,1021],[23,10814],[24,1786],[25,9986],[26,3537],[35,5784],[36,1790],[39,810],[41,3555],[43,1393],[45,3877],[50,2299],[56,517],[57,6752],[60,929],[65,1970],[66,276],[70,2145],[76,1431],[81,465],[83,2727],[84,1746],[89,221],[90,2736],[93,406],[96,529],[97,597],[98,4795],[101,224],[108,296],[109,156],[113,703]],"0098":[[0,28088],[2,4759],[4,2493],[6,10054],[15,12911],[16,4771],[18,1491],[21,4603],[22,2945],[54,11126],[61,4419],[62,1405],[75,637],[111,1708],[112,999],[119,262]],"0129":[[11,2605],[12,133],[13,1891],[19,1096],[20,1155],[27,11495],[31,7327],[33,2518],[34,3876],[38,2004],[40,1540],[46,579],[49,2182],[55,1407],[67,66],[69,1059],[77,4416],[80,1036],[85,210],[94,300],[95,5901],[100,993],[103,4296],[105,481],[106,842],[110,709],[114,1126],[116,644],[117,429],[118,413]]}},"58203":{"nm":"RIO DAS OSTRAS","b":["JARDIM BELA VISTA","CIDADE BEIRA MAR","REDUTO DA PAZ","JARDIM MARILEA","NOVA ESPERANÇA","VILLAGE RIO DAS OSTRAS","JARDIM CAMPOMAR","NOVA CIDADE","EXTENSÃO DO BOSQUE","BALNEÁRIO REMANSO","MAR DO NORTE","BOCA DA BARRA","PARQUE ZABULÃO","COSTAZUL","CANTAGALO","ÂNCORA","RECANTO","ENSEADA DAS GAIVOTAS","ROCHA LEÃO","SERRAMAR","CIDADE PRAIANA","CENTRO","OPERÁRIO","LIBERDADE"],"z":{"0184":[[0,5065],[1,5538],[2,2097],[3,12468],[4,7545],[5,4411],[6,7164],[7,8801],[8,6599],[9,2099],[10,1875],[11,1361],[12,2646],[13,5034],[14,1888],[15,7829],[16,4200],[17,3917],[18,1156],[19,2799],[20,5070],[21,4018],[22,2337],[23,1820]]}},"58211":{"nm":"CANTAGALO","b":["BOA SORTE","SÃO SEBASTIÃO DO PARAÍBA","SANTO ANTÔNIO","EUCLIDELÂNDIA","CENTRO","SANTA RITA DA FLORESTA","SÃO JOSÉ","TRIÂNGULO","CANTELMO"],"z":{"0101":[[0,1470],[1,602],[2,1992],[3,1459],[4,5370],[5,1423],[6,1021],[7,1559],[8,252]]}},"58220":{"nm":"AREAL","b":["CENTRO","VILA DANTAS","FAZENDA VELHA","ALBERTO TORRES","AMAZONAS"],"z":{"0174":[[0,7612],[1,304],[2,1261],[3,720],[4,373]]}},"58238":{"nm":"CARMO","b":["CENTRO","PORTO VELHO DO CUNHA","LOTEAMENTO VALPARAÍSO","ILHA DOS POMBOS","CÓRREGO DO PRATA","MORRO DO ESTADO","INFLUÊNCIA","PROGRESSO","BARRA DE SÃO FRANCISCO"],"z":{"0102":[[0,9442],[1,684],[2,560],[3,276],[4,482],[5,766],[6,1534],[7,319],[8,174]]}},"58246":{"nm":"PINHEIRAL","b":["PALMEIRAS","PARAÍSO","CENTRO","SÃO JORGE","PARQUE MAYRA","VALE DO SOL","KM 09"],"z":{"0030":[[0,1664],[1,2047],[2,9750],[3,3324],[4,1308],[5,328],[6,399]]}},"58254":{"nm":"CASIMIRO DE ABREU","b":["CENTRO","BARRA DE SAO JOAO","MATARUNA","BOA ESPERANCA","RIO DOURADO","PEIXE DOURADO II","JARDIM MIRAMAR","PROFESSOR SOUZA","JARDIM APARECIDA","BAIRRO INDUSTRIAL","QUILOMBO","ZONA RURAL"],"z":{"0050":[[0,11187],[1,8746],[2,3707],[3,382],[4,1473],[5,2581],[6,3452],[7,1653],[8,1140],[9,1235],[10,224],[11,213]]}},"58262":{"nm":"IGUABA GRANDE","b":["VILA NOVA","CIDADE NOVA","PARQUE TAMARIZ","ESTACAO","CENTRO","PEDREIRA","CANELAS CITY","SAO MIGUEL","SAPEATIBA MIRIM","UBAS","IGUABA PEQUENA","PARQUE DOS DESEJOS"],"z":{"0181":[[0,1878],[1,5658],[2,2023],[3,2825],[4,7900],[5,1613],[6,2796],[7,2420],[8,1699],[9,935],[10,659],[11,163]]}},"58270":{"nm":"CONCEIÇÃO DE MACABU","b":["USINA","MACABUZINHO","VILA NOVA","CENTRO","BOCAINA","PORTO","SÃO HENRY","RHÓDIA","GARAPA","VILA SÃO JOSÉ","CURATO DE SANTA CATARINA","PITEIRA","VILA TAVARES","FEEM","BALANCÉ","CAPELINHA","CALÇADINHA"],"z":{"0051":[[0,1101],[1,519],[2,1779],[3,3410],[4,2041],[5,1657],[6,216],[7,1139],[8,952],[9,1116],[10,532],[11,513],[12,227],[13,266],[14,658],[15,168],[16,387]]}},"58289":{"nm":"SÃO FRANCISCO DE ITABAPOANA","b":["GUAXINDIBA","CENTRO","GARGAU","SANTA CLARA","ESTREITO","COREIA DO SUL","FLORESTA","MACUCO","BARRA DO ITABAPOANA","TRAVESSAO DE BARRA","BOM JARDIM","PRACA JOAO PESSOA","LADEIRA DAS PEDRAS","MORRO DO BODE","ARUEIRA","GUARIXIMA","PONTO DE CACIMBAS","CARRAPATO","AMONTADO","BUENA","VALAO SECO","IMBURI DE CAMPOS","SOSSEGO","BREJO GRANDE","MORRO ALEGRE","BOM LUGAR","BOA VISTA","CAMPO NOVO","PINGO D'AGUA","SANTA LUZIA","ALEGRIA DOS ANJOS","DESERTO FELIZ","SANTO AMARO"],"z":{"0130":[[0,2727],[1,5527],[2,3473],[3,1962],[4,1137],[5,634],[6,1091],[7,896],[8,2598],[9,2926],[10,877],[11,3597],[12,440],[13,286],[14,391],[15,363],[16,599],[17,820],[18,846],[19,1101],[20,588],[21,1560],[22,1057],[23,431],[24,1111],[25,456],[26,177],[27,297],[28,1027],[29,214],[30,294],[31,295],[32,107]]}},"58297":{"nm":"CORDEIRO","b":["CENTRO","DOIS VALOS","RETIRO POÉTICO","SENNA CAMPOS","PENA","LAVRINHAS","MANANCIAL","RODOLFO GONÇALVES","IPERJ","CONSTANTINO","JARDIM DE ALAH"],"z":{"0052":[[0,4776],[1,931],[2,2313],[3,2055],[4,85],[5,1544],[6,476],[7,1572],[8,1591],[9,592],[10,991]]}},"58300":{"nm":"CARAPEBUS","b":["CENTRO","VILA PAULINA","UBAS","RODAGEM"],"z":{"0255":[[0,7547],[1,2843],[2,2445],[3,633]]}},"58319":{"nm":"DUAS BARRAS","b":["MONNERAT","CENTRO","HOLOFOTE","FAZENDA DO CAMPO","VARGEM GRANDE"],"z":{"0042":[[0,3338],[1,5801],[2,346],[3,549],[4,280]]}},"58327":{"nm":"PORTO REAL","b":["CENTRO (PORTO REAL)","BULHÕES (SANTO ANTÔNIO)","BAIRRO DE FÁTIMA (RIBEIRA DA DIVISA)","JARDIM REAL (JARDIM PORTO REAL)","BNH (NOVO HORIZONTE)","FREITAS SOARES (PARQUE FREITAS SOARES)","JARDIM DAS ACÁCIAS"],"z":{"0183":[[0,2571],[1,1189],[2,2037],[3,2996],[4,2532],[5,3703],[6,2897]]}},"58335":{"nm":"DUQUE DE CAXIAS","b":["COPACABANA","GRAMACHO","CAROLINA","PARQUE ELDORADO","VILA CANAAN","SARAPUÍ","MANTIQUIRA","JARDIM 25 DE AGOSTO","PARADA ANGÉLICA","CAMPOS ELÍSEOS","SARACURUNA","TAQUARA","NOVA CAMPINAS","JARDIM ANHANGÁ","JARDIM OLAVO BILAC","SANTA CRUZ DA SERRA","XERÉM","SANTO ANTONIO","PANTANAL","VILA SÃO LUIS","PARQUE PAULISTA","CENTRO","PARQUE LAFAIETE","IMBARIÊ","FRANGO DOURADO","CHACARAS ARCAMPO","AMAPÁ","CIDADE DOS MENINOS","JARDIM PRIMAVERA","BAR DOS CAVALEIROS","SANTA TERESA","CENTENÁRIO","PARQUE SENHOR DO BONFIM","ENGENHO DO PORTO","PARQUE LAGUNA E DOURADOS","JARDIM BARRO BRANCO","VILA SANTO ANTONIO","JARDIM GUANABARA","VILA MARIA HELENA","PAULICÉIA","SÃO BENTO","PILAR","PARQUE EQUITATIVA","JARDIM GRAMACHO","DOUTOR LAUREANO","JARDIM LEAL","SANTA LÚCIA","FIGUEIRA","VILA ROSARIO","CAPIVARI","PARQUE COMERCIAL","PRAINHA","JARDIM ROTSEN","PARQUE PAULICÉIA","PARQUE DAS MISSÕES","PARQUE MUISA","PARQUE BEIRA MAR","VILA LEOPOLDINA","VILA EMA","PARQUE FLUMINENSE","CRISTÓVÃO COLOMBO","PARQUE FELICIDADE","BEIRA MAR","VILA BONANÇA","BARREIRO","JARDIM IMBARIÊ/TAQUARA","PARQUE SANTA MARTA","VILA ITAMARATI","COVANCA","JARDIM SAO LOURENCO"],"z":{"0078":[[0,13022],[1,10894],[2,4877],[5,10215],[14,16072],[19,7016],[43,13986],[44,15496],[45,8563],[57,3668]],"0079":[[18,22800],[26,5257],[27,9743],[36,453],[40,25611],[41,16636],[48,4189],[50,2917],[55,4814],[59,5637]],"0103":[[21,28445],[22,16457],[29,4312],[31,12184],[32,3561],[33,3956],[34,7328],[51,3725],[68,2078]],"0126":[[9,16264],[10,31880],[28,37724],[38,5120],[47,10657],[49,7965]],"0127":[[8,7750],[11,8155],[12,15067],[13,13152],[20,9337],[23,14029],[35,3382],[42,6258],[46,14692],[52,2080],[58,3544],[60,1375],[65,116]],"0128":[[3,9894],[4,2490],[6,6680],[15,11342],[16,21422],[17,3452],[24,4627],[25,3105],[63,2245],[64,485],[69,251]],"0200":[[7,23598],[19,18374],[21,1679],[30,3656],[37,2060],[39,6799],[53,3808],[54,3878],[56,3837],[61,3829],[62,1396],[66,2001],[67,1327]]}},"58343":{"nm":"SÃO JOSÉ DE UBÁ","b":["CENTRO","BARRO BRANCO","CAMPO GRANDE","SANTA MARIA"],"z":{"0107":[[0,6697],[1,257],[2,298],[3,384]]}},"58351":{"nm":"ENGENHEIRO PAULO DE FRONTIN","b":["AGUADA","CENTRO","SACRA FAMILIA DO TINGUA","MORRO AZUL","PALMEIRA DA SERRA","BARREIRA","GRAMINHA","PALMAS"],"z":{"0074":[[0,1008],[1,5941],[2,1086],[3,2166],[4,219],[5,128],[6,326],[7,242]]}},"58360":{"nm":"TANGUÁ","b":["VILA CORTES","POSSE DOS COUTINHOS","AMPLIAÇÃO","PINHÃO","DUQUES","CENTRO","BANDEIRANTE I","MUTUAPIRA","IPITANGAS","BANDEIRANTE II"],"z":{"0151":[[0,6111],[1,1837],[2,5119],[3,2937],[4,1090],[5,6619],[6,891],[7,391],[8,647],[9,826]]}},"58378":{"nm":"ITABORAÍ","b":["RIO VÁRZEA","OUTEIRO DAS PEDRAS","CENTRO","VENDA DAS PEDRAS","ALTO DO JACU","JARDIM ITAMBI","GRANJAS MIRASSOL","MARAMBAIA","AMPLIAÇÃO","SANTO ANTÔNIO","NANCILÂNDIA","NOVO HORIZONTE","JOÃO CAETANO","CABUÇU","ALDEIA DA PRATA","VILA VERDE","AREAL","PICO","QUISSAMÃ","SAMBAETIBA","APOLO II","PACHECOS","PORTO DAS CAIXAS","SÃO JOSÉ","CURUZU","SÃO JOAQUIM","GRANJAS CABUÇU","NOVA CIDADE","VILA BRASIL","MURIQUI","JOAQUIM DE OLIVEIRA","MANILHA","PARQUE AURORA","BADURECO","VISCONDE DE ITABORAÍ","RETIRO SÃO JOAQUIM","VILA GABRIELA","RETIRO","PEROBAS","SAPÊ","AGRO BRASIL","ENGENHO VELHO"],"z":{"0104":[[0,15614],[1,5742],[2,22508],[3,15151],[8,4141],[10,3805],[16,5645],[17,1007],[18,4224],[22,3319],[25,2500],[27,6264],[30,1628],[34,5231],[35,889],[37,226],[41,346]],"0151":[[4,199],[5,2890],[6,1022],[7,2082],[9,9617],[11,6462],[12,9016],[13,2590],[14,4123],[15,1624],[19,2911],[20,16150],[21,1145],[23,1741],[24,659],[26,1480],[28,2912],[29,453],[31,5120],[32,3229],[33,706],[36,1347],[38,397],[39,1265],[40,540]]}},"58386":{"nm":"MACUCO","b":["BAIRRO DA RETA","CENTRO","VOLTA DO UMBIGO","BARREIRA"],"z":{"0052":[[0,1367],[1,4610],[2,330],[3,825]]}},"58394":{"nm":"ITAGUAÍ","b":["CHAPERÓ","COROA GRANDE","CENTRO","LEANDRO","VISTA ALEGRE","MONTE SERRAT","TEIXEIRAS","SANTA CÂNDIDA","VILA MARGARIDA","PIRANEMA","VILA GENI","MAZOMBINHA","SANTANA","INOUE","ILHA DA MADEIRA","SACO DA PRATA","PARQUE PARAISO","AMENDOEIRA","JARDIM AMÉRICA","IBIRAPITANGA","ENGENHO","IBITUPORANGA","MAZOMBA"],"z":{"0105":[[0,9621],[1,5108],[2,14411],[3,7485],[4,3952],[5,6290],[6,1506],[7,1260],[8,16981],[9,3053],[10,2432],[11,1032],[12,10471],[13,1594],[14,1161],[15,200],[16,3841],[17,2711],[18,2797],[19,1094],[20,2201],[21,230],[22,1111]]}},"58408":{"nm":"ARMAÇÃO DOS BÚZIOS","b":["GERIBÁ","RASA","SÃO JOSÉ","CEM BRAÇAS","MANGUINHOS","CENTRO (MANGUE)","VILA VERDE","FERRADURA","JOSÉ GONÇALVES"],"z":{"0172":[[0,1478],[1,8953],[2,5116],[3,2815],[4,8357],[5,4714],[6,1713],[7,2647],[8,443]]}},"58416":{"nm":"ITAOCARA","b":["CENTRO","LARANJAIS","SOBRADINHO","CIDADE NOVA","ESTRADA NOVA","JAGUAREMBÉ","CAXIAS","PORTELA","BNH","BATATAL","JARDIM DA ALDEIA"],"z":{"0106":[[0,4947],[1,2012],[2,961],[3,1743],[4,407],[5,1627],[6,2965],[7,1679],[8,1347],[9,622],[10,810]]}},"58424":{"nm":"SEROPÉDICA","b":["JARDIM DAS ACACIAS","VERA CRUZ","BOA ESPERANÇA","CAMPO LINDO","FAZENDA CAXIAS","DOM BOSCO","ECOLOGIA","UFRRJ","CENTRO","SÃO MIGUEL","SANTA SOFIA","PARQUE JACIMAR","CANTO DO RIO","BOA FÉ","JARDIM MARACANÃ","JARDINS","INCRA","FONTE LIMPA","COLETIVO","CABRAL","NAZARETH","PIRANEMA"],"z":{"0225":[[0,4658],[1,2302],[2,5780],[3,8828],[4,6836],[5,4622],[6,3816],[7,4400],[8,5411],[9,2718],[10,3413],[11,2862],[12,1992],[13,96],[14,2509],[15,392],[16,92],[17,73],[18,0],[19,0],[20,55],[21,110]]}},"58432":{"nm":"ITAPERUNA","b":["PRESIDENTE COSTA E SILVA","CENTRO","COMENDADOR VENÂNCIO","CIDADE NOVA","VINHOSA","NITERÓI","AVAÍ","RETIRO DO MURIAÉ","RAPOSO","SÃO MATHEUS","BOA VENTURA","ITAJARA","GOVERNADOR ROBERTO SILVEIRA","AEROPORTO","ARÉ","BOA FORTUNA","MATADOURO","TOYAMA","SÃO FRANCISCO","SÃO SEBASTIÃO DA BOA VISTA","FRIGORÍFICO","CÓRREGO DA CHICA","NOSSA SENHORA DA PENHA"],"z":{"0107":[[0,2435],[1,8806],[2,2270],[3,9992],[4,8057],[5,9442],[6,245],[7,2880],[8,2773],[9,2325],[10,2024],[11,369],[12,7812],[13,5805],[14,1564],[15,3452],[16,1144],[17,201],[18,2313],[19,131],[20,1381],[21,300],[22,316]]}},"58440":{"nm":"ITATIAIA","b":["VILA ODETE","CENTRO","CAMPO ALEGRE","PENEDO","VILA FLÓRIDA","JARDIM ITATIAIA","MAROMBA"],"z":{"0198":[[0,5033],[1,4560],[2,4900],[3,6149],[4,857],[5,3757],[6,1328]]}},"58459":{"nm":"LAJE DO MURIAÉ","b":["CENTRO","CHACARA DO CRUZEIRO","NOVA LAJE"],"z":{"0112":[[0,5328],[1,760],[2,856]]}},"58467":{"nm":"MESQUITA","b":["VILA EMIL","SANTO ELIAS","ROCHA SOBRINHO","CENTRO","PRESIDENTE JUSCELINO","EDSON PASSOS","SANTA TEREZINHA","BANCO DE AREIA","CHATUBA","JACUTINGA","COSMORAMA","COREIA"],"z":{"0083":[[0,17058],[1,9229],[2,6600],[3,2609],[4,1790],[7,15066],[9,2226],[10,10055]],"0150":[[3,19637],[4,4356],[5,12746],[6,15915],[8,14984],[11,4031]]}},"58475":{"nm":"MACAÉ","b":["VIRGEM SANTA","PARQUE AEROPORTO","BALNEÁRIO LAGOMAR","CENTRO","IMBETIBA","NOVO CAVALEIROS","GLÓRIA","BICUDA PEQUENA","BARRA DE MACAÉ","MIRAMAR","GLICÉRIO","FRONTEIRA","SÃO JOSÉ DO BARRETO","ENGENHO DA PRAIA","AROEIRAS","FRADE","VISCONDE DE ARAUJO","BOSQUE AZUL II","SAO MARCOS","PRAIA CAMPISTA","CAMPO DO OESTE","AJUDA DE BAIXO","TRAPICHE","BOTAFOGO","CÓRREGO DO OURO","SOL Y MAR","RIVIERA FLUMINENSE","MIRANTE DA LAGOA","GRANJA CAVALEIROS","SANA","CAVALEIROS","IMBOASSICA","COSTA DO SOL","JARDIM SANTO ANTONIO","HORTO","NOVO BOTAFOGO","CACHOEIROS DE MACAE","PIRACEMA","JARDIM VITÓRIA"],"z":{"0109":[[0,2657],[3,18830],[4,6899],[5,4154],[6,1967],[7,592],[9,5713],[10,1614],[15,1631],[16,8118],[18,426],[19,3805],[20,4943],[22,1433],[23,5653],[24,3780],[25,2613],[26,5237],[27,574],[28,1713],[29,1878],[30,1388],[31,3757],[32,3402],[34,1028],[35,1642],[36,982]],"0254":[[1,22225],[2,12598],[8,17640],[11,5121],[12,4364],[13,3099],[14,12411],[17,2325],[21,6711],[33,2635],[37,390],[38,293]]}},"58491":{"nm":"MAGÉ","b":["JARDIM NAZARENO","FRAGOSO","SANTO ALEIXO","PIABETÁ","ILHA","SANTA DALILA","VILA RAQUEL","SURUI","BNH - GANDE","NOVA MARILIA","CENTRO","JARDIM DA PAZ","CAPELA","PARQUE BONEVILLE","JARDIM NOVO HORIZONTE","PONTE PRETA","PARQUE PARANHOS","RAIZ DA SERRA","JORORÓ","SACO","MAURIMARCIA","PARQUE HUMAITA","JARDIM ESMERALDA","TÊNIS CLUBE","SÃO FRANCISCO DO CRUARÁ","PRAIA DO ANIL","RIO DO OURO","PAU GRANDE","PARQUE ESTRELA","BARBUDA","PARTIDO","IPIRANGA","LEQUE AZUL","MAUA","CITROLÂNDIA","VILA INCA","OLARIA","FIGUEIRA","CACHOEIRA GRANDE","COVANCA - SURUI","PRAIA DE OLARIA","PIEDADE","PARQUE IRIRI","VILA RECREIO","JARDIM SAO PAULO","PARQUE SANTANA","ANDORINHAS","BAIA BRANCA","BARÃO DO IRIRI"],"z":{"0110":[[2,7709],[5,2059],[7,11000],[8,1336],[9,2748],[10,21860],[11,2370],[12,1608],[13,800],[18,601],[19,1521],[22,2456],[23,3298],[24,1672],[25,2799],[26,2389],[29,3385],[30,238],[31,2340],[32,1275],[33,6691],[34,674],[35,432],[36,961],[37,3065],[39,1308],[40,1975],[41,1819],[42,717],[46,1841],[47,581],[48,627]],"0148":[[0,6167],[1,18574],[3,20202],[4,1689],[6,5593],[10,10606],[14,3538],[15,1411],[16,1803],[17,3534],[20,6227],[21,3839],[27,4005],[28,2219],[38,1653],[43,1207],[44,2095],[45,4385]]}},"58513":{"nm":"MANGARATIBA","b":["CONCEICAO DE JACAREI","CENTRO","MURIQUI","ITACURUÇÁ","PRAIA DO SACO","SERRA DO PILOTO","PRAIA GRANDE","IBICUI","NOVA MANGARATIBA","PRAIA BRAVA","ILHA DE ITACURUÇA","INGAIBA","JUNQUEIRA"],"z":{"0054":[[0,4652],[1,5590],[2,12621],[3,8257],[4,7963],[5,836],[6,1498],[7,1957],[8,1452],[9,581],[10,289],[11,311],[12,494]]}},"58530":{"nm":"MARICÁ","b":["JARDIM ATLÂNTICO CENTRAL","BANANAL","INOÃ","JARDIM ATLÂNTICO","RECANTO DE ITAIPUAÇU","SÃO JOSÉ DO IMBASSAÍ","CENTRO","BALNEÁRIO BAMBUÍ","CORDEIRINHO","CASSOROTIBA","PONTA NEGRA","JARDIM ATLANTICO LESTE","ZACARIAS","FLAMENGO","GUARATIBA","MARQUÊS DE MARICÁ","BARRA DE MARICÁ","ITAPEBA","PONTA GROSSA","BARROCO","MUMBUCA","ESPRAIADO","SPAR","UBATIBA","LAGARTO","MANOEL RIBEIRO"],"z":{"0055":[[0,25052],[1,4284],[2,23514],[3,9824],[4,10271],[5,17021],[6,37525],[7,4012],[8,5663],[9,1687],[10,3934],[11,1399],[12,1411],[13,6412],[14,3887],[15,1970],[16,3349],[17,7993],[18,2751],[19,2253],[20,2870],[21,1240],[22,2345],[23,2645],[24,830],[25,1467]]}},"58556":{"nm":"MENDES","b":["CENTRO","FIM DO PONTO","MARTINS COSTA","CINCO LAGOS","MORSING","HUMBERTO ANTUNES","VILA MARIANA"],"z":{"0056":[[0,8634],[1,947],[2,929],[3,1007],[4,947],[5,2015],[6,399]]}},"58572":{"nm":"MIGUEL PEREIRA","b":["BARÃO DE JAVARI","PARQUE GUARARAPES","CENTRO","CENTRO - GOV. PORTELA","PANTANAL","VERA CRUZ","LAGOA DAS LONTRAS","MANGUEIRAS","PAES LEME","RECREIO - GOV. PORTELA","PRAÇA DA PONTE","ARCÁDIA","CONRADO","ROSEIRAL - GOV. PORTELA","MARCO DA COSTA","FRANCISCO FRAGOSO","VALE DAS PRINCESAS"],"z":{"0048":[[0,2416],[1,3245],[2,8957],[3,3101],[4,686],[5,918],[6,151],[7,663],[8,292],[9,1214],[10,361],[11,265],[12,1018],[13,777],[14,302],[15,231],[16,184]]}},"58599":{"nm":"MIRACEMA","b":["CENTRO","RODAGEM","VENDA DAS FLORES","JARDIM BEVERLY","SANTA TEREZA","PARAÍSO DO TOBIAS"],"z":{"0112":[[0,13290],[1,2126],[2,650],[3,1838],[4,1679],[5,1473]]}},"58610":{"nm":"NATIVIDADE","b":["CENTRO","VILA ALMEIDA","QUERENDO","OURANIA","MORADA DO ENGENHO","LIBERDADE","BALNEARIO","SINDICATO"],"z":{"0043":[[0,1177],[1,1058],[2,800],[3,853],[4,1669],[5,2023],[6,2282],[7,2591]]}},"58637":{"nm":"NILÓPOLIS","b":["CABRAL","CENTRO","PAIOL","CABUIS","OLINDA","NOVO HORIZONTE","NOVA CIDADE","NOSSA SENHORA DE FÁTIMA"],"z":{"0201":[[0,8474],[1,43404],[4,10223],[7,7841]],"0221":[[1,24940],[2,7792],[3,6464],[4,8976],[5,2764],[6,7770]]}},"58653":{"nm":"NITERÓI","b":["SÃO FRANCISCO","SANTA ROSA","ICARAÍ","FONSECA","SÃO DOMINGOS","BARRETO","ENGENHOCA","MARIA PAULA","ITAIPU","LARGO DA BATALHA","CENTRO","VÁRZEA DAS MOÇAS","JURUJUBA","VITAL BRASIL","BADU","SANTA BARBARA","FÁTIMA","PIRATININGA","BALDEADOR","VILA PROGRESSO","ENGENHO DO MATO","ITITIOCA","INGÁ","CUBANGO","CAFUBÁ","ITACOATIARA","RIO DO OURO","CAMBOINHAS","SAPÊ","SERRA GRANDE","CANTAGALO","PONTA D'AREIA","ILHA DA CONCEIÇÃO"],"z":{"0071":[[1,35443],[2,17106],[4,10903],[10,26870],[13,5050],[16,1793],[22,8827],[31,1401],[32,5257]],"0072":[[0,14862],[2,40883],[9,10930],[12,9422],[14,15828],[15,13794],[21,3985],[28,6970],[30,3494]],"0144":[[1,6461],[3,50025],[5,26978],[6,11341],[18,2657],[23,4368]],"0199":[[7,5036],[8,21643],[11,3232],[17,23841],[19,4873],[20,5348],[24,1426],[25,2291],[26,2885],[27,2450],[29,4579]]}},"58670":{"nm":"NOVA FRIBURGO","b":["LUMIAR","MURY","CASCATINHA","AMPARO","JARDIM CALIFÓRNIA","VILAGE","CONSELHEIRO PAULINO","VARGINHA","DUAS PEDRAS","VILA AMÉLIA","OLARIA","CAMPO DO COELHO","CENTRO","PRADO","CÔNEGO","SÃO GERALDO","RIO BONITO","CATARCIONE","SÃO PEDRO DA SERRA","SANTA CRUZ","PONTE DA SAUDADE","CORDOEIRA","NOVA SUIÇA","CARDINOT","CHACARA DO PARAISO","YPU","GRANJA SPINELLI","RIOGRANDINA","CORREGO DANTAS","VARGEM ALTA","SÃO LOURENÇO","BRAUNES","PERISSE","JANELA DAS ANDORINHAS","SALINAS","JARDIM OURO PRETO","PARQUE MARIA TERESA","PARQUE SAO CLEMENTE","CONQUISTA","BARRACÃO DOS MENDES","BOA ESPERANÇA","GALDINÓPOLIS","MACAÉ DE CIMA","TINGLY","STUCKY"],"z":{"0026":[[5,3709],[7,2872],[8,2819],[9,3299],[12,19698],[15,5203],[17,3052],[20,1300],[21,4118],[22,2245],[24,4196],[25,3338],[26,506],[28,1257],[31,2352],[32,677],[35,3416],[43,253]],"0222":[[0,3346],[1,4833],[2,1607],[3,4038],[4,3077],[6,20548],[10,21761],[11,3885],[13,2809],[14,6781],[16,576],[18,1869],[19,939],[23,431],[27,4181],[29,1040],[30,635],[33,229],[34,994],[36,1015],[37,1543],[38,2232],[39,821],[40,720],[41,259],[42,316],[44,571]]}},"58696":{"nm":"NOVA IGUAÇU","b":["FACULDADE","MARAPICU","RANCHO NOVO","CABUÇU","SANTA EUGENIA","CENTRO","CALIFORNIA","JARDIM TROPICAL","VILA BELGA","COMENDADOR SOARES","PARQUE GENECIANO LUZ","KM 32 - CEDAE","BOM JESUS","MIGUEL COUTO","CAIOABA","POSSE","PRATA","CENTRO DE AUSTIN","AUSTIN","CERÂMICA","PARAISO","SANTA RITA","JARDIM ALVORADA","PALHADA","CAMPO ALEGRE","RIO D'OURO","VILA IGUACUANA","FIGUEIRAS","NOVA BRASILIA","VILA OPERARIA","JARDIM SANTA RITA","BAIRRO DA LUZ","RODILÂNDIA","JARDIM AYMORÉ","VILA CAMARI","PRADOS VERDES","KENNEDY","PARQUE ALVORADA","ADRIANOPOLIS","CACUIA","MANGUEIRA","VILA NOVA","AMBAI","JARDIM PARAISO","GRAMA","TINGUA","JARDIM NOVA ERA","PARQUE SAO FRANCISCO","JARDIM PALMARES","DA LUZ","JARDIM GUANDU","CAONZE","AUTODROMO","BAIRRO BOTAFOGO","VILA DE CAVA","PONTO CHIC","JARDIM IGUAÇU","VILA IRACEMA","K-11","ROSA DOS VENTOS","JOSE BULHOES","OURO PRETO","JARDIM CORUMBA","CARMARY","CAROLINA","GRAJAU","KM 32","SÃO LUIZ GONZAGA","MOQUETA","INCONFIDÊNCIA","VALVERDE","JARDIM BOA ESPERANCA","ANDRADE ARAUJO","ALTO DA POSSE","PARQUE FLORA","CIDADE JARDIM PARQUE ESTORIL","NOVA AMERICA","PARQUE BOA VENTURA","CRUZEIRO DO SUL","VILA SAO LUIS","JACUTINGA","TODOS OS SANTOS","JACERUBA","ENGENHO PEQUENO","MAIO"],"z":{"0027":[[0,707],[4,14456],[5,33663],[6,8820],[31,6208],[41,4082],[51,2255],[58,3689],[68,5176],[80,521]],"0084":[[1,6544],[3,34783],[8,6984],[11,2446],[12,4683],[20,6378],[22,12686],[23,12259],[24,1102],[35,8650],[40,3225],[43,5663],[46,2120],[47,1909],[48,7327],[50,6434],[66,9043],[70,7476],[77,1803],[81,800]],"0156":[[10,1941],[13,29111],[16,3392],[21,20982],[25,614],[26,2759],[27,6570],[28,4207],[30,4922],[37,743],[38,7158],[42,3566],[44,5168],[45,5300],[52,2117],[54,11112],[60,2912],[62,3443],[71,3395],[75,1657],[82,328],[84,0]],"0157":[[2,14388],[7,7466],[14,7331],[15,16753],[16,3484],[29,2896],[34,11058],[36,4476],[42,2808],[57,1743],[63,4217],[64,2439],[72,4709],[73,1884],[74,2433],[76,2855],[78,2521],[79,369],[83,268]],"0158":[[15,5199],[17,10722],[18,42650],[19,10449],[32,6121],[39,6758],[53,2766],[55,12119],[65,1314],[67,2355],[69,543]],"0159":[[9,47295],[31,7688],[33,2217],[49,2786],[56,4179],[59,10236],[61,2147]]}},"58718":{"nm":"PARACAMBI","b":["BNH","CENTRO","LAGES","CASCATA","RAMALHO"],"z":{"0070":[[0,3242],[1,15049],[2,14472],[3,632],[4,295]]}},"58734":{"nm":"PARAÍBA DO SUL","b":["WERNECK","BELA VISTA","CENTRO","VILA SALUTÁRIS","LIBERDADE","LIMOEIRO","PARQUE MORONE","SERTÃO DO CALIXTO","INEMA","VIEIRA CORTEZ","CARVALHAIS","JATOBÁ","QUEIMA SANGUE","ELDORADO","BARÃO DE ANGRA","CAVARU","PALHAS","INCONFIDÊNCIA","SARDOAL"],"z":{"0028":[[0,3035],[1,815],[2,9921],[3,3808],[4,3223],[5,1331],[6,688],[7,206],[8,811],[9,319],[10,81],[11,3830],[12,439],[13,495],[14,671],[15,221],[16,2807],[17,946],[18,657]]}},"58750":{"nm":"PARATY","b":["CHÁCARA DA SAUDADE","CAMPINHO","PARQUE YPÊ","CORISCO","VILA DOM PEDRO","PENHA","TRINDADE","PATRIMÔNIO","BARRA GRANDE","PATITIBA","MAMANGUÁ","CENTRO","TAQUARI","PARATY-MIRIM","PORTÃO DE FERRO II","MAMBUCABA","GRAÚNA","SERTÃO DO TAQUARI","CAJAÍBA","PARQUE IMPERIAL","ILHA DAS COBRAS","JABAQUARA","SÃO ROQUE","PARQUE DA MANGUEIRA","PANTANAL","PONTE BRANCA","PORTÃO DE FERRO III","CENTRO HISTÓRICO","SÃO GONÇALO","LARANJEIRAS","CONDADO","TARITUBA","PRAIA GRANDE","PONTA GROSSA"],"z":{"0057":[[0,1187],[1,635],[2,1432],[3,1339],[4,1100],[5,434],[6,623],[7,1022],[8,1065],[9,1454],[10,427],[11,2865],[12,1260],[13,789],[14,2074],[15,1756],[16,513],[17,394],[18,409],[19,1681],[20,1562],[21,410],[22,720],[23,2610],[24,1621],[25,711],[26,1478],[27,732],[28,217],[29,806],[30,341],[31,728],[32,938],[33,128]]}},"58777":{"nm":"PETRÓPOLIS","b":["ITAIPAVA","SÃO SEBASTIÃO","CASCATINHA","PEDRO DO RIO","ALTO DA SERRA","ESTRADA DA SAUDADE","QUITANDINHA","ITAMARATI","QUISSAMÃ","CARANGOLA","ARARAS","MORIN","CENTRO","MOINHO PRETO","NOGUEIRA","MOSELA","CORONEL VEIGA","CASTELANEA","CAPELA","VALPARAISO","BINGEN","CORREAS","POSSE","RETIRO","INDEPENDENCIA","DUARTE SILVEIRA","CHÁCARA FLORA","ROSEIRAL","SAMAMBAIA","FAZENDA INGLESA","JARDIM SALVADOR","SIMÉRIA","VILA RICA","QUARTEIRAO BRASILEIRO"],"z":{"0029":[[1,5093],[4,12692],[5,2081],[6,16833],[8,8424],[11,6250],[12,26788],[13,1213],[15,11038],[16,1691],[17,7481],[18,3385],[19,6269],[20,8052],[24,5717],[25,5668],[26,1550],[29,1487],[31,2440]],"0065":[[0,17337],[2,13815],[3,9275],[7,3215],[9,6589],[10,6415],[12,6158],[14,6079],[21,16338],[22,8220],[23,4410],[27,1486],[28,1632],[30,1230],[32,1920],[33,1298]]}},"58793":{"nm":"PIRAÍ","b":["SANTANÉSIA","RIBEIRÃO DAS LAJES","CACARIA","ROSA MACHADO","SERRA DO MATOSO","CENTRO","CASA AMARELA","PONTE DAS LARANJEIRAS","ACAMPAMENTO DA LIGHT","CAIÇARA","ARROZAL","VARJÃO","JAQUEIRA"],"z":{"0030":[[0,1688],[1,690],[2,1091],[3,699],[4,319],[5,6872],[6,2660],[7,1012],[8,898],[9,444],[10,4588],[11,1672],[12,1066]]}},"58815":{"nm":"PORCIÚNCULA","b":["CENTRO","SANTO ANTÔNIO","ILHA","PURILÂNDIA","JOÃO FRANCISCO BRAZ","BATE-PAU","SANTA CLARA","CAETÉ"],"z":{"0045":[[0,4099],[1,1125],[2,2568],[3,771],[4,1950],[5,299],[6,2277],[7,204]]}},"58831":{"nm":"RESENDE","b":["TOYOTA I","MORADA DA COLINA","VILA SANTA ISABEL","CIDADE ALEGRIA","FAZENDA DA BARRA 3","VISCONDE DE MAUÁ","JARDIM JALISCO","COMERCIAL","LAVAPÉS","CIDADE DA ALEGRIA","VICENTINA","FAZENDA DA BARRA 2","NOVA LIBERDADE","CAMPOS ELÍSEOS","MANEJO","ENGENHEIRO PASSOS","CENTRO","ALVORADA","MIRANTE DAS AGULHAS","PARAÍSO","CABRAL","SERRINHA","ITAPUCA","SURUBI","VILA DA FUMACA","SANTO AMARO","VILA JULIETA","ALAMBARI","VARGEM GRANDE","SÃO CAETANO","MONTESE","FAZENDA DA BARRA","MORADA DA MONTANHA","NOVO SURUBI","CAPELINHA","BAGAGEM"],"z":{"0031":[[0,4834],[1,5985],[2,1954],[3,8582],[6,6341],[8,1046],[9,5986],[10,957],[12,3305],[14,4743],[16,6459],[17,1561],[18,1239],[22,2853],[23,1416],[25,2505],[26,3409],[32,542],[33,1382]],"0198":[[4,2883],[5,1536],[7,2005],[11,2302],[13,4245],[15,3010],[19,6882],[20,2960],[21,520],[24,542],[27,961],[28,449],[29,1523],[30,1922],[31,684],[34,331],[35,166]]}},"58858":{"nm":"RIO BONITO","b":["PRAÇA CRUZEIRO","BOA ESPERANÇA","RIO VERMELHO","NOVA CIDADE","PARQUE INDIANO","CENTRO","BASÍLIO","MANGUEIRINHA","BOQUEIRÃO","BELA VISTA","VERTENTE","CAIXA D'ÁGUA","MATA","RIO DO OURO","RIO SECO","SAMBÊ","LAVRAS"],"z":{"0032":[[0,3490],[1,4825],[2,1024],[3,1081],[4,1593],[5,14841],[6,2452],[7,2641],[8,2277],[9,3280],[10,496],[11,2693],[12,584],[13,2309],[14,1114],[15,153],[16,559]]}},"58874":{"nm":"RIO CLARO","b":["LÍDICE","PASSA TRÊS","CENTRO","GETULÂNDIA","FAZENDA DA GRAMA","SAO JOAO MARCOS","POUSO SECO"],"z":{"0108":[[0,4697],[1,1771],[2,5939],[3,605],[4,721],[5,469],[6,498]]}},"58890":{"nm":"RIO DAS FLORES","b":["TABOAS","CENTRO","MANUEL DUARTE","COMÉRCIO","TRÊS ILHAS","ABARRACAMENTO"],"z":{"0111":[[0,2068],[1,4563],[2,1051],[3,172],[4,556],[5,301]]}},"58912":{"nm":"SANTA MARIA MADALENA","b":["VILA SAMPAIO","CENTRO","MANOEL DE MORAES","AGULHA DOS LEAIS","TRIUNFO","PARQUE ITAPORANGA","OSÓRIO BERSOT","SANTO ANTÔNIO DO IMBÉ","ALTO IMBÉ","SOSSÊGO","BRINCO","RENASCENÇA","RIBEIRÃO SANTÍSSIMO"],"z":{"0060":[[0,136],[1,3386],[2,362],[3,339],[4,846],[5,1905],[6,507],[7,513],[8,158],[9,343],[10,151],[11,70],[12,130]]}},"58939":{"nm":"SANTO ANTÔNIO DE PÁDUA","b":["CENTRO","SANTA LUZIA","ALPHAVILLE","FERREIRA","BOA NOVA","MONTE ALEGRE","SANTA CRUZ","DEZESSETE","SAO FELIX","SAO PEDRO","ALEXIS","PARAOQUENA","IBITIGUACU","MARANGATU","SAO LUIZ","ARRAIALZINHO","BALTAZAR","GLORIA","CAMPELO","AEROPORTO"],"z":{"0034":[[0,6081],[1,1356],[2,1855],[3,1639],[4,1200],[5,1953],[6,913],[7,5647],[8,2212],[9,1272],[10,3193],[11,538],[12,584],[13,1181],[14,1342],[15,616],[16,307],[17,753],[18,659],[19,401]]}},"58955":{"nm":"SÃO FIDÉLIS","b":["VILA DOS COROADOS","TABUA","COLÔNIA","BARÃO DE MACAÚBAS","MONTESE","USINA PUREZA","CENTRO","IPUCA","BOA ESPERANÇA","BARRO BRANCO","ERNESTO MACHADO","VALÃO DOS MILAGRES","CAMBIASCA","PUREZA","PENEDO","SANTA CATARINA","RECREIO","BARRA DO MACACO"],"z":{"0035":[[0,3671],[1,205],[2,1385],[3,5606],[4,3739],[5,1168],[6,5488],[7,4050],[8,570],[9,176],[10,738],[11,820],[12,288],[13,1472],[14,259],[15,297],[16,123],[17,123]]}},"58971":{"nm":"SÃO GONÇALO","b":["CENTRO","PACHECO","RAUL VEIGA","ALCÂNTARA","BARRO VERMELHO","IPIIBA","ZE GAROTO","PORTO DO ROSA","TRIBOBO","PATRONATO","MUTONDO","TRINDADE","MUTUÁ","JARDIM CATARINA","PAIVA","LAGOINHA","ROCHA","SANTA ISABEL","MIRIAMBI","MUTUAPIRA","SANTA LUZIA","SACRAMENTO","ALMERINDA","AMENDOEIRA","ESTRELA DO NORTE","PONTE PARAGUAI","BOAÇU","COVANCA","PORTO DA MADAMA","COLUBANDE","SAO MIGUEL","GRADIM","JOCKEY CLUB","ARSENAL","ENGENHO PEQUENO","SANTA CATARINA","PARAISO","RIO DO OURO","AGUA MINERAL","NEVES","BRASILÂNDIA","LARANJAL","VISTA ALEGRE","NOVA CIDADE","VILA LAGE","BOA VISTA","COELHO","MONJOLOS","VENDA DA CRUZ","VILA TRÊS","PORTO NOVO","ITAÚNA","GALO BRANCO","MARAMBAIA","PORTO VELHO","MARIA PAULA","JARDIM BOM RETIRO","LINDO PARQUE","APOLO III","ENGENHO DO ROÇADO","GUAXINDIBA","NOVA ROMA","PARADA QUARENTA"],"z":{"0036":[[0,3246],[7,15934],[12,19912],[19,2254],[24,5526],[26,16233],[30,3232],[40,7867],[43,9391],[45,8908]],"0068":[[6,12551],[9,17198],[28,2811],[31,6609],[36,20021],[40,15064],[50,4311],[54,2107],[62,400]],"0069":[[5,1752],[8,10474],[22,7537],[29,5374],[32,9796],[33,13309],[37,12579],[46,11810],[55,7422],[59,2125]],"0087":[[4,18221],[6,5134],[14,3909],[25,3924],[27,6456],[34,9988],[35,2398],[39,9643],[44,10233],[48,9517],[57,4552],[61,2239]],"0132":[[13,32160],[20,17377],[41,6686],[42,13419],[47,8949],[53,5876],[56,1813],[58,2432],[60,3922]],"0133":[[1,7297],[2,6646],[3,12096],[15,3967],[17,18276],[18,5744],[21,12396],[23,17138],[29,3154],[41,10900],[49,3367]],"0135":[[0,8668],[3,4453],[10,10338],[11,35049],[16,9802],[29,25098],[30,895],[38,2724],[51,6652],[52,13923]]}},"58998":{"nm":"SÃO JOÃO DA BARRA","b":["GRUSSAI","ATAFONA","CARRAPICHO","ACU","ESTRADA DA CORUJA","CAZUMBA","CAMPO DE AREIA","CHATUBA","CENTRO","DEGREDO","BARCELOS","PALACETE","CAJUEIRO","MATO ESCURO","PIPEIRAS","AGUA PRETA"],"z":{"0037":[[0,9376],[1,6115],[2,1320],[3,3503],[4,374],[5,1570],[6,858],[7,1182],[8,8756],[9,1468],[10,4223],[11,579],[12,1039],[13,1371],[14,634],[15,726]]}},"59013":{"nm":"SÃO JOÃO DE MERITI","b":["VILAR DOS TELES","VILA NORMA","COELHO DA ROCHA","GRANDE RIO","CENTRO","VILA SÃO JOÃO","SÃO MATEUS","JARDIM MERITI","PARQUE JOSE BONIFACIO","TOMAZINHO","PARQUE ARARUAMA","EDEN","VENDA VELHA","VILA TIRADENTES","AGOSTINHO PORTO","ENGENHEIRO BELFORD","VILA SAO JOSE","JARDIM PARAISO","PARQUE ALIAN","JARDIM SANTA ROSA","VILA ROSALI","JARDIM METRÓPOLE","JARDIM ÍRIS","JARDIM SUMARE","VILA UNIAO","JARDIM OLAVO BILAC","PRACA DA BANDEIRA","PARQUE NOVO RIO","PARQUE ANALANDIA","PARQUE MIRIM"],"z":{"0088":[[1,7969],[6,13655],[9,9085],[11,29802],[24,5450]],"0089":[[0,33515],[5,13435],[7,22556],[19,3911],[22,3439]],"0186":[[4,26645],[8,6116],[10,16476],[12,16448],[16,5622],[23,9720],[25,3651],[27,5402],[28,2276],[29,1321]],"0187":[[2,28580],[3,3496],[13,12890],[14,13026],[15,6180],[17,3440],[18,3783],[20,9601],[21,17621],[26,5017]]}},"59030":{"nm":"SÃO PEDRO DA ALDEIA","b":["ESTAÇÃO","PRAIA LINDA","MOSSORÓ","JARDIM SOLEDADE","NOVA SÃO PEDRO","CENTRO","CAMPO REDONDO","SÃO JOSÉ","RUA DO FOGO","SÃO MATEUS","BALNEÁRIO SÃO PEDRO","VINHATEIRO","CRUZ","SÃO JOÃO","RETIRO","PONTA DO AMBRÓSIO","POÇO FUNDO","PORTO DA ALDEIA","BOQUEIRÃO","MORRO DO MILAGRE","BAIXO GRANDE","SAPEATIBA MIRIM","BOTAFOGO","FLUMINENSE","ALECRIM","PORTO DO CARRO","BALNEÁRIO DAS CONCHAS","BALEIA","RECANTO DO SOL","PARQUE ARRUDA"],"z":{"0059":[[0,3600],[1,2224],[2,1441],[3,2679],[4,3999],[5,5763],[6,5296],[7,4091],[8,2657],[9,880],[10,4641],[11,2295],[12,1101],[13,8388],[14,635],[15,1644],[16,2116],[17,3350],[18,1477],[19,285],[20,3396],[21,56],[22,698],[23,3705],[24,1791],[25,2618],[26,1775],[27,590],[28,1451],[29,271]]}},"59056":{"nm":"SÃO SEBASTIÃO DO ALTO","b":["IPITUNA","ZONA RURAL - TERCEIRO DISTRITO","IBIPEBA","VALAO DO BARRO","CENTRO","ZONA RURAL - SEGUNDO DISTRITO","GUARANI-ZONA RURAL-3º DISTRITO"],"z":{"0060":[[0,1204],[1,116],[2,677],[3,2585],[4,2697],[5,257],[6,257]]}},"59072":{"nm":"SAPUCAIA","b":["SAPUCAIA 1º DISTRITO","JAMAPARÁ 4º DISTRITO","ANTA 2º DISTRITO","PIÃO 5º DISTRITO","APARECIDA 3º DISTRITO"],"z":{"0061":[[0,5407],[1,2726],[2,3316],[3,2965],[4,1372]]}},"59099":{"nm":"SAQUAREMA","b":["VILATUR","PALMITAL","CENTRO","BONSUCESSO","VERDE VALE","BASILÉA","ENGENHO GRANDE","BACAXÁ","JACONÉ","PORTO DA ROÇA I","ITAÚNA","BOQUEIRÃO","BICUIBA","ALVORADA","CAIXA D'AGUA","MOMBAÇA","RIO DE AREIA","AREAL","BARRA NOVA","PORTO NOVO","ÁGUA BRANCA","RIO MOLE","MADRESSILVA","JARDIM","BARREIRA","SERRA DO MATO GROSSO","RIO SECO","SÃO GERALDO"],"z":{"0062":[[0,4021],[1,1553],[2,7939],[3,2373],[4,4358],[5,6040],[6,3929],[7,17278],[8,8554],[9,2841],[10,3338],[11,3174],[12,1331],[13,1634],[14,1588],[15,1395],[16,4707],[17,2234],[18,3373],[19,2816],[20,1456],[21,1547],[22,2270],[23,720],[24,779],[25,64],[26,372],[27,375]]}},"59110":{"nm":"SILVA JARDIM","b":["CENTRO","IMBAÚ","CAJU","BOQUEIRÃO","ALDEIA VELHA","CAXITO","CESÁRIO ALVIM","GAVIÕES","BANANEIRAS","CIDADE NOVA"],"z":{"0063":[[0,6759],[1,1157],[2,3963],[3,2222],[4,398],[5,757],[6,1954],[7,335],[8,492],[9,637]]}},"59137":{"nm":"SUMIDOURO","b":["DUAS IRMÃS","VALE DOS PINHEIROS","DONA MARIANA","ASA NORTE","SÃO LOURENÇO","CAMPINAS","CENTRO","SOLEDADE I","VENDA DA PONTE","CAMPO LEAL","MURINELI","SANTO ANDRÉ","SOLEDADE II","BENFICA"],"z":{"0064":[[0,2230],[1,549],[2,1493],[3,910],[4,385],[5,2058],[6,1888],[7,997],[8,341],[9,643],[10,638],[11,428],[12,762],[13,871]]}},"59153":{"nm":"TERESÓPOLIS","b":["CALEME","VÁRZEA","ÁGUA QUENTE","ALTO","VENDA NOVA","SÃO PEDRO","BARRA DO IMBUÍ","JARDIM PINHEIROS","PROVIDÊNCIA","BONSUCESSO","SANTA CECÍLIA","AGRIÕES","ALBUQUERQUE","FONTE SANTA","SANTA ROSA","VARGEM GRANDE","FAZENDA ALPINA","PRATA","CRUZEIRO","TIJUCA","PARQUE DO IMBUÍ","BARROSO","MEUDON","BAIRRO DE FÁTIMA","MOTAS","FEO","VALE ALPINO","ERMITAGE","FISCHER","PESSEGUEIROS","JARDIM MEUDOM","VIEIRA","GRANJA FLORESTAL","GRANJA GUARANI","VILA MUQUI","CASCATA GUARANI","POSSE","PIMENTEIRAS","CORTA VENTO","MORRO DO TIRO","SEBASTIANA","QUEBRA FRASCOS","CANOAS","CAMPO LIMPO","INDEP. MOTAS","PONTE NOVA","VISTA ALEGRE","IMBIÚ","ANDRADAS","SERRA DO CAPIM","SANTA RITA","FAZENDA ERMITAGE","TRÊS CÓRREGOS"],"z":{"0038":[[0,1762],[1,18951],[6,9845],[7,781],[11,2756],[12,3118],[13,5808],[17,682],[19,4791],[20,1014],[25,889],[27,2826],[28,405],[32,1586],[34,1010],[36,972],[37,1587],[38,844],[41,750],[42,734],[51,180]],"0195":[[2,2086],[3,13644],[4,1532],[5,15783],[8,796],[9,3683],[10,1333],[14,798],[15,3427],[16,317],[18,641],[21,1264],[22,6664],[23,4145],[24,1073],[26,879],[29,1485],[30,1574],[31,2132],[33,1408],[35,1017],[39,921],[40,546],[43,365],[44,326],[45,317],[46,358],[47,1148],[48,411],[49,580],[50,494],[52,1274]]}},"59170":{"nm":"TRAJANO DE MORAES","b":["BARRA DOS PASSOS","CENTRO","VISCONDE DE IMBÉ","MONTE CAFÉ","MARIA MENDONÇA","SERRA DAS ALMAS","TAPERA","PONTE NOVA","PONTE DE ZINCO","SODRELÂNDIA"],"z":{"0051":[[0,812],[1,3625],[2,1200],[3,629],[4,631],[5,368],[6,726],[7,298],[8,261],[9,719]]}},"59196":{"nm":"TRÊS RIOS","b":["VILA ISABEL","CIDADE NOVA","CENTRO","JARDIM PRIMAVERA","MONTE CASTELO","PORTÃO VERMELHO","LADEIRA DAS PALMEIRAS","CANTAGALO","MOURA BRASIL","TRIÂNGULO","BOA UNIÃO","BEMPOSTA","SANTA TERESINHA","PILÕES","PURIZ","PONTO AZUL","WERNECK MARINE","NOVA NITERÓI","PONTE DAS GARÇAS","MORRO DA CTB","HERMOGÊNIO SILVA","CAIXA D'ÁGUA"],"z":{"0040":[[2,12543],[7,4277],[16,785],[17,1260],[19,396]],"0174":[[0,14982],[1,1813],[2,1963],[3,406],[4,2939],[5,1134],[6,1034],[8,1397],[9,4294],[10,1971],[11,2169],[12,1723],[13,1755],[14,1810],[15,1414],[18,1300],[20,343],[21,772]]}},"59218":{"nm":"VALENÇA","b":["CENTRO","CANTEIRO","JOÃO BONITO","JARDIM VALENÇA","PARAPEUNA","ALBERTO FURTADO","CAMBOTA","APARECIDA","SÃO FRANCISCO","SANTA ISABEL","BARÃO DE JUPARANÃ","CONSERVATORIA","FATIMA","QUIRINO","BIQUINHA","PARQUE PENTAGNA","SÃO BENTO","PONTE FUNDA","CHACRINHA","SÃO JOSÉ DAS PALMEIRAS","OSÓRIO","PASSAGEM","LOTEAMENTO RANCHO NOVO","PARAISO","PENTAGNA","SANTA CRUZ","VARGINHA","MONTE D'OURO","SERRA DA GLORIA","SANTA IGNACIA","PEDRO CARLOS"],"z":{"0111":[[0,19099],[1,1692],[2,587],[3,733],[4,1351],[5,210],[6,2134],[7,1162],[8,1089],[9,1652],[10,2911],[11,2889],[12,5729],[13,298],[14,1821],[15,482],[16,87],[17,1619],[18,2006],[19,2268],[20,1179],[21,419],[22,248],[23,425],[24,905],[25,726],[26,785],[27,1491],[28,305],[29,212],[30,307]]}},"59234":{"nm":"VASSOURAS","b":["POCINHOS","CENTRO","CARVALHEIRA","MADRUGA","MANCUSI","ITAKAMOSI","ANDRADE COSTA","GRECCO","DEMÉTRIO RIBEIRO","TINGUÁ","ANDRADE PINTO","BARÃO DE VASSOURAS","CENTENÁRIO","RESIDÊNCIA","GLÓRIA","IPIRANGA","ESQUINA DA ALEGRIA","MASSAMBARÁ","FERREIROS","CANANÉIA","PIRAUÍ"],"z":{"0041":[[0,508],[1,8231],[2,4130],[3,1740],[4,694],[5,1140],[6,544],[7,1940],[8,699],[9,355],[10,1048],[11,1046],[12,1814],[13,1484],[14,161],[15,550],[16,443],[17,1695],[18,399],[19,158],[20,480]]}},"59250":{"nm":"VOLTA REDONDA","b":["VILA BRASÍLIA","SANTO AGOSTINHO","CONFORTO","CASA DE PEDRA","AERO CLUBE","SANTA RITA DO ZARUR","BELMONTE","SIDERLANDIA","RETIRO","JARDIM VILA RICA","SANTA CRUZ","VILA AMERICANA","SÃO LUÍS","ATERRADO","VILA MURY","JARDIM TIRADENTES","MINERLÂNDIA","ÁGUA LIMPA","SESSENTA","ACUDE II","ROMA II","LARANJAL","VOLTA GRANDE","NITERÓI","TRÊS POÇOS","VILA SANTA CECÍLIA","SÃO CRISTÓVÃO","ACUDE","SÃO LUCAS","DOM BOSCO","JARDIM AMÁLIA","PONTE ALTA","CAIEIRA","JARDIM NORMÂNDIA","SÃO SEBASTIÃO","VERDE VALE","EUCALIPTAL","SÃO GERALDO","VOLDAC","CANDELÁRIA","JARDIM BELMONTE"],"z":{"0090":[[0,8774],[4,4762],[5,6391],[6,4950],[7,8458],[8,28200],[10,3984],[12,5765],[14,5571],[19,1710],[23,4390],[27,4995],[29,2208],[34,1016],[35,2236],[38,1693],[39,701],[40,1756]],"0131":[[1,7127],[2,8984],[3,4609],[9,3979],[11,4307],[13,8776],[15,4089],[16,4510],[17,7760],[18,5838],[20,2996],[21,7091],[22,13994],[24,5197],[25,5532],[26,2484],[28,3102],[30,5934],[31,5887],[32,3284],[33,2606],[36,2810],[37,3501]]}},"59277":{"nm":"ARRAIAL DO CABO","b":["PRAINHA","PRAIA DOS ANJOS","CENTRO","FIGUEIRA","PRAIA GRANDE","MONTE ALTO","SABIÁ","PERNAMBUCA","VILA INDUSTRIAL"],"z":{"0146":[[0,6977],[1,3979],[2,8857],[3,4725],[4,4799],[5,3705],[6,685],[7,473],[8,1042]]}},"59293":{"nm":"ITALVA","b":["CENTRO","SAO CAETANO","GUARNERE","CIMENTO PARAISO","DOUTOR MATTOS"],"z":{"0141":[[0,5088],[1,4413],[2,988],[3,1022],[4,137]]}},"59315":{"nm":"PATY DO ALFERES","b":["CENTRO - AVELAR","ARCOZELO","GRANJA CALIFÓRNIA - AVELAR","MARAVILHA","CAPIVARA","VISTA ALEGRE - AVELAR","PALMARES","CENTRO","COQUEIROS","GOIABAL","POAIA","PEDRAS RUIVAS","BELA VISTA","HORIZONTE - AVELAR"],"z":{"0048":[[0,3051],[1,3383],[2,2378],[3,1357],[4,410],[5,888],[6,782],[7,7099],[8,1379],[9,472],[10,598],[11,1644],[12,419],[13,442]]}},"59331":{"nm":"SÃO JOSÉ DO VALE DO RIO PRETO","b":["CONTENDAS","BOA VISTA","BARRINHA","CENTRO","JAGUARA","POUSO ALEGRE","PEDRAS BRANCAS","PARADA MORELLI","ÁGUAS CLARAS","VOLTA DO PIÃO","ROÇADINHO"],"z":{"0196":[[0,1734],[1,779],[2,1089],[3,6144],[4,2054],[5,808],[6,638],[7,924],[8,1145],[9,206],[10,709]]}},"60011":{"nm":"RIO DE JANEIRO","b":["SÃO CONRADO","TIJUCA","GÁVEA","MEIER","CAMPO GRANDE","PADRE MIGUEL","REALENGO","TRIAGEM","BENFICA","COSMOS","GALEÃO","PRAÇA DA BANDEIRA","ANCHIETA","FREGUESIA JPA","VIDIGAL","RIO COMPRIDO","CENTRO","PEDRA DE GUARATIBA","TAQUARA","ROCHA MIRANDA","IRAJÁ","BENTO RIBEIRO","BAIRRO DE FÁTIMA","HUMAITA","COPACABANA","MADUREIRA","VARGEM PEQUENA","CAVALCANTI","SAÚDE","INHAUMA","PACIÊNCIA","LEBLON","GUARATIBA","LARANJEIRAS","PILARES","GUADALUPE","BANGU","RIO DAS PEDRAS","CORDOVIL","BONSUCESSO","JACARÉ","SÃO CRISTÓVÃO","TANQUE","BRÁS DE PINA","ZUMBI","CACUIA","SÃO FRANCISCO XAVIER","CASCADURA","CIDADE DE DEUS","JARDIM GUANABARA","ANIL","DEL CASTILHO","RAMOS","PRAÇA SECA","ENGENHO DA RAINHA","FLAMENGO","MARECHAL HERMES","BARRA DA TIJUCA","ÁGUA SANTA","ITANHANGÁ","VAZ LOBO","URCA","PORTUGUESA","CACHAMBI","BANCÁRIOS","CAMORIM","TUBIACANGA","PAVUNA","COELHO NETO","GLÓRIA","VIGÁRIO GERAL","MARACANÃ","ROCHA","OSWALDO CRUZ","MANGUEIRA","MONERÓ","AUGUSTO VASCONCELOS","SANTA CRUZ","PIEDADE","BARRA OLÍMPICA","ENGENHO DE DENTRO","SEPETIBA","PENHA","VILA KENNEDY","VILA DA PENHA","PECHINCHA","HIGIENÓPOLIS","INHOAÍBA","JARDIM BOTÂNICO","COLÉGIO","COSTA BARROS","ESTÁCIO","HONÓRIO GURGEL","JARDIM AMÉRICA","RICARDO DE ALBUQUERQUE","BOTAFOGO","ALTO DA BOA VISTA","JARDIM SULACAP","ENCANTADO","SANTA TERESA","GRAJAÚ","VILA ISABEL","CAJU","ENGENHO NOVO","TURIAÇU","FUNDÃO","CURICICA","OLARIA","FREGUESIA (ILHA DO GOVERNADOR)","IPANEMA","DEODORO","VILA VALQUEIRE","SENADOR CAMARÁ","CATETE","SANTÍSSIMO","MAGALHÃES BASTOS","RECREIO","QUINTINO BOCAIUVA","LINS DE VASCONCELOS","MARIA DA GRAÇA","VISTA ALEGRE","PARADA DE LUCAS","CAMPINHO","PARQUE COLÚMBIA","VILA KOSMOS","PENHA CIRCULAR","JARDIM BANGU","VICENTE DE CARVALHO","RIACHUELO","BARROS FILHO","VARGEM GRANDE","ACARI","LAGOA","VASCO DA GAMA","GARDENIA AZUL","TOMÁS COELHO","ILHA DE GUARATIBA","COSME VELHO","SENADOR VASCONCELOS","BARRA DE GUARATIBA","GAMBOA","PARQUE ANCHIETA","ANDARAÍ","LAPA","LEME","TAUÁ","COCOTÁ","CATIRI","TODOS OS SANTOS","SANTO CRISTO","MANGUINHOS","ENGENHEIRO LEAL","CIDADE NOVA","GUARABU","RIBEIRA","VILA MILITAR","JARDIM CARIOCA","ROCINHA","PITANGUEIRAS","PAQUETÁ","SÃO JORGE"],"z":{"0004":[[23,12673],[55,33183],[61,9222],[95,64875]],"0005":[[24,106743],[144,10756]],"0007":[[1,107301]],"0008":[[3,10169],[40,10700],[51,6446],[63,18297],[72,25012],[103,4259],[119,8804],[128,2958]],"0009":[[26,13784],[57,46874],[65,19228],[116,68042],[130,14087]],"0010":[[25,10321],[47,15633],[58,7744],[73,15021],[78,11115],[98,11195],[117,13876]],"0014":[[27,4352],[34,24647],[47,9045],[78,20298],[80,9994],[117,15024],[135,3108]],"0016":[[22,9567],[33,41270],[69,8770],[99,13832],[113,33041],[137,7365],[143,5176]],"0017":[[2,4883],[24,25402],[31,39053],[109,35533],[132,5751]],"0021":[[29,9652],[39,7318],[52,35358],[54,9085],[107,27111],[135,2294]],"0022":[[20,67781],[67,18731],[84,1764],[89,9597],[123,7733],[131,8457]],"0023":[[21,11439],[35,39084],[56,17013],[110,10773],[155,1372]],"0024":[[5,12593],[6,11242],[36,65062],[112,10172]],"0025":[[17,5183],[32,16002],[77,41641],[81,37493]],"0118":[[25,18978],[27,8281],[47,6508],[60,5611],[73,3104],[127,14289],[135,3796],[151,2969]],"0119":[[13,59387],[57,67296],[59,17463],[96,6342]],"0120":[[4,73435],[138,8430]],"0122":[[4,58544],[114,22782],[138,7292]],"0123":[[6,35947],[12,28587],[94,15056],[110,4727],[115,3454],[141,2620]],"0125":[[77,106137]],"0161":[[39,82909],[52,8957]],"0162":[[38,16835],[43,20677],[52,27021],[82,21360],[107,20127],[121,2984],[125,10426]],"0167":[[12,28728],[35,2179],[67,24317],[90,8346],[94,6287]],"0169":[[7,7734],[8,26606],[29,6855],[39,3392],[51,8507],[74,5380],[86,24507],[119,2590],[150,2542]],"0170":[[1,8420],[71,11261],[100,32744],[101,47493],[142,30624]],"0176":[[38,16253],[43,3273],[70,11415],[84,8555],[93,30415],[120,13302],[121,9443]],"0179":[[37,43467],[48,31149],[50,23405],[85,30265],[134,18273]],"0180":[[18,57732],[42,33081]],"0182":[[18,57806],[79,16013],[106,35654]],"0185":[[21,3782],[53,48497],[97,11615],[111,31194],[122,12951]],"0188":[[20,6955],[43,7290],[82,43466],[84,36111],[124,9760],[125,25840]],"0191":[[44,7615],[45,7773],[64,15111],[75,13229],[108,14757],[145,9681],[146,19535],[153,2555],[154,5577],[156,4589],[158,1688]],"0192":[[10,23415],[49,19502],[62,16736],[66,1460],[105,1420]],"0204":[[16,41923],[28,5100],[41,30498],[102,15301],[133,4699],[140,3399],[149,6008],[152,2776],[159,3128]],"0211":[[0,40432],[2,24204],[14,10938],[88,15695],[132,6988],[157,1638]],"0214":[[3,41304],[46,2979],[72,2520],[80,26159],[103,29193],[118,15751],[128,6901],[148,6418]],"0216":[[3,6442],[29,16152],[54,21262],[63,21546],[80,10067],[148,8750]],"0218":[[19,4512],[20,3746],[21,10059],[25,10595],[56,19852],[60,21872],[73,7613],[92,8298],[104,11177]],"0219":[[19,32897],[67,12778],[68,22338],[89,8905],[90,9373],[92,11891],[129,5678]],"0229":[[1,35421],[11,13706],[15,34729],[71,16666],[91,8979]],"0230":[[36,784],[83,39708],[126,17802],[147,3977]],"0233":[[5,52740],[6,34773],[36,16761]],"0234":[[6,58641],[115,25265]],"0238":[[36,42221],[76,6333],[112,47877],[114,13595]],"0241":[[9,10954],[30,44115],[77,19493]],"0242":[[4,51736],[87,19096],[160,1135]],"0243":[[17,27124],[32,43265],[136,12143],[139,5426]],"0245":[[4,96212],[87,10599]],"0246":[[4,18772],[9,35223],[30,47980],[77,1161],[87,7618]]}}}};
 const semAcento = t => String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
-let BU_RIO = null;
-async function atualizarBU(){
-  if (MODO_APP || !ehLocal || CFG.ambiente==='demo' || !ESTADO.pleito) { BU_RIO = null; return; }
+const REPO_DADOS = 'https://raw.githubusercontent.com/eduvaldoski2/apuracao-4013/dados/bairros';
+// Votos reais por bairro (boletins de urna), por partido: no Mac vêm do servidor local; no site/celular, da rotina do GitHub
+const REAIS = {};
+async function atualizarReais(pref){
+  if (!pref || CFG.ambiente==='demo') return null;
+  if (CFG.ambiente==='2022') { try { REAIS[pref] = {...(await T22.reais(pref)), fonte:'teste'}; } catch(e){ REAIS[pref] = null; } return REAIS[pref]; }
   try {
-    const q = new URLSearchParams({ amb: CFG.ambiente, ano: CFG.ano, pleito: ESTADO.pleito, cand: CFG.candidata });
-    const r = await fetch('/bu/rio?' + q, {cache:'no-store'});
-    if (r.ok) BU_RIO = await r.json();
-  } catch(e){ BU_RIO = null; }
+    const local = ehLocal && !MODO_APP;
+    const url = local ? `/bu/bairros?amb=${encodeURIComponent(CFG.ambiente)}&pref=${pref}`
+                      : `${REPO_DADOS}/${CFG.ambiente}/${pref}.json?m=${Math.floor(Date.now()/120000)}`;
+    const r = await fetch(url, {cache:'no-store'});
+    REAIS[pref] = r.ok ? { ...(await r.json()), fonte: local ? 'mac' : 'github' } : null;
+  } catch(e){ REAIS[pref] = null; }
+  return REAIS[pref];
 }
-// Por bairro, zona a zona: votos reais dos boletins já lidos + estimativa só do que falta
+// Bairros de um município, zona a zona: votos reais dos boletins já lidos + estimativa só do que falta
 // (total da zona informado pelo TSE menos o que já foi lido), repartida pelo eleitorado dos bairros da zona.
-function bairrosCombinados(c){
-  if (!ZONAS) return { lista:[], real:0, total:0 };
-  const codigos = Object.keys(RIO_BZ.zonas);
-  const zonasRio = CFG.ambiente==='demo'
-    ? ZONAS.filter(z=>z.sub==='Rio de Janeiro').map((z,i)=>({z, zc:codigos[i % codigos.length]}))
-    : ZONAS.filter(z=>z.munRio).map(z=>({z, zc:z.zona}));
-  const bu = (BU_RIO && BU_RIO.ok && BU_RIO.zonas) || {};
-  const acc = new Map(); let real = 0, total = 0;
+// zonas: [{zc, v: votos do candidato na zona (neste município), t: votos válidos da zona}]
+function bairrosDoMunicipio(mun, zonas, cand, real){
+  const M = RJB.mun[mun]; if (!M) return { lista:[], real:0, total:0 };
+  const rz = (real && real.mz && real.mz[mun]) || {};
+  const acc = new Map(); let rTot = 0, total = 0;
   const somar = (b, v, val, vReal) => {
-    const nome = RIO_BZ.bairros[b] || ('Bairro '+b), k = semAcento(nome);
+    const nome = M.b[b] || ('Bairro '+b), k = semAcento(nome);
     const a = acc.get(k) || {nome, v:0, val:0, real:0};
-    if (nome.length >= a.nome.length && /[^\x00-\x7F]/.test(nome)) a.nome = nome;
     a.v += v; a.val += val; a.real += vReal; acc.set(k, a);
   };
-  for (const {z, zc} of zonasRio) {
-    const pesos = RIO_BZ.zonas[zc]; if (!pesos) continue;
-    const lido = bu[zc] || {};
+  for (const {zc, v, t} of zonas) {
+    const pesos = M.z[zc]; if (!pesos) continue;
+    const lido = rz[zc] || {};
     let rV = 0, rT = 0;
-    for (const [b,[v,t]] of Object.entries(lido)) { somar(+b, v, t, v); rV += v; rT += t; }
-    const vZona = z.votos[c.n]||0, tZona = z.validos||0;
-    const faltaV = Math.max(0, vZona - rV), faltaT = Math.max(0, tZona - rT);
+    for (const [b, vs] of Object.entries(lido)) { const x = vs[cand]||0, tt = vs._t||0; somar(+b, x, tt, x); rV += x; rT += tt; }
+    const faltaV = Math.max(0, (v||0) - rV), faltaT = Math.max(0, (t||0) - rT);
     const tot = pesos.reduce((s,[,n])=>s+n,0) || 1;
     for (const [b,n] of pesos) somar(b, faltaV*n/tot, faltaT*n/tot, 0);
-    real += Math.min(rV, vZona); total += Math.max(vZona, rV);
+    rTot += Math.min(rV, v||0); total += Math.max(v||0, rV);
   }
   const lista = [...acc.values()].map(a=>({nome:a.nome, v:a.v, pct: a.val ? 100*a.v/a.val : NaN, parcialReal: a.v ? a.real/a.v : 0}));
-  return { lista, real, total };
+  return { lista, real:rTot, total };
+}
+// Tabela de bairros (usada na tela da candidatura e na tela do município)
+function tabelaBairros(ids, comb, ctx){
+  const {tb, meta, nota, pctH} = ids;
+  const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
+  const tot = bs.reduce((s,b)=>s+b.v,0);
+  const pctReal = comb.total ? 100*comb.real/comb.total : 0;
+  if (pctH) $(pctH).textContent = '% bairro';
+  $(tb).innerHTML = bs.map((b,k)=>`<tr><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td></tr>`).join('')
+    || `<tr><td colspan="4" class="empty">${ctx.vazio || 'Sem votos ainda.'}</td></tr>`;
+  $(meta).innerHTML = !ctx.podeReal ? `<span class="tt-fonte">ESTIMATIVA</span>`
+    : pctReal >= 99.5 ? `<span class="tt-fonte real">BOLETINS DE URNA</span>`
+    : pctReal > 0 ? `<span class="tt-fonte real">${fmtP(pctReal,0)} REAL</span>` : `<span class="tt-fonte">ESTIMATIVA</span>`;
+  let txt = !ctx.podeReal
+    ? 'Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026). Votos reais por bairro existem só para Deputado Federal.'
+    : pctReal >= 99.5 ? 'Votos reais, somados seção a seção pelo bairro do local de votação (boletins de urna).'
+    : pctReal > 0 ? `${fmtP(pctReal,0)} dos votos já vêm dos boletins de urna (reais); o restante é estimado pelo eleitorado dos bairros de cada zona até o boletim ser lido. "≈" marca bairro com parte estimada.`
+    : 'Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026). Os votos reais dos boletins de urna entram assim que forem lidos.';
+  const R = ctx.real;
+  if (ctx.podeReal && R && R.totalizadas) txt += ` Boletins lidos: ${fmt(R.lidas)} de ${fmt(R.totalizadas)} seções totalizadas no estado${R.fonte==='github' ? ` (atualizado às ${new Date(R.atualizado).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})` : ''}.`;
+  $(nota).textContent = txt + (ctx.rodape ? ' ' + ctx.rodape : '');
 }
 function renderTatiana(){
   if (!ULTIMO || !$('ttZonas')) return;
@@ -1290,24 +1557,161 @@ function renderTatiana(){
   $('ttZMeta').textContent = zs.length ? `${zs.length} zonas com votos` : '';
   $('ttMun').innerHTML = ms.map((z,k)=>linha(z,k)).join('') || vazio('Sem votos por município ainda.');
   $('ttMMeta').textContent = ms.length ? `${ms.length} municípios com votos` : '';
-  // bairros: votos reais dos boletins já lidos + estimativa só da parte que falta ler
-  const comb = bairrosCombinados(c);
-  const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
-  const totRio = bs.reduce((s,b)=>s+b.v,0);
-  const pctReal = comb.total ? 100*comb.real/comb.total : 0;
-  $('ttBPctH').textContent = '% bairro';
-  $('ttBairros').innerHTML = bs.map((b,k)=>`<tr><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${totRio?fmtP(100*b.v/totRio,1):'—'}</td></tr>`).join('') || vazio('Sem votos na capital ainda.');
-  $('ttBMeta').innerHTML = pctReal >= 99.5 ? `<span class="tt-fonte real">BOLETINS DE URNA</span>`
-    : pctReal > 0 ? `<span class="tt-fonte real">${fmtP(pctReal,0)} REAL</span>` : `<span class="tt-fonte">ESTIMATIVA</span>`;
-  let nota = pctReal >= 99.5
-    ? 'Votos reais, somados seção a seção pelo bairro do local de votação (boletins de urna).'
-    : pctReal > 0
-      ? `${fmtP(pctReal,0)} dos votos dela na capital já vêm dos boletins de urna (reais); o restante é estimado pelo eleitorado dos bairros de cada zona até o boletim ser lido. "≈" marca bairro com parte estimada.`
-      : 'Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026). No painel do Mac, os votos reais dos boletins de urna entram assim que forem lidos.';
-  if (BU_RIO && BU_RIO.ok && BU_RIO.totalizadas) nota += ` Boletins lidos: ${fmt(BU_RIO.com_votos)} de ${fmt(BU_RIO.totalizadas)} seções totalizadas.`;
-  $('ttBNota').textContent = nota + ' "% dela" = fatia da votação dela na capital.';
+  // bairros da capital: votos reais dos boletins já lidos + estimativa só da parte que falta ler
+  const codigos = Object.keys(RJB.mun['60011'].z);
+  const zonasCap = CFG.ambiente==='demo'
+    ? ZONAS.filter(z=>z.sub==='Rio de Janeiro').map((z,i)=>({zc:codigos[i % codigos.length], v:z.votos[c.n]||0, t:z.validos||0}))
+    : ZONAS.filter(z=>z.munRio).map(z=>({zc:z.zona, v:z.votos[c.n]||0, t:z.validos||0}));
+  const real = REAIS[c.n.slice(0,2)];
+  tabelaBairros({tb:'ttBairros', meta:'ttBMeta', nota:'ttBNota', pctH:'ttBPctH'}, bairrosDoMunicipio('60011', zonasCap, c.n, real),
+    {podeReal:true, real, vazio:'Sem votos na capital ainda.', rodape:`"% ${c.n==='4013'?'dela':'do(a) candidato(a)'}" = fatia da votação na capital.`});
 }
 
+
+/* ============ MUNICÍPIO EM DESTAQUE (qualquer cargo) ============ */
+const CARGOS_MUN = {6:'DEPUTADO(A) FEDERAL', 7:'DEPUTADO(A) ESTADUAL', 5:'SENADOR(A)', 3:'GOVERNADOR(A)', 1:'PRESIDENTE'};
+const DEMO_MAJ = { 1:[41.2,33.5,9.1,6.4,4.0,2.3,1.9,1.6], 3:[38.7,29.4,14.2,8.8,5.1,3.8], 5:[27.3,22.8,17.5,12.9,9.6,6.2,3.7] };
+let MUN_SEL = { mun:'60011', cargo:6, cand:{} };
+try { const s = JSON.parse(localStorage.getItem('painelMun')||'null'); if (s && RJB.mun[s.mun]) MUN_SEL = {...MUN_SEL, ...s, cand:s.cand||{}}; } catch(e){}
+const salvarMunSel = () => { try { localStorage.setItem('painelMun', JSON.stringify(MUN_SEL)); } catch(e){} };
+let MUN_DADOS = null, MUN_TOKEN = 0;
+const MUN_CM = {};
+const hash01 = s => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return ((h>>>0) % 100000) / 100000; };
+// total de válidos de um recorte: pelo % do TSE do mais votado (vale também para o Senado, com 2 votos por eleitor)
+function baseValidos(d){
+  let top = null; for (const c of d.cands) if (c.votos > 0 && c.pct > 0 && (!top || c.votos > top.votos)) top = c;
+  const soma = d.agrs.reduce((s,a)=>s+a.votos,0), b = top ? top.votos*100/top.pct : NaN;
+  return (b > 0.3*soma && b < 1.05*soma) || !soma ? (b||soma) : soma;   // Senado: ~metade da soma (2 votos por eleitor)
+}
+function preencherMunicipios(){
+  const lista = Object.entries(RJB.mun).map(([cd,m])=>({cd, nm:titulo(m.nm)})).sort((a,b)=>a.nm.localeCompare(b.nm,'pt-BR'));
+  $('munSel').innerHTML = lista.map(m=>`<option value="${m.cd}"${m.cd===MUN_SEL.mun?' selected':''}>${esc(m.nm)}</option>`).join('');
+  $('munCargo').value = String(MUN_SEL.cargo);
+}
+async function zonasDoMunicipio(mun, e){
+  if (e.ele===ESTADO.ele && ESTADO.municipios) { const m = ESTADO.municipios.find(x=>x.cd===mun); if (m && m.zonas.length) return m.zonas.map(pad4); }
+  try {
+    MUN_CM[e.ele] ??= getJSON(`${urlBase()}/${e.ano}/${e.ele}/config/mun-e${pad6(e.ele)}-cm.json`);
+    const uf = bfs(await MUN_CM[e.ele], o=>String(o.cd||'').toLowerCase()===CFG.uf && Array.isArray(o.mu));
+    const m = uf && uf.mu.find(x=>String(x.cd).padStart(5,'0')===mun);
+    if (m && m.z && m.z.length) return m.z.map(pad4);
+  } catch(err){ delete MUN_CM[e.ele]; }
+  return Object.keys((RJB.mun[mun]||{}).z||{});
+}
+async function carregarMunicipioReal(mun, cargo){
+  const e = await eleicaoDoCargo(cargo);
+  const base = `${urlBase()}/${e.ano}/${e.ele}/dados/${CFG.uf}/${CFG.uf}${mun}`, fim = `-c${pad4(cargo)}-e${pad6(e.ele)}-u.json`;
+  const zs = await zonasDoMunicipio(mun, e);
+  const [muni, zonas] = await Promise.all([
+    getJSON(base + fim),
+    pool(zs.map(z=>async()=>({ zc:z, d:extrair(await getJSON(`${base}-z${z}${fim}`)) })), 6),
+  ]);
+  const d = extrair(muni);
+  if (isNaN(d.tot.pctApurado) && ESTADO.ab && e.ele===ESTADO.ele && ESTADO.ab.mun[mun]) d.tot.pctApurado = ESTADO.ab.mun[mun].pst;
+  return { mun, cargo, d, zonas: zonas.filter(Boolean), hora: d.tot.hora };
+}
+// Demonstração: reparte a votação fictícia do estado pelas zonas do município (eleitorado real das zonas)
+function municipioDemo(mun, cargo){
+  const M = RJB.mun[mun], p = Math.max(0.01, DEMO.pct()/100);
+  let cands;
+  if (cargo===6) cands = ULTIMO ? ULTIMO.d.cands : [];
+  else if (cargo===7) cands = estaduaisDemo().cands;
+  else cands = DEMO_MAJ[cargo].map((v,i)=>({ n:String(11+i*11), nome:`CANDIDATO ${String.fromCharCode(65+i)}`, partido:`PARTIDO ${String.fromCharCode(65+i)}`, agr:'', votos:Math.round(v/100*8.6e6*p) }));
+  const ELEIT_RJ = 12.8e6;
+  const zonas = Object.entries(M.z).map(([zc,ps])=>{
+    const el = ps.reduce((s,[,n])=>s+n,0), pz = Math.min(1, p*(0.75+0.5*hash01(mun+zc)));
+    const cs = cands.map(c=>({ n:c.n, nome:c.nome, partido:c.partido, agr:c.agr||c.partido, pct:NaN,
+      votos: Math.round(c.votos/p * el/ELEIT_RJ * (0.15+1.7*hash01(c.n+'|'+mun+'|'+zc)) * pz) }));
+    return { zc, el, d:{ cands:cs, agrs:[{votos:cs.reduce((s,c)=>s+c.votos,0)}], tot:{pctApurado:100*pz} } };
+  });
+  const tot = {}; zonas.forEach(z=>z.d.cands.forEach(c=>tot[c.n]=(tot[c.n]||0)+c.votos));
+  const cs = cands.map(c=>({ n:c.n, nome:c.nome, partido:c.partido, agr:c.agr, pct:NaN, votos:tot[c.n]||0 }));
+  const elT = zonas.reduce((s,z)=>s+z.el,0);
+  const d = { cands:cs, agrs:[{votos:cs.reduce((s,c)=>s+c.votos,0)}], tot:{ pctApurado: elT ? zonas.reduce((s,z)=>s+z.el*z.d.tot.pctApurado,0)/elT : NaN } };
+  return { mun, cargo, d, zonas, hora: new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) };
+}
+function candMun(){
+  const D = MUN_DADOS; if (!D) return '';
+  const cargo = D.cargo, cs = D.d.cands, tem = n => n && cs.some(c=>c.n===n);
+  if (tem(MUN_SEL.cand[cargo])) return MUN_SEL.cand[cargo];
+  if (cargo===6 && tem(CFG.candidata)) return CFG.candidata;
+  const foco = cs.filter(c=>String(c.partido).toUpperCase()===CFG.partidoFoco.toUpperCase()).sort((a,b)=>b.votos-a.votos)[0];
+  return (foco || [...cs].sort((a,b)=>b.votos-a.votos)[0] || {}).n || '';
+}
+function preencherCandMun(){
+  const D = MUN_DADOS; if (!D) return;
+  const sel = candMun();
+  $('munCand').innerHTML = [...D.d.cands].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'))
+    .map(c=>`<option value="${esc(c.n)}"${c.n===sel?' selected':''}>${esc(c.nome)} · ${esc(c.partido)} · ${esc(c.n)}</option>`).join('') || '<option value="">Sem candidaturas</option>';
+}
+function renderMunicipio(){
+  const D = MUN_DADOS; if (!D || !$('munZonas')) return;
+  const n = candMun(), c = D.d.cands.find(x=>x.n===n);
+  const nomeMun = titulo((RJB.mun[D.mun]||{}).nm || D.mun);
+  const vazio = m => `<tr><td colspan="4" class="empty">${m}</td></tr>`;
+  if (!c) { $('munZonas').innerHTML = vazio('Sem candidaturas neste recorte ainda.'); $('munBairros').innerHTML = ''; return; }
+  const validos = baseValidos(D.d);
+  const ord = [...D.d.cands].sort((a,b)=>b.votos-a.votos), pos = ord.findIndex(x=>x.n===n)+1;
+  const pctC = !isNaN(c.pct) ? c.pct : (validos ? 100*c.votos/validos : NaN);
+  const zs = D.zonas.map(z=>{
+    const zc = z.d.cands.find(x=>x.n===n) || {votos:0, pct:NaN}, t = baseValidos(z.d);
+    const zo = [...z.d.cands].sort((a,b)=>b.votos-a.votos);
+    return { zc:z.zc, v:zc.votos, t, pct: !isNaN(zc.pct) ? zc.pct : (t ? 100*zc.votos/t : NaN), pos: zc.votos ? zo.findIndex(x=>x.n===n)+1 : 0, n:zo.length, ap: isNaN(z.d.tot.pctApurado) ? D.d.tot.pctApurado : z.d.tot.pctApurado };
+  }).sort((a,b)=>b.v-a.v || a.zc.localeCompare(b.zc));
+  const melhor = zs.find(z=>z.v>0);
+  const lider = ord[0], fem = n==='4013';
+  $('munBox').innerHTML = `<div class="tr-head"><h3>${esc(c.nome)} <span>${esc(c.n)}</span></h3><span class="tr-n">${esc(c.partido)} · ${esc(fem ? 'DEPUTADA FEDERAL' : CARGOS_MUN[D.cargo])} · ${esc(nomeMun.toUpperCase())}</span></div>
+    <div class="tr-body">
+      <div><div class="eyebrow">Votos em ${esc(nomeMun)}</div><div class="tr-v big num">${fmt(c.votos)}</div><div class="tr-s num">${fmtP(pctC)} dos válidos</div></div>
+      <div><div class="eyebrow">Posição no município</div><div class="tr-v num">${c.votos?pos+'º':'—'}</div><div class="tr-s">de ${ord.length}</div></div>
+      <div><div class="eyebrow">Seções apuradas</div><div class="tr-v num">${fmtP(D.d.tot.pctApurado,1)}</div><div class="tr-s">no município</div></div>
+      <div><div class="eyebrow">Melhor zona</div><div class="tr-v num">${melhor?'Zona '+Number(melhor.zc):'—'}</div><div class="tr-s num">${melhor?`${fmt(melhor.v)} votos · ${fmtP(melhor.pct,1)}`:'sem votos ainda'}</div></div>
+      <div class="tr-sit"><span class="tr-s">${lider && lider.n!==n && lider.votos ? `Mais votado(a) no município: <b>${esc(lider.nome)}</b> (${esc(lider.partido)}) com ${fmt(lider.votos)} votos` : (c.votos ? '<b>Candidatura mais votada no município neste cargo.</b>' : 'Aguardando votos.')} · ${D.zonas.length} ${D.zonas.length===1?'zona':'zonas'} · atualizado às ${esc(String(D.hora||'').split(' ').pop()||'—')}</span></div>
+    </div>`;
+  $('munZonas').innerHTML = zs.map((z,k)=>`<tr><td><div class="zname">${k+1}. Zona ${Number(z.zc)}</div><span class="zmun">apur. ${fmtP(z.ap,1)}</span></td><td class="r num">${fmt(z.v)}</td><td class="r num">${fmtP(z.pct,1)}</td><td class="r num">${z.pos?`<span class="mu-pos">${z.pos}º</span> <span class="zmun" style="display:inline">de ${z.n}</span>`:'—'}</td></tr>`).join('') || vazio('Sem zonas neste município.');
+  $('munZMeta').textContent = `${zs.filter(z=>z.v>0).length} de ${zs.length} zonas com votos`;
+  const podeReal = D.cargo===6, real = podeReal ? REAIS[n.slice(0,2)] : null;
+  tabelaBairros({tb:'munBairros', meta:'munBMeta', nota:'munBNota', pctH:'munBPctH'},
+    bairrosDoMunicipio(D.mun, zs.map(z=>({zc:z.zc, v:z.v, t:z.t})), n, real),
+    {podeReal, real, vazio:'Sem votos no município ainda.', rodape:'"% do total" = fatia da votação da candidatura no município.'});
+}
+async function atualizarMunicipio(){
+  if (!$('munSel')) return;
+  if (!$('munSel').options.length) preencherMunicipios();
+  const mun = MUN_SEL.mun, cargo = +MUN_SEL.cargo, tk = ++MUN_TOKEN;
+  if (!MUN_DADOS || MUN_DADOS.mun!==mun || MUN_DADOS.cargo!==cargo) {
+    MUN_DADOS = null;
+    ['munZonas','munBairros'].forEach(id=>$(id).innerHTML = '<tr><td colspan="4" class="empty">Carregando…</td></tr>');
+    $('munCand').innerHTML = '<option value="">Carregando…</option>';
+    $('munBox').innerHTML = `<div class="tr-head"><h3>${esc(titulo((RJB.mun[mun]||{}).nm||''))}</h3><span class="tr-n">${esc(CARGOS_MUN[cargo]||'')}</span></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Carregando…</p></div>`;
+    $('munZMeta').textContent = ''; $('munBMeta').textContent = ''; $('munBNota').textContent = '';
+  }
+  try {
+    let D;
+    if (CFG.ambiente==='demo') { if (cargo===6 && !ULTIMO) return; D = municipioDemo(mun, cargo); }
+    else { if (!ESTADO.ele) return; D = await carregarMunicipioReal(mun, cargo); }
+    if (tk !== MUN_TOKEN) return;
+    MUN_DADOS = D; preencherCandMun();
+    const n = candMun();
+    if (cargo===6 && n && CFG.ambiente!=='demo') { await atualizarReais(n.slice(0,2)); if (tk !== MUN_TOKEN) return; }
+    renderMunicipio();
+  } catch(e){
+    if (tk !== MUN_TOKEN) return;
+    diag('Município: ' + e.message);
+    MUN_DADOS = null; $('munCand').innerHTML = '<option value="">—</option>';
+    $('munBox').innerHTML = `<div class="tr-head"><h3>${esc(titulo((RJB.mun[mun]||{}).nm||''))}</h3><span class="tr-n">${esc(CARGOS_MUN[cargo]||'')}</span></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Dados ainda não disponíveis para este município e cargo.</p></div>`;
+    ['munZonas','munBairros'].forEach(id=>$(id).innerHTML = `<tr><td colspan="4" class="empty">${e.status===404 ? 'O TSE ainda não publicou este recorte.' : 'Não foi possível ler o TSE agora; nova tentativa na próxima atualização.'}</td></tr>`);
+  }
+}
+$('munSel').addEventListener('change', ()=>{ MUN_SEL.mun = $('munSel').value; salvarMunSel(); atualizarMunicipio(); });
+$('munCargo').addEventListener('change', ()=>{ MUN_SEL.cargo = +$('munCargo').value; salvarMunSel(); atualizarMunicipio(); });
+$('munCand').addEventListener('change', async ()=>{
+  const n = $('munCand').value; if (!n || !MUN_DADOS) return;
+  MUN_SEL.cand[MUN_DADOS.cargo] = n; salvarMunSel();
+  renderMunicipio();
+  if (MUN_DADOS.cargo===6 && CFG.ambiente!=='demo' && !REAIS[n.slice(0,2)]) { await atualizarReais(n.slice(0,2)); renderMunicipio(); }
+});
+preencherMunicipios();
 
 /* ============ ESCOLHA DE PARTIDO E CANDIDATURA (Configurações) ============ */
 function preencherEscolha(partido, cand){
@@ -1315,11 +1719,11 @@ function preencherEscolha(partido, cand){
   const partidos = [...new Set(cands.map(c=>c.partido))].filter(p=>p && p!=='?').sort((a,b)=>a.localeCompare(b,'pt-BR'));
   if (!partidos.includes(partido)) partidos.unshift(partido);
   $('cfPart').innerHTML = partidos.map(p=>`<option value="${esc(p)}"${p===partido?' selected':''}>${esc(p)}</option>`).join('');
-  const doPart = cands.filter(c=>c.partido===partido).sort((a,b)=>b.votos-a.votos);
+  const doPart = cands.filter(c=>c.partido===partido).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   let opts = doPart.map(c=>`<option value="${esc(c.n)}"${c.n===cand?' selected':''}>${esc(c.nome)} · ${esc(c.n)}${c.votos?` · ${fmt(c.votos)} votos`:''}</option>`);
   if (!doPart.some(c=>c.n===cand)) opts.unshift(`<option value="${esc(cand)}" selected>${cand==='4013'?'TATIANA ROQUE':'Candidatura'} · ${esc(cand)}</option>`);
   $('cfCand').innerHTML = opts.join('');
-  $('cfCandHint').textContent = cands.length ? `Lista com os candidatos do ${partido} na apuração, do mais ao menos votado. Padrão: PSB · Tatiana Roque (4013).` : 'A lista completa aparece quando os dados do TSE chegarem. Padrão: PSB · Tatiana Roque (4013).';
+  $('cfCandHint').textContent = cands.length ? `Candidatos do ${partido} em ordem alfabética. Padrão: PSB · Tatiana Roque (4013).` : 'A lista completa aparece quando os dados do TSE chegarem. Padrão: PSB · Tatiana Roque (4013).';
 }
 $('cfPart').addEventListener('change', ()=>{
   const p = $('cfPart').value, cands = ULTIMO ? ULTIMO.d.cands.filter(c=>c.partido===p).sort((a,b)=>b.votos-a.votos) : [];
@@ -1333,17 +1737,12 @@ function rotulosCandidata(c){
   if (bt) bt.innerHTML = `<b>${esc(CFG.candidata)}</b>${esc(curto)}`;
   const bp = document.querySelector('#tabbar button[data-tela="3"]');
   if (bp) bp.innerHTML = `<b>${esc((c && c.n || CFG.candidata).slice(0,2))}</b>${esc(CFG.partidoFoco)}`;
+  if (TELAS[3] && TELAS[3].dataset.nome !== CFG.partidoFoco) { TELAS[3].dataset.nome = CFG.partidoFoco; const d3 = document.querySelector('#dots button[data-tela="3"]'); if (d3) d3.textContent = `4. ${CFG.partidoFoco}`; }
   if (TELAS[1] && TELAS[1].dataset.nome !== curto) { TELAS[1].dataset.nome = curto; const d = document.querySelector('#dots button[data-tela="1"]'); if (d) d.textContent = `2. ${curto}`; }
 }
 
 
 /* ============ DEPUTADOS ESTADUAIS (cargo 7) ============ */
-const GRUPOS_EST = [
-  { id:'psb',  nome:'PSB',                         cor:'var(--g-psb)',  partidos:['PSB'] },
-  { id:'fe',   nome:'PT · PCdoB · PV',             cor:'var(--g-fe)',   partidos:['PT','PCDOB','PV'], sub:'Federação Brasil da Esperança' },
-  { id:'psol', nome:'PSOL',                        cor:'var(--g-psol)', partidos:['PSOL'] },
-];
-const grupoDe = c => GRUPOS_EST.find(g=>g.partidos.includes(String(c.partido).toUpperCase()));
 let EST = null;
 function estaduaisDemo(){
   let seed = 11; const rnd = ()=>{ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; };
@@ -1358,6 +1757,7 @@ function estaduaisDemo(){
   });
   cands.forEach(c=>{ agrMap[c.agr] ??= {id:c.agr,nome:c.agr,tipo:c.agr.startsWith('FE ')?'Federação':'Partido',partidos:new Set(),votos:0,legenda:0}; agrMap[c.agr].partidos.add(c.partido); agrMap[c.agr].votos+=c.votos; });
   const agrs = Object.values(agrMap).map(a=>({...a, partidos:[...a.partidos]}));
+  [...cands].sort((a,b)=>b.votos-a.votos).slice(0, Math.max(0, Math.floor((DEMO.pct()-40)/60*45))).forEach(c=>{ c.e='s'; c.st='Eleito por QP'; });
   return { cands, agrs, meta:{nv:70}, tot:{} };
 }
 async function atualizarEstaduais(){
@@ -1369,39 +1769,50 @@ async function atualizarEstaduais(){
       d = extrair(await getJSON(`${urlBase()}/${CFG.ano}/${ESTADO.ele}/dados/${CFG.uf}/${CFG.uf}-c0007-e${pad6(ESTADO.ele)}-u.json`));
     }
     const vagas = d.meta && d.meta.nv ? d.meta.nv : 70;
-    EST = { d, vagas, calc: aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d) };
+    EST = { d, vagas, calc: aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d, vagas) };
     renderEstaduais();
   } catch(e){ diag('Dep. estaduais: ' + e.message); }
 }
+let EST_PART = null;
+try { EST_PART = localStorage.getItem('painelEstPart'); } catch(e){}
 function renderEstaduais(){
   if (!EST || !$('deA')) return;
   const {d, calc, vagas} = EST;
   const pv = c => calc.validos ? 100*c.votos/calc.validos : NaN;
-  const linha = (c,i) => { const g = grupoDe(c); return `<tr class="${g?'g-'+g.id:''}"><td class="rk">${i}</td><td><span class="nm">${esc(c.nome)}</span> <span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pv(c))}</td></tr>`; };
-  const metade = Math.ceil(vagas/2);
-  $('deA').innerHTML = calc.eleitos.slice(0,metade).map((c,i)=>linha(c,i+1)).join('') || '<tr><td colspan="4" class="empty">Sem eleitos definidos ainda.</td></tr>';
-  $('deB').innerHTML = calc.eleitos.slice(metade).map((c,i)=>linha(c,metade+i+1)).join('');
-  $('deMeta').textContent = `${calc.eleitos.length} de ${vagas} · ${calc.oficial ? 'situação oficial do TSE' : 'cálculo do painel'}`;
-  const porGrupo = GRUPOS_EST.map(g=>{
-    const todos = d.cands.filter(c=>g.partidos.includes(String(c.partido).toUpperCase())).sort((a,b)=>b.votos-a.votos);
-    const eleitos = todos.filter(c=>calc.setE.has(c.n));
-    const agrs = d.agrs.filter(a=>a.partidos.some(p=>g.partidos.includes(String(p).toUpperCase())));
-    const votos = agrs.reduce((s,a)=>s+a.votos,0);
-    return {g, todos, eleitos, votos, fed: agrs.find(a=>a.tipo!=='Partido')};
-  });
-  $('deResumo').innerHTML = porGrupo.map(x=>`<span class="de-chip"><i style="background:${x.g.cor}"></i>${esc(x.g.nome)} <b>${x.eleitos.length}</b></span>`).join('');
-  $('deGrupos').innerHTML = porGrupo.map(x=>{
-    let suplente = 0;
-    const linhas = x.todos.slice(0, Math.max(12, x.eleitos.length + 5)).map((c,i)=>{
-      const el = calc.setE.has(c.n); if (!el) suplente++;
-      return `<tr><td class="rk">${i+1}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r">${el?'<span class="status in">Eleito</span>':`<span class="status out">${suplente}º sup</span>`}</td></tr>`;
-    }).join('');
-    const fedTxt = x.fed && x.g.id==='psol' ? `<br>Federação PSOL · Rede: ${calc.eleitos.filter(c=>c.agr===x.fed.id).length} cadeiras` : '';
-    return `<article class="de-g" style="--gc:${x.g.cor}"><h3>${esc(x.g.nome)}${x.g.sub?` <small class="de-sub">${esc(x.g.sub)}</small>`:''}</h3>
-      <div class="de-n"><b>${x.eleitos.length}</b><span>${x.eleitos.length===1?'cadeira':'cadeiras'} · ${calc.validos?fmtP(100*x.votos/calc.validos,1):'—'} dos válidos${fedTxt}</span></div>
-      <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r"></th></tr></thead><tbody>${linhas || '<tr><td colspan="4" class="empty">Sem candidatos nesta parcial.</td></tr>'}</tbody></table></div></article>`;
-  }).join('');
+  $('deMeta').textContent = `${calc.eleitos.length} de ${vagas} vagas · ${calc.oficial ? 'todos confirmados pelo TSE' : (calc.nConf ? calc.nConf+' confirmados pelo TSE' : 'cálculo do painel · nenhum confirmado pelo TSE ainda')}`;
+  // eleitos por partido
+  const P = {};
+  d.cands.forEach(c=>{ const k = c.partido; P[k] ??= {p:k, cands:[], eleitos:0, conf:0, votos:0}; P[k].cands.push(c); P[k].votos += c.votos; });
+  calc.eleitos.forEach(e=>{ const x = P[e.partido]; if (x) { x.eleitos++; if (e.conf) x.conf++; } });
+  const lista = Object.values(P).sort((a,b)=>b.eleitos-a.eleitos || b.votos-a.votos);
+  const acha = k => lista.find(x=>x.p.toUpperCase()===String(k||'').toUpperCase());
+  const sel = acha(EST_PART) || acha(CFG.partidoFoco) || lista[0];
+  if (!sel) return;
+  $('dePartidos').innerHTML = lista.map(x=>`<button type="button" class="de-pchip${x.eleitos?'':' zero'}${x===sel?' sel':''}" data-p="${esc(x.p)}" style="--pc:${corPartido(x.p)}" title="${esc(x.p)}: ${x.eleitos} eleito(s)${x.conf?`, ${x.conf} confirmado(s) pelo TSE`:''} · clique para ver a lista"><i></i>${esc(x.p)} <b>${x.eleitos}</b>${x.conf?`<small>✓${x.conf}</small>`:''}</button>`).join('');
+  // 100 mais votados
+  const top = [...d.cands].sort((a,b)=>b.votos-a.votos).slice(0,100);
+  const linha = (c,i) => `<tr class="${c.partido===sel.p?'sel':''}" style="--pc:${corPartido(c.partido)}"><td class="rk">${i}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pv(c))}</td><td class="r">${selo(c,calc)}</td></tr>`;
+  $('deA').innerHTML = top.slice(0,50).map((c,i)=>linha(c,i+1)).join('') || '<tr><td colspan="5" class="empty">Sem votos ainda.</td></tr>';
+  $('deB').innerHTML = top.slice(50).map((c,i)=>linha(c,51+i)).join('');
+  // lista completa do partido escolhido
+  const ag = d.agrs.find(a=>a.partidos.includes(sel.p));
+  const fed = ag && ag.tipo!=='Partido' && ag.partidos.length>1 ? ag : null;
+  const votosAg = ag ? ag.votos : sel.votos;
+  $('deDet').style.setProperty('--pc', corPartido(sel.p));
+  $('deDetTit').innerHTML = `<i></i>${esc(sel.p)}`;
+  $('deDetMeta').textContent = `${sel.eleitos} ${sel.eleitos===1?'eleito':'eleitos'}${sel.conf?` · ✓${sel.conf} TSE`:''} · ${sel.cands.length} candidaturas`;
+  $('deDetRes').innerHTML = fed
+    ? `Federação <b>${esc(fed.nome)}</b> (${fed.partidos.map(esc).join(', ')}): <b>${calc.eleitos.filter(e=>e.agr===fed.id).length}</b> cadeiras · ${fmtP(pv({votos:votosAg}),1)} dos válidos. A suplência segue a lista única da federação.`
+    : `<b>${fmt(votosAg)}</b> votos (nominais + legenda) · ${fmtP(pv({votos:votosAg}),1)} dos válidos.`;
+  $('deDetLista').innerHTML = [...sel.cands].sort((a,b)=>b.votos-a.votos).map((c,i)=>`<tr><td class="rk">${i+1}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.n)}${fed?' · '+esc(c.partido):''}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r">${selo(c,calc)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem candidaturas.</td></tr>';
+  document.querySelectorAll('.selo-leg').forEach(el=>el.innerHTML = LEGENDA_SELO);
 }
+$('dePartidos').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-p]'); if (!b) return;
+  EST_PART = b.dataset.p; try { localStorage.setItem('painelEstPart', EST_PART); } catch(err){}
+  renderEstaduais();
+  if (document.body.classList.contains('mob')) $('deDet').scrollIntoView({behavior:'smooth', block:'start'});
+});
 
 /* ============ CICLO ============ */
 let ultimaHora = null;
@@ -1411,23 +1822,28 @@ let proxima = 0, carregandoZonas = false, ultZonas = 0;
 let rodando = false;
 async function atualizar(){
   if (rodando) return; rodando = true;
+  const g = GERACAO;
   try {
     let d;
     if (CFG.ambiente==='demo') { DEMO.avancar(); d = DEMO.dados(); setChip('demo','Demonstração · dados fictícios'); ESTADO.modoZona='zona'; }
-    else { d = await carregarReal(); setChip('live', CFG.ambiente==='oficial' ? 'Oficial · TSE' : 'Simulado · TSE'); }
+    else { d = await carregarReal(); if (g !== GERACAO) return; setChip('live', CFG.ambiente==='oficial' ? 'Oficial · TSE' : (CFG.ambiente==='2022' ? 'Teste · eleição 2022 (dados reais)' : 'Simulado · TSE')); }
     VAGAS = d.meta && d.meta.nv ? d.meta.nv : CFG.vagas;
-    const calc = aplicarOficial(calcularCadeiras(d.agrs, d.cands, VAGAS), d);
+    const calc = aplicarOficial(calcularCadeiras(d.agrs, d.cands, VAGAS), d, VAGAS);
     if (d.meta && d.meta.qe) calc.QE_TSE = d.meta.qe;
     render(d, calc);
     atualizarTarja();
-    atualizarBU().then(renderTatiana);
-    if (mqApres.matches || telaAtual===7 || !EST) atualizarEstaduais();
+    atualizarReais(CFG.candidata.slice(0,2)).then(renderTatiana);
+    if (mqApres.matches || telaAtual===IDX_EST || !EST) atualizarEstaduais();
+    if (mqApres.matches || telaAtual===IDX_MUN) atualizarMunicipio();
     const agora = new Date().toLocaleTimeString('pt-BR');
     const novo = d.tot.hora && d.tot.hora !== ultimaHora;
     $('meta').textContent = (d.tot.hora ? `Totalização ${d.tot.hora} · ` : '') + `verificado às ${agora}` + (ultimaHora && !novo ? ' · sem dados novos' : (ultimaHora ? ' · dados novos' : ''));
     ultimaHora = d.tot.hora || ultimaHora;
-    if (novo || !ZONAS || Date.now()-ultZonas > CFG.intervaloZonas*1000 || CFG.ambiente==='demo') atualizarZonas();
+    // zonas: no intervalo configurado (dados novos antecipam, mas nunca antes de 1 minuto)
+    const idade = Date.now()-ultZonas;
+    if (!ZONAS || idade > CFG.intervaloZonas*1000 || (novo && idade > 60000) || CFG.ambiente==='demo') atualizarZonas();
   } catch(e) {
+    if (g !== GERACAO) return;
     console.error(e); diag('Erro: '+e.message);
     const antesDas17 = new Date() < new Date('2026-10-04T17:00:00-03:00');
     if (CFG.ambiente==='oficial' && (e.status===404 || /ele-c|ainda não lista/.test(e.message) || (e instanceof TypeError && antesDas17))) {
@@ -1440,12 +1856,21 @@ async function atualizar(){
   }
   proxima = Date.now() + CFG.intervalo*1000;
   rodando = false;
+  if (CFG.ambiente === '2022') t22Ciclo();
 }
 async function atualizarZonas(){
   if (carregandoZonas) return; carregandoZonas = true;
-  try { CIDADES = null; ZONAS = CFG.ambiente==='demo' ? DEMO.zonas() : await carregarZonasReal(); if (!CIDADES || ESTADO.modoZona==='municipio') CIDADES = ESTADO.modoZona==='municipio' ? ZONAS : agregarCidades(ZONAS); ZONAS_HORA = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); ultZonas = Date.now(); PROJ = calcularProjecao(ZONAS); if (ULTIMO) render(ULTIMO.d, ULTIMO.calc); }
-  catch(e){ diag('Erro nas zonas: '+e.message); }
-  finally { carregandoZonas = false; }
+  const g = GERACAO;
+  try {
+    let Z, C;
+    if (CFG.ambiente==='demo') { Z = DEMO.zonas(); C = agregarCidades(Z); }
+    else { const r = await carregarZonasReal(); if (g !== GERACAO) return; Z = r.zonas; C = ESTADO.modoZona==='municipio' ? Z : r.cidades; }
+    ZONAS = Z; CIDADES = C;     // troca de uma vez só: as tabelas não ficam vazias durante a recarga
+    ZONAS_HORA = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); ultZonas = Date.now(); PROJ = calcularProjecao(ZONAS);
+    if (ULTIMO) render(ULTIMO.d, ULTIMO.calc);
+  }
+  catch(e){ if (g === GERACAO) diag('Erro nas zonas: '+e.message); }
+  finally { if (g === GERACAO) carregandoZonas = false; }
 }
 setInterval(()=>{
   const r = Math.max(0, Math.round((proxima-Date.now())/1000));
@@ -1464,15 +1889,64 @@ $('cfSalvar').onclick = ()=>{
   const novo = { ambiente:$('cfAmb').value, eleicao:$('cfEle').value.trim(), partidoFoco:($('cfPart').value||'PSB').toUpperCase(), candidata:$('cfCand').value||'4013',
     intervalo:Math.max(20,+$('cfInt').value||120), intervaloZonas:Math.max(60,+$('cfZint').value||120), padraoZona:$('cfZpat').value.trim()||PADRAO.padraoZona };
   if (new Date() >= new Date('2026-10-04T16:00:00-03:00')) novo.viradaFeita = true;
-  try { localStorage.setItem('painelDepFed2', JSON.stringify(novo)); } catch(e){}
+  if (novo.eleicao) novo.eleicaoAmb = novo.ambiente;
+  try { localStorage.setItem(CHAVE, JSON.stringify(novo)); } catch(e){}
   Object.assign(CFG, novo); if (!ehLocal && !MODO_APP) CFG.ambiente='demo';
-  TK_CONF = null; EST = null; BU_RIO = null;
-  ESTADO = {ele:null, municipios:null, modoZona:null}; COBERTURA = null; ZONAS = null; PROJ = null; ultZonas = 0; proxima = 0;
+  if (AMB_FIXO) CFG.ambiente = AMB_FIXO;
+  redefinirDados();
 };
+// Descarta tudo o que foi carregado (troca de ambiente/candidatura); cargas em andamento da geração anterior são ignoradas
+let GERACAO = 0;
+function redefinirDados(){
+  GERACAO++;
+  TK_CONF = null; TK_DADOS = null; EST = null; MUN_DADOS = null; delete MUN_SEL.cand[6];
+  ESTADO = {ele:null, municipios:null, modoZona:null}; COBERTURA = null; ZONAS = null; CIDADES = null; PROJ = null; ultZonas = 0; ultimaHora = null;
+  rodando = false; carregandoZonas = false; proxima = 0;
+}
+// Virada automática para o Oficial às 16h do dia 4/10 também com a página já aberta
+setInterval(()=>{
+  if (AMB_FIXO || (!ehLocal && !MODO_APP) || CFG.ambiente === 'oficial') return;
+  if (new Date() < new Date('2026-10-04T16:00:00-03:00')) return;
+  let sv = {}; try { sv = JSON.parse(localStorage.getItem(CHAVE)||'{}'); } catch(e){}
+  if (sv.viradaFeita) return;
+  CFG.ambiente = 'oficial'; CFG.eleicao = '';
+  try { localStorage.setItem(CHAVE, JSON.stringify({...sv, ambiente:'oficial', eleicao:'', viradaFeita:true})); } catch(e){}
+  diag('16h de 4/10: painel passou sozinho para o ambiente Oficial.');
+  redefinirDados();
+}, 30000);
+
+/* ============ CONTROLES DO AMBIENTE DE TESTE 2022 ============ */
+let T22_AUTO = false;
+function t22Mostrar(){
+  $('t22bar').hidden = CFG.ambiente !== '2022';
+  $('t22p').value = T22.P; $('t22v').textContent = T22.P + '%';
+  $('t22auto').classList.toggle('on', T22_AUTO); $('t22auto').textContent = T22_AUTO ? '❚❚ Parar' : '▶ Avançar sozinho';
+}
+function t22Ir(v){
+  T22.P = v; t22Mostrar();
+  ultZonas = 0; ultimaHora = null; EST = null; proxima = 0;       // recarrega tudo na hora
+}
+$('t22p').addEventListener('input', ()=>{ $('t22v').textContent = $('t22p').value + '%'; });
+$('t22p').addEventListener('change', ()=>{ T22_AUTO = false; t22Ir(+$('t22p').value); });
+$('t22bar').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 't22auto') { T22_AUTO = !T22_AUTO; if (T22_AUTO && T22.P >= 100) T22.P = 5; t22Ir(T22.P); }
+  else if (b.dataset.p) { T22_AUTO = false; t22Ir(+b.dataset.p); }
+});
+// no modo automático, cada atualização avança 5 pontos (e o intervalo cai para 30 s)
+setInterval(()=>{ if (CFG.ambiente !== '2022') { if (!$('t22bar').hidden) t22Mostrar(); return; } if ($('t22bar').hidden) t22Mostrar(); }, 1000);
+function t22Ciclo(){
+  if (CFG.ambiente !== '2022' || !T22_AUTO) return;
+  if (T22.P >= 100) { T22_AUTO = false; t22Mostrar(); return; }
+  T22.P = Math.min(100, T22.P + 5); t22Mostrar(); ultZonas = 0;
+  proxima = Date.now() + 30000;
+}
+t22Mostrar();
 
 /* ============ APRESENTAÇÃO (telas de 1 minuto) ============ */
 const DUR_TELA = 60000;
 const TELAS = [...document.querySelectorAll('.tela')];
+const IDX_MUN = TELAS.findIndex(t=>t.id==='telaMun'), IDX_EST = TELAS.findIndex(t=>t.id==='telaEst');
 let telaAtual = 0, tocando = true, fimTela = Date.now()+DUR_TELA, restante = DUR_TELA;
 const mqApres = matchMedia('(min-width: 900px)');
 $('dots').innerHTML = TELAS.map((t,k)=>`<button type="button" data-tela="${k}">${k+1}. ${esc(t.dataset.nome)}</button>`).join('');
@@ -1481,6 +1955,8 @@ function mostrarTela(i){
   TELAS.forEach((t,k)=>t.classList.toggle('ativa', k===telaAtual));
   document.querySelectorAll('#dots button, #tabbar button').forEach(b=>b.setAttribute('aria-current', +b.dataset.tela===telaAtual));
   if (document.body.classList.contains('mob')) scrollTo(0,0);
+  const bt = document.querySelector(`#tabbar button[data-tela="${telaAtual}"]`); if (bt && bt.scrollIntoView) try { bt.scrollIntoView({block:'nearest', inline:'nearest'}); } catch(e){}
+  if (telaAtual===IDX_MUN && !MUN_DADOS) atualizarMunicipio();
   restante = DUR_TELA; fimTela = Date.now()+DUR_TELA;
 }
 function setTocando(v){
@@ -1489,11 +1965,18 @@ function setTocando(v){
   tocando = v;
   $('btnPlay').textContent = tocando ? '❚❚ Pausar' : '▶ Rodar';
 }
+// Na apresentação, listas maiores que a tela descem devagar durante o minuto (pausa no início e no fim)
+function rolarListas(prog){
+  const t = Math.max(0, Math.min(1, (prog - 0.12) / 0.76));
+  const tela = TELAS[telaAtual]; if (!tela) return;
+  tela.querySelectorAll('.scroll').forEach(el=>{ const max = el.scrollHeight - el.clientHeight; if (max > 4) el.scrollTop = Math.round(max * t); });
+}
 function tickTela(){
   if (!document.body.classList.contains('apres')) return;
   const r = tocando ? fimTela-Date.now() : restante;
   if (tocando && r <= 0) { mostrarTela(telaAtual+1); return; }
   $('telaBar').style.width = (100*(1-r/DUR_TELA)).toFixed(2)+'%';
+  if (tocando) rolarListas(1 - r/DUR_TELA);
   const sec = Math.ceil(r/1000);
   $('telaTempo').textContent = `Tela ${telaAtual+1} de ${TELAS.length} · ${tocando ? 'troca em' : 'pausado ·'} ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
 }
