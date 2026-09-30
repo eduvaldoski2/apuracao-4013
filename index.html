@@ -1180,33 +1180,35 @@ async function atualizarBU(){
     if (r.ok) BU_RIO = await r.json();
   } catch(e){ BU_RIO = null; }
 }
-function bairrosEstimados(c){
-  if (!ZONAS) return [];
+// Por bairro, zona a zona: votos reais dos boletins já lidos + estimativa só do que falta
+// (total da zona informado pelo TSE menos o que já foi lido), repartida pelo eleitorado dos bairros da zona.
+function bairrosCombinados(c){
+  if (!ZONAS) return { lista:[], real:0, total:0 };
   const codigos = Object.keys(RIO_BZ.zonas);
   const zonasRio = CFG.ambiente==='demo'
     ? ZONAS.filter(z=>z.sub==='Rio de Janeiro').map((z,i)=>({z, zc:codigos[i % codigos.length]}))
     : ZONAS.filter(z=>z.munRio).map(z=>({z, zc:z.zona}));
-  const acc = new Map();
+  const bu = (BU_RIO && BU_RIO.ok && BU_RIO.zonas) || {};
+  const acc = new Map(); let real = 0, total = 0;
+  const somar = (b, v, val, vReal) => {
+    const nome = RIO_BZ.bairros[b] || ('Bairro '+b), k = semAcento(nome);
+    const a = acc.get(k) || {nome, v:0, val:0, real:0};
+    if (nome.length >= a.nome.length && /[^\x00-\x7F]/.test(nome)) a.nome = nome;
+    a.v += v; a.val += val; a.real += vReal; acc.set(k, a);
+  };
   for (const {z, zc} of zonasRio) {
     const pesos = RIO_BZ.zonas[zc]; if (!pesos) continue;
+    const lido = bu[zc] || {};
+    let rV = 0, rT = 0;
+    for (const [b,[v,t]] of Object.entries(lido)) { somar(+b, v, t, v); rV += v; rT += t; }
+    const vZona = z.votos[c.n]||0, tZona = z.validos||0;
+    const faltaV = Math.max(0, vZona - rV), faltaT = Math.max(0, tZona - rT);
     const tot = pesos.reduce((s,[,n])=>s+n,0) || 1;
-    for (const [b,n] of pesos) {
-      const nome = RIO_BZ.bairros[b], k = semAcento(nome), w = n/tot;
-      const a = acc.get(k) || {nome, v:0, val:0};
-      if (nome.length >= a.nome.length && /[^\x00-\x7F]/.test(nome)) a.nome = nome;
-      a.v += (z.votos[c.n]||0)*w; a.val += (z.validos||0)*w; acc.set(k, a);
-    }
+    for (const [b,n] of pesos) somar(b, faltaV*n/tot, faltaT*n/tot, 0);
+    real += Math.min(rV, vZona); total += Math.max(vZona, rV);
   }
-  return [...acc.values()].map(a=>({nome:a.nome, v:a.v, pct: a.val ? 100*a.v/a.val : NaN}));
-}
-function bairrosReais(c){
-  const acc = new Map();
-  for (const [b,[v,tot]] of Object.entries(BU_RIO.bairros||{})) {
-    const nome = RIO_BZ.bairros[+b] || ('Bairro '+b), k = semAcento(nome);
-    const a = acc.get(k) || {nome, v:0, val:0};
-    a.v += v; a.val += tot; acc.set(k, a);
-  }
-  return [...acc.values()].map(a=>({nome:a.nome, v:a.v, pct: a.val ? 100*a.v/a.val : NaN}));
+  const lista = [...acc.values()].map(a=>({nome:a.nome, v:a.v, pct: a.val ? 100*a.v/a.val : NaN, parcialReal: a.v ? a.real/a.v : 0}));
+  return { lista, real, total };
 }
 function renderTatiana(){
   if (!ULTIMO || !$('ttZonas')) return;
@@ -1222,17 +1224,21 @@ function renderTatiana(){
   $('ttZMeta').textContent = zs.length ? `${zs.length} zonas com votos` : '';
   $('ttMun').innerHTML = ms.map((z,k)=>linha(z,k)).join('') || vazio('Sem votos por município ainda.');
   $('ttMMeta').textContent = ms.length ? `${ms.length} municípios com votos` : '';
-  // bairros: boletins de urna (real) quando cobrem 90% das seções totalizadas da capital; senão, estimativa pelas zonas
-  const real = BU_RIO && BU_RIO.ok && BU_RIO.totalizadas > 0 && BU_RIO.com_votos >= 0.9 * BU_RIO.totalizadas;
-  const bs = (real ? bairrosReais(c) : bairrosEstimados(c)).filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
+  // bairros: votos reais dos boletins já lidos + estimativa só da parte que falta ler
+  const comb = bairrosCombinados(c);
+  const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
   const totRio = bs.reduce((s,b)=>s+b.v,0);
-  $('ttBPctH').textContent = real ? '% nominais' : '% bairro';
-  $('ttBairros').innerHTML = bs.map((b,k)=>`<tr><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${real?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${totRio?fmtP(100*b.v/totRio,1):'—'}</td></tr>`).join('') || vazio('Sem votos na capital ainda.');
-  $('ttBMeta').innerHTML = real ? `<span class="tt-fonte real">BOLETINS DE URNA</span>` : `<span class="tt-fonte">ESTIMATIVA</span>`;
-  let nota = real
-    ? `Votos reais somados seção a seção pelo bairro do local de votação: ${fmt(BU_RIO.com_votos)} de ${fmt(BU_RIO.totalizadas)} seções totalizadas da capital.`
-    : `Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026).`;
-  if (!real && BU_RIO && BU_RIO.ok && BU_RIO.totalizadas) nota += ` Boletins de urna lidos: ${fmt(BU_RIO.com_votos)} de ${fmt(BU_RIO.totalizadas)} seções; a coluna passa a mostrar votos reais ao chegar a 90%.`;
+  const pctReal = comb.total ? 100*comb.real/comb.total : 0;
+  $('ttBPctH').textContent = '% bairro';
+  $('ttBairros').innerHTML = bs.map((b,k)=>`<tr><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${totRio?fmtP(100*b.v/totRio,1):'—'}</td></tr>`).join('') || vazio('Sem votos na capital ainda.');
+  $('ttBMeta').innerHTML = pctReal >= 99.5 ? `<span class="tt-fonte real">BOLETINS DE URNA</span>`
+    : pctReal > 0 ? `<span class="tt-fonte real">${fmtP(pctReal,0)} REAL</span>` : `<span class="tt-fonte">ESTIMATIVA</span>`;
+  let nota = pctReal >= 99.5
+    ? 'Votos reais, somados seção a seção pelo bairro do local de votação (boletins de urna).'
+    : pctReal > 0
+      ? `${fmtP(pctReal,0)} dos votos dela na capital já vêm dos boletins de urna (reais); o restante é estimado pelo eleitorado dos bairros de cada zona até o boletim ser lido. "≈" marca bairro com parte estimada.`
+      : 'Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026). No painel do Mac, os votos reais dos boletins de urna entram assim que forem lidos.';
+  if (BU_RIO && BU_RIO.ok && BU_RIO.totalizadas) nota += ` Boletins lidos: ${fmt(BU_RIO.com_votos)} de ${fmt(BU_RIO.totalizadas)} seções totalizadas.`;
   $('ttBNota').textContent = nota + ' "% dela" = fatia da votação dela na capital.';
 }
 
