@@ -282,6 +282,26 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .tabbar button[aria-current="true"]{background:rgba(246,135,18,.22);color:#fff}
   .tabbar button[aria-current="true"] b{color:var(--accent)}
 }
+
+/* ===== tarja de notícias (só no computador) ===== */
+.ticker{display:none}
+@media (min-width:900px){
+  body.apres .ticker{display:flex;align-items:stretch;margin:10px calc(-1 * var(--gut)) 0;height:50px;background:#241c52;color:#fff;overflow:hidden;border-top:3px solid var(--accent)}
+  .tk-label{flex:none;display:flex;align-items:center;gap:8px;padding:0 16px;background:var(--accent);color:#2a1600;font-weight:900;font-size:12.5px;line-height:1.05;letter-spacing:.06em;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);padding-right:26px}
+  .tk-dot{width:9px;height:9px;border-radius:50%;background:#c4161c;animation:pulse 1.2s infinite}
+  .tk-view{flex:1;min-width:0;overflow:hidden;display:flex;align-items:center;mask-image:linear-gradient(90deg,transparent 0,#000 24px,#000 calc(100% - 24px),transparent 100%)}
+  .tk-track{display:inline-flex;align-items:center;white-space:nowrap;will-change:transform;animation:tk-roll var(--tkDur,60s) linear infinite}
+  .tk-track.parado{animation-play-state:paused}
+  .tk-item{font-size:19px;font-weight:600;padding-right:56px;font-variant-numeric:tabular-nums}
+  .tk-item b{font-weight:900;color:var(--accent);letter-spacing:.02em}
+  .tk-parc{color:#c9c2ec;font-weight:600;font-size:15px}
+  .tk-sep{color:#8f84d6;padding:0 8px}
+  .tk-nome{font-weight:800}
+  .tk-st{font-size:12px;font-weight:900;background:var(--accent);color:#2a1600;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+  .tk-div{flex:none;width:10px;height:10px;background:var(--accent);transform:rotate(45deg);margin-right:56px}
+}
+@keyframes tk-roll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.tk-track{animation-duration:calc(var(--tkDur,60s) * 2)}}
 </style>
 
 <header class="top">
@@ -359,6 +379,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
 </div>
 
+<div class="ticker" id="ticker" aria-label="Apuração presidente, governador e senado">
+  <div class="tk-label"><span class="tk-dot"></span>APURAÇÃO<br>AO VIVO</div>
+  <div class="tk-view"><div class="tk-track" id="tkTrack"><span class="tk-item">Carregando resultados de presidente, governador e senado…</span></div></div>
+</div>
 <nav class="tabbar" id="tabbar" aria-label="Telas">
   <button type="button" data-tela="0"><b>%</b>Total</button>
   <button type="button" data-tela="1"><b>46</b>Eleitos</button>
@@ -928,6 +952,87 @@ const cliqueFichas = e=>{
 $('cards1').addEventListener('click', cliqueFichas);
 $('cards2').addEventListener('click', cliqueFichas);
 
+
+/* ============ TARJA: PRESIDENTE, GOVERNADOR E SENADO ============ */
+const TARJA = [
+  { rot:'PRESIDENTE (NACIONAL)', cargo:1, abr:'br' },
+  { rot:'PRESIDENTE (RJ)',       cargo:1, abr:'rj' },
+  { rot:'GOVERNADOR (RJ)',       cargo:3, abr:'rj' },
+  { rot:'SENADO (RJ)',           cargo:5, abr:'rj' },
+];
+let TK_PENDENTE = null, TK_CONF = null;
+async function eleicaoDoCargo(cargo){
+  if (!TK_CONF) TK_CONF = await getJSON(`${urlBase()}/comum/config/ele-c.json`);
+  for (const pl of (TK_CONF.pl||[])) for (const e of (pl.e||[]))
+    if (String(e.t||'1')==='1' && (e.abr||[]).some(a=>(a.cp||[]).some(c=>Number(c.cd)===cargo))) return { ele:String(e.cd), ano: pl.c || CFG.ano };
+  throw new Error('cargo '+cargo+' não encontrado no ele-c.json');
+}
+// candidatos de um cargo (EA20): carg[cd=cargo] > agr > par > cand
+function candidatosCargo(json, cargo){
+  const out = [];
+  for (const cg of (json.carg||[])) {
+    if (Number(cg.cd) !== cargo) continue;
+    for (const a of (cg.agr||[])) for (const p of (a.par||[])) for (const c of (p.cand||[])) {
+      if (/anulad|indefer|cassad/i.test(c.dvt||'')) continue;
+      out.push({ nome: String(c.nmu||c.nm||'').toUpperCase(), votos: num(c.vap)||0, pct: pctNum(c.pvap), st: String(c.st||'') });
+    }
+  }
+  return out.sort((x,y)=>y.votos-x.votos);
+}
+function horaParcial(ht){ const m = String(ht||'').match(/^(\d{1,2}):(\d{2})/); return m ? `${Number(m[1])}h${m[2]}` : '—'; }
+function itemTarja(rot, hora, pct, cands){
+  const lista = cands.map(c=>{
+    const st = /eleit|turno/i.test(c.st) && !/n[ãa]o eleit/i.test(c.st) ? `<span class="tk-st">${esc(c.st.toUpperCase())}</span>` : '';
+    return `<span class="tk-nome">${esc(c.nome)}</span> ${isNaN(c.pct)?'—':fmtP(c.pct,1)}${st}`;
+  }).join('<span class="tk-sep">|</span>');
+  return `<span class="tk-item"><b>${esc(rot)}</b> <span class="tk-parc">[Parcial ${esc(hora)} – ${isNaN(pct)?'—':fmtP(pct,1)} APURADO]</span> ${lista || 'aguardando os primeiros votos'}</span><span class="tk-div"></span>`;
+}
+async function dadosTarjaReal(){
+  const itens = [];
+  const abCache = {};
+  const ab = async (e, abr) => { const k=e.ele+'|'+abr; if (!abCache[k]) abCache[k] = getJSON(`${urlBase()}/${e.ano}/${e.ele}/dados/${abr}/${abr}-e${pad6(e.ele)}-ab.json`); return abCache[k]; };
+  for (const t of TARJA) {
+    try {
+      const e = await eleicaoDoCargo(t.cargo);
+      const [u, acBr, acUf] = await Promise.all([
+        getJSON(`${urlBase()}/${e.ano}/${e.ele}/dados/${t.abr}/${t.abr}-c${pad4(t.cargo)}-e${pad6(e.ele)}-u.json`),
+        (t.cargo===1 ? ab(e,'br') : Promise.resolve(null)).catch(()=>null),
+        (t.cargo!==1 ? ab(e,t.abr) : Promise.resolve(null)).catch(()=>null),
+      ]);
+      const acomp = acBr || acUf;
+      const linha = acomp ? (acomp.abr||[]).find(a=>String(a.cdabr).toLowerCase()===t.abr) : null;
+      const pct = linha ? pctNum(linha.s && linha.s.pst) : NaN;
+      itens.push(itemTarja(t.rot, horaParcial(linha ? linha.ht : u.ht), pct, candidatosCargo(u, t.cargo)));
+    } catch(err) {
+      itens.push(`<span class="tk-item"><b>${esc(t.rot)}</b> <span class="tk-parc">aguardando dados do TSE</span></span><span class="tk-div"></span>`);
+    }
+  }
+  return itens.join('');
+}
+// Demonstração: nomes genéricos (nunca nomes reais com números inventados)
+function dadosTarjaDemo(){
+  const p = DEMO.pct(), hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}).replace(':','h');
+  const base = { 1:[41.2,33.5,9.1,6.4,4.0,2.3,1.9,1.6], 3:[38.7,29.4,14.2,8.8,5.1,3.8], 5:[27.3,22.8,17.5,12.9,9.6,6.2,3.7] };
+  return TARJA.map((t,k)=>{
+    const cands = base[t.cargo].map((v,i)=>({ nome:`CANDIDATO ${String.fromCharCode(65+i)}`, pct: Math.max(0.1, v + Math.sin(p/9 + i + k)*1.3), st:'' }));
+    return itemTarja(t.rot, hora, Math.min(100, p*(t.abr==='br'?0.93:1)), cands.sort((a,b)=>b.pct-a.pct));
+  }).join('');
+}
+function aplicarTarja(html){
+  const tr = $('tkTrack');
+  tr.innerHTML = html + html;                       // duas cópias: a rolagem emenda sem buraco
+  requestAnimationFrame(()=>{ const meia = tr.scrollWidth/2; tr.style.setProperty('--tkDur', Math.max(20, meia/95)+'s'); });
+}
+$('tkTrack').addEventListener('animationiteration', ()=>{ if (TK_PENDENTE) { aplicarTarja(TK_PENDENTE); TK_PENDENTE = null; } });
+async function atualizarTarja(){
+  if (!mqApres.matches) return;                     // tarja só no computador
+  try {
+    const html = CFG.ambiente==='demo' ? dadosTarjaDemo() : await dadosTarjaReal();
+    if ($('tkTrack').dataset.iniciada) TK_PENDENTE = html;   // troca o texto no fim da volta, sem pulo
+    else { aplicarTarja(html); $('tkTrack').dataset.iniciada = '1'; }
+  } catch(e){ diag('Tarja: '+e.message); }
+}
+
 /* ============ CICLO ============ */
 let ultimaHora = null;
 function setChip(tipo, txt){ $('chipModo').className = 'chip '+tipo; $('chipTxt').textContent = txt; }
@@ -944,6 +1049,7 @@ async function atualizar(){
     const calc = aplicarOficial(calcularCadeiras(d.agrs, d.cands, VAGAS), d);
     if (d.meta && d.meta.qe) calc.QE_TSE = d.meta.qe;
     render(d, calc);
+    atualizarTarja();
     const agora = new Date().toLocaleTimeString('pt-BR');
     const novo = d.tot.hora && d.tot.hora !== ultimaHora;
     $('meta').textContent = (d.tot.hora ? `Totalização ${d.tot.hora} · ` : '') + `verificado às ${agora}` + (ultimaHora && !novo ? ' · sem dados novos' : (ultimaHora ? ' · dados novos' : ''));
@@ -987,6 +1093,7 @@ $('cfSalvar').onclick = ()=>{
     intervalo:Math.max(20,+$('cfInt').value||120), intervaloZonas:Math.max(60,+$('cfZint').value||120), padraoZona:$('cfZpat').value.trim()||PADRAO.padraoZona };
   try { localStorage.setItem('painelDepFed2', JSON.stringify(novo)); } catch(e){}
   Object.assign(CFG, novo); if (!ehLocal && !MODO_APP) CFG.ambiente='demo';
+  TK_CONF = null; TK_PENDENTE = null; delete $('tkTrack').dataset.iniciada;
   ESTADO = {ele:null, municipios:null, modoZona:null}; COBERTURA = null; ZONAS = null; PROJ = null; ultZonas = 0; proxima = 0;
 };
 
