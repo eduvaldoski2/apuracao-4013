@@ -276,7 +276,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.mob .top .tit{flex:1 1 60%;min-width:0}
   body.mob #chipModo{font-size:11px}
   body.mob .cards,.cidades{grid-template-columns:minmax(0,1fr)}
-  .tabbar{display:grid;grid-template-columns:repeat(7,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--brand);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.18)}
+  .tabbar{display:grid;grid-template-columns:repeat(8,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--brand);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.18)}
   .tabbar button{background:transparent;border:0;color:#d8d2f4;font-size:11px;font-weight:600;display:grid;justify-items:center;gap:1px;padding:4px 0;border-radius:8px}
   .tabbar button b{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.01em}
   .tabbar button[aria-current="true"]{background:rgba(246,135,18,.22);color:#fff}
@@ -358,6 +358,53 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.apres .tt-col td{padding-top:4px;padding-bottom:4px}
 }
 @media (max-width:899px){ body.mob .tabbar button{font-size:10px} body.mob .tabbar button b{font-size:13px} }
+
+/* ===== deputados estaduais ===== */
+:root{ --g-psb:#F68712; --g-fe:#C4161C; --g-psol:#D9A400; }
+.de-wrap{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.de-resumo{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.de-chip{display:flex;align-items:center;gap:8px;border-radius:8px;padding:5px 10px;background:var(--bar);font-weight:700;font-size:13px}
+.de-chip b{font-family:var(--f-display);font-size:22px;font-weight:900;line-height:1}
+.de-chip i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.de-cols{display:grid;gap:10px 16px;grid-template-columns:minmax(0,1fr)}
+.de-lista td{padding-top:3px;padding-bottom:3px}
+.de-lista tr.g-psb td{background:color-mix(in srgb, var(--g-psb) 16%, transparent)}
+.de-lista tr.g-fe td{background:color-mix(in srgb, var(--g-fe) 13%, transparent)}
+.de-lista tr.g-psol td{background:color-mix(in srgb, var(--g-psol) 18%, transparent)}
+.de-lista tr.g-psb td:first-child{box-shadow:inset 4px 0 0 var(--g-psb)}
+.de-lista tr.g-fe td:first-child{box-shadow:inset 4px 0 0 var(--g-fe)}
+.de-lista tr.g-psol td:first-child{box-shadow:inset 4px 0 0 var(--g-psol)}
+.de-grupos{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.de-g{background:var(--panel);border:1px solid var(--line);border-top:6px solid var(--gc);border-radius:10px;padding:12px 14px;min-width:0;display:flex;flex-direction:column}
+.de-g h3{font-size:18px;color:var(--ink)}
+.de-g .de-n{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px}
+.de-g .de-n b{font-family:var(--f-display);font-size:40px;font-weight:900;color:var(--gc);line-height:1}
+.de-g .de-n span{font-size:13px;color:var(--muted)}
+.de-g table{font-size:13.5px}
+.de-g td{padding:3px 4px}
+.de-g td.r{white-space:nowrap}
+.de-g table{table-layout:fixed}
+.de-g th:nth-child(1){width:1.9em}.de-g th:nth-child(3){width:4.6em}.de-g th:nth-child(4){width:4.4em}
+.de-g .status{font-size:10px;padding:1px 4px}
+.de-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.de-sub{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:0}
+.de-lista .pt{white-space:nowrap}
+@media (min-width:900px){
+  .de-wrap{grid-template-columns:minmax(0,1.2fr) minmax(0,1.8fr)}
+  .de-grupos{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .de-cols{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.apres .de-wrap{height:100%;min-height:0}
+  body.apres .de-lista{display:flex;flex-direction:column;min-height:0}
+  body.apres .de-cols{flex:1;min-height:0}
+  body.apres .de-cols .scroll{min-height:0;overflow-y:auto}
+  body.apres .de-lista table{font-size:12.5px}
+  body.apres .de-lista th:nth-child(4),body.apres .de-lista td:nth-child(4){display:none}
+  body.apres .de-grupos{min-height:0}
+  body.apres .de-g{min-height:0}
+  body.apres .de-g .tbl-wrap{flex:1;min-height:0;overflow-y:auto}
+  body.apres .de-g thead th{position:sticky;top:0;background:var(--panel);box-shadow:inset 0 -1px 0 var(--line)}
+}
+@media (max-width:899px){ body.mob .tabbar button{font-size:9.5px} body.mob .tabbar button b{font-size:12px} }
 </style>
 
 <header class="top">
@@ -455,6 +502,20 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <div class="cards-head"><h2 id="cidTitulo">Ranking de cidades · 5 mais votados do PSB</h2><span class="meta" id="cidMeta"></span></div>
     <div class="cidades" id="cidades"></div>
   </section>
+
+  <section class="tela" data-nome="Dep. estaduais">
+    <div class="de-wrap">
+      <div class="box de-lista">
+        <div class="box-head"><h2>Deputados estaduais eleitos · RJ</h2><span class="eyebrow" id="deMeta"></span></div>
+        <div class="de-resumo" id="deResumo"></div>
+        <div class="de-cols">
+          <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th></tr></thead><tbody id="deA"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th></tr></thead><tbody id="deB"></tbody></table></div>
+        </div>
+      </div>
+      <div class="de-grupos" id="deGrupos"></div>
+    </div>
+  </section>
 </div>
 
 <div class="ticker" id="ticker" aria-label="Apuração presidente, governador e senado">
@@ -470,6 +531,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button type="button" data-tela="4"><b>1-3</b>Fichas</button>
   <button type="button" data-tela="5"><b>4-5</b>Fichas</button>
   <button type="button" data-tela="6"><b>RJ</b>Cidades</button>
+  <button type="button" data-tela="7"><b>ALERJ</b>Estaduais</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -491,8 +553,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <label for="cfEle">Código da eleição <span class="hint">Em branco para detectar sozinho. No simulado, Dep. Federal fica na eleição estadual.</span>
       <input id="cfEle" inputmode="numeric" placeholder="auto">
     </label>
-    <label for="cfPart">Partido em destaque <input id="cfPart"></label>
-    <label for="cfCand">Número da candidatura em destaque <input id="cfCand" inputmode="numeric"></label>
+    <label for="cfPart">Partido em destaque <select id="cfPart"></select></label>
+    <label for="cfCand">Candidatura em destaque <select id="cfCand"></select>
+      <span class="hint" id="cfCandHint">Padrão: PSB · Tatiana Roque (4013).</span></label>
+    <button type="button" id="cfPadrao" style="justify-self:start">Voltar ao padrão: PSB · Tatiana Roque</button>
     <label for="cfInt">Atualizar a cada (segundos) <input id="cfInt" type="number" min="20" step="10"></label>
     <label for="cfZint">Atualizar zonas a cada (segundos) <span class="hint">São ~170 arquivos por rodada; não use menos de 120.</span><input id="cfZint" type="number" min="60" step="30"></label>
     <label for="cfZpat">Padrão do arquivo por zona <span class="hint">Variáveis: {uf} {mun} {zona} {cargo} {ele}. Se não existir, o painel usa município.</span><input id="cfZpat"></label>
@@ -1148,15 +1212,17 @@ function renderCandidata(d, calc){
   const cadeiras = calc.eleitos.filter(e=>e.partido.toUpperCase()===c.partido.toUpperCase()).length;
   const eleita = calc.setE.has(c.n);
   let chip, detalhe;
-  if (eleita) { const e = calc.eleitos.find(x=>x.n===c.n); chip = '<span class="tr-chip eleita">ELEITA</span>'; detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}${e && e.via ? ' · vaga por '+(e.via==='QP'?'quociente partidário':e.via.toLowerCase()) : ''}`; }
+  const fem = c.n==='4013', ELEITO = fem ? 'ELEITA' : 'ELEITO(A)';
+  rotulosCandidata(c);
+  if (eleita) { const e = calc.eleitos.find(x=>x.n===c.n); chip = `<span class="tr-chip eleita">${ELEITO}</span>`; detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}${e && e.via ? ' · vaga por '+(e.via==='QP'?'quociente partidário':e.via.toLowerCase()) : ''}`; }
   else if (cadeiras > 0) {
     const acimaFora = doPartido.slice(0, posPart-1).filter(x=>!calc.setE.has(x.n)).length;
     chip = `<span class="tr-chip suplente">${acimaFora+1}ª SUPLENTE</span>`;
     const ultimo = doPartido.filter(x=>calc.setE.has(x.n)).pop();
-    detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}` + (ultimo && ultimo.votos >= c.votos ? ` · faltam ${fmt(ultimo.votos - c.votos + 1)} votos para passar ${esc(ultimo.nome)}, a última eleita do partido` : '');
+    detalhe = `${c.partido} faz ${cadeiras} ${cadeiras===1?'cadeira':'cadeiras'}` + (ultimo && ultimo.votos >= c.votos ? ` · faltam ${fmt(ultimo.votos - c.votos + 1)} votos para passar ${esc(ultimo.nome)}, ${fem?'a última eleita':'o(a) último(a) eleito(a)'} do partido` : '');
   } else { chip = `<span class="tr-chip sem">${esc(c.partido)} SEM CADEIRA</span>`; detalhe = `o ${esc(c.partido)} ainda não faz nenhuma cadeira nesta parcial`; }
   const pj = projDe(c);
-  box.innerHTML = `<div class="tr-head"><h3>${esc(c.nome)} <span>${esc(c.n)}</span></h3><span class="tr-n">${esc(c.partido)} · DEPUTADA FEDERAL</span></div>
+  box.innerHTML = `<div class="tr-head"><h3>${esc(c.nome)} <span>${esc(c.n)}</span></h3><span class="tr-n">${esc(c.partido)} · ${fem?'DEPUTADA':'DEPUTADO(A)'} FEDERAL</span></div>
     <div class="tr-body">
       <div><div class="eyebrow">Votação</div><div class="tr-v big num">${fmt(c.votos)}</div><div class="tr-s num">${fmtP(100*c.votos/calc.validos)} dos válidos</div></div>
       <div><div class="eyebrow">Posição no ${esc(c.partido)}</div><div class="tr-v num">${posPart}º</div><div class="tr-s">de ${doPartido.length}</div></div>
@@ -1242,6 +1308,101 @@ function renderTatiana(){
   $('ttBNota').textContent = nota + ' "% dela" = fatia da votação dela na capital.';
 }
 
+
+/* ============ ESCOLHA DE PARTIDO E CANDIDATURA (Configurações) ============ */
+function preencherEscolha(partido, cand){
+  const cands = ULTIMO ? ULTIMO.d.cands : [];
+  const partidos = [...new Set(cands.map(c=>c.partido))].filter(p=>p && p!=='?').sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  if (!partidos.includes(partido)) partidos.unshift(partido);
+  $('cfPart').innerHTML = partidos.map(p=>`<option value="${esc(p)}"${p===partido?' selected':''}>${esc(p)}</option>`).join('');
+  const doPart = cands.filter(c=>c.partido===partido).sort((a,b)=>b.votos-a.votos);
+  let opts = doPart.map(c=>`<option value="${esc(c.n)}"${c.n===cand?' selected':''}>${esc(c.nome)} · ${esc(c.n)}${c.votos?` · ${fmt(c.votos)} votos`:''}</option>`);
+  if (!doPart.some(c=>c.n===cand)) opts.unshift(`<option value="${esc(cand)}" selected>${cand==='4013'?'TATIANA ROQUE':'Candidatura'} · ${esc(cand)}</option>`);
+  $('cfCand').innerHTML = opts.join('');
+  $('cfCandHint').textContent = cands.length ? `Lista com os candidatos do ${partido} na apuração, do mais ao menos votado. Padrão: PSB · Tatiana Roque (4013).` : 'A lista completa aparece quando os dados do TSE chegarem. Padrão: PSB · Tatiana Roque (4013).';
+}
+$('cfPart').addEventListener('change', ()=>{
+  const p = $('cfPart').value, cands = ULTIMO ? ULTIMO.d.cands.filter(c=>c.partido===p).sort((a,b)=>b.votos-a.votos) : [];
+  preencherEscolha(p, cands[0] ? cands[0].n : (p==='PSB' ? '4013' : ''));
+});
+$('cfPadrao').onclick = ()=> preencherEscolha('PSB', '4013');
+// nomes das abas e telas seguem a candidatura escolhida
+function rotulosCandidata(c){
+  const curto = c ? (c.nome.split(' ')[0].charAt(0) + c.nome.split(' ')[0].slice(1).toLowerCase()) : 'Candidatura';
+  const bt = document.querySelector('#tabbar button[data-tela="1"]');
+  if (bt) bt.innerHTML = `<b>${esc(CFG.candidata)}</b>${esc(curto)}`;
+  const bp = document.querySelector('#tabbar button[data-tela="3"]');
+  if (bp) bp.innerHTML = `<b>${esc((c && c.n || CFG.candidata).slice(0,2))}</b>${esc(CFG.partidoFoco)}`;
+  if (TELAS[1] && TELAS[1].dataset.nome !== curto) { TELAS[1].dataset.nome = curto; const d = document.querySelector('#dots button[data-tela="1"]'); if (d) d.textContent = `2. ${curto}`; }
+}
+
+
+/* ============ DEPUTADOS ESTADUAIS (cargo 7) ============ */
+const GRUPOS_EST = [
+  { id:'psb',  nome:'PSB',                         cor:'var(--g-psb)',  partidos:['PSB'] },
+  { id:'fe',   nome:'PT · PCdoB · PV',             cor:'var(--g-fe)',   partidos:['PT','PCDOB','PV'], sub:'Federação Brasil da Esperança' },
+  { id:'psol', nome:'PSOL',                        cor:'var(--g-psol)', partidos:['PSOL'] },
+];
+const grupoDe = c => GRUPOS_EST.find(g=>g.partidos.includes(String(c.partido).toUpperCase()));
+let EST = null;
+function estaduaisDemo(){
+  let seed = 11; const rnd = ()=>{ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; };
+  const partidos = [['PL',1,null,22],['PT',.8,'FE BRASIL',13],['UNIÃO',.6,null,44],['PSD',.55,null,55],['PP',.5,null,11],['PSB',.42,null,40],['REPUBLICANOS',.45,null,10],['MDB',.38,null,15],['PSOL',.4,'FE PSOL REDE',50],['PDT',.28,null,12],['NOVO',.2,null,30],['PODE',.17,null,20],['PCdoB',.12,'FE BRASIL',65],['PV',.09,'FE BRASIL',43],['REDE',.07,'FE PSOL REDE',18],['AVANTE',.12,null,70],['SOLIDARIEDADE',.1,null,77]];
+  const nomes=['Ana','Beto','Clara','Davi','Eva','Fred','Gil','Hana','Igor','Júlia','Kauê','Lia','Mário','Nina','Otto','Pia','Raul','Sara','Téo','Vera'];
+  const sob=['Alves','Borges','Campos','Dias','Faria','Góis','Lima','Melo','Neves','Paiva','Reis','Souza','Tavares','Viana'];
+  const p = DEMO.pct()/100, cands=[], agrMap={};
+  partidos.forEach(([sg,peso,fed,nr])=>{
+    const q = 18+Math.floor(rnd()*20);
+    for (let i=0;i<q;i++){ const v = Math.round(peso*420000*Math.pow(0.66,i*0.6)*(0.6+rnd()*0.8)/3.2*p);
+      cands.push({ n:String(nr*1000+100+i), nome:`${nomes[Math.floor(rnd()*nomes.length)]} ${sob[Math.floor(rnd()*sob.length)]}`.toUpperCase(), partido:sg, agr:fed||sg, votos:v }); }
+  });
+  cands.forEach(c=>{ agrMap[c.agr] ??= {id:c.agr,nome:c.agr,tipo:c.agr.startsWith('FE ')?'Federação':'Partido',partidos:new Set(),votos:0,legenda:0}; agrMap[c.agr].partidos.add(c.partido); agrMap[c.agr].votos+=c.votos; });
+  const agrs = Object.values(agrMap).map(a=>({...a, partidos:[...a.partidos]}));
+  return { cands, agrs, meta:{nv:70}, tot:{} };
+}
+async function atualizarEstaduais(){
+  try {
+    let d;
+    if (CFG.ambiente==='demo') d = estaduaisDemo();
+    else {
+      if (!ESTADO.ele) return;
+      d = extrair(await getJSON(`${urlBase()}/${CFG.ano}/${ESTADO.ele}/dados/${CFG.uf}/${CFG.uf}-c0007-e${pad6(ESTADO.ele)}-u.json`));
+    }
+    const vagas = d.meta && d.meta.nv ? d.meta.nv : 70;
+    EST = { d, vagas, calc: aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d) };
+    renderEstaduais();
+  } catch(e){ diag('Dep. estaduais: ' + e.message); }
+}
+function renderEstaduais(){
+  if (!EST || !$('deA')) return;
+  const {d, calc, vagas} = EST;
+  const pv = c => calc.validos ? 100*c.votos/calc.validos : NaN;
+  const linha = (c,i) => { const g = grupoDe(c); return `<tr class="${g?'g-'+g.id:''}"><td class="rk">${i}</td><td><span class="nm">${esc(c.nome)}</span> <span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pv(c))}</td></tr>`; };
+  const metade = Math.ceil(vagas/2);
+  $('deA').innerHTML = calc.eleitos.slice(0,metade).map((c,i)=>linha(c,i+1)).join('') || '<tr><td colspan="4" class="empty">Sem eleitos definidos ainda.</td></tr>';
+  $('deB').innerHTML = calc.eleitos.slice(metade).map((c,i)=>linha(c,metade+i+1)).join('');
+  $('deMeta').textContent = `${calc.eleitos.length} de ${vagas} · ${calc.oficial ? 'situação oficial do TSE' : 'cálculo do painel'}`;
+  const porGrupo = GRUPOS_EST.map(g=>{
+    const todos = d.cands.filter(c=>g.partidos.includes(String(c.partido).toUpperCase())).sort((a,b)=>b.votos-a.votos);
+    const eleitos = todos.filter(c=>calc.setE.has(c.n));
+    const agrs = d.agrs.filter(a=>a.partidos.some(p=>g.partidos.includes(String(p).toUpperCase())));
+    const votos = agrs.reduce((s,a)=>s+a.votos,0);
+    return {g, todos, eleitos, votos, fed: agrs.find(a=>a.tipo!=='Partido')};
+  });
+  $('deResumo').innerHTML = porGrupo.map(x=>`<span class="de-chip"><i style="background:${x.g.cor}"></i>${esc(x.g.nome)} <b>${x.eleitos.length}</b></span>`).join('');
+  $('deGrupos').innerHTML = porGrupo.map(x=>{
+    let suplente = 0;
+    const linhas = x.todos.slice(0, Math.max(12, x.eleitos.length + 5)).map((c,i)=>{
+      const el = calc.setE.has(c.n); if (!el) suplente++;
+      return `<tr><td class="rk">${i+1}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r">${el?'<span class="status in">Eleito</span>':`<span class="status out">${suplente}º sup</span>`}</td></tr>`;
+    }).join('');
+    const fedTxt = x.fed && x.g.id==='psol' ? `<br>Federação PSOL · Rede: ${calc.eleitos.filter(c=>c.agr===x.fed.id).length} cadeiras` : '';
+    return `<article class="de-g" style="--gc:${x.g.cor}"><h3>${esc(x.g.nome)}${x.g.sub?` <small class="de-sub">${esc(x.g.sub)}</small>`:''}</h3>
+      <div class="de-n"><b>${x.eleitos.length}</b><span>${x.eleitos.length===1?'cadeira':'cadeiras'} · ${calc.validos?fmtP(100*x.votos/calc.validos,1):'—'} dos válidos${fedTxt}</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r"></th></tr></thead><tbody>${linhas || '<tr><td colspan="4" class="empty">Sem candidatos nesta parcial.</td></tr>'}</tbody></table></div></article>`;
+  }).join('');
+}
+
 /* ============ CICLO ============ */
 let ultimaHora = null;
 function setChip(tipo, txt){ $('chipModo').className = 'chip '+tipo; $('chipTxt').textContent = txt; }
@@ -1260,6 +1421,7 @@ async function atualizar(){
     render(d, calc);
     atualizarTarja();
     atualizarBU().then(renderTatiana);
+    if (mqApres.matches || telaAtual===7 || !EST) atualizarEstaduais();
     const agora = new Date().toLocaleTimeString('pt-BR');
     const novo = d.tot.hora && d.tot.hora !== ultimaHora;
     $('meta').textContent = (d.tot.hora ? `Totalização ${d.tot.hora} · ` : '') + `verificado às ${agora}` + (ultimaHora && !novo ? ' · sem dados novos' : (ultimaHora ? ' · dados novos' : ''));
@@ -1293,18 +1455,18 @@ setInterval(()=>{
 
 $('btnAtualizar').onclick = ()=>{ proxima = 0; };
 $('btnConfig').onclick = ()=>{
-  $('cfAmb').value = CFG.ambiente; $('cfEle').value = CFG.eleicao; $('cfPart').value = CFG.partidoFoco; $('cfCand').value = CFG.candidata;
+  $('cfAmb').value = CFG.ambiente; $('cfEle').value = CFG.eleicao; preencherEscolha(CFG.partidoFoco, CFG.candidata);
   $('cfInt').value = CFG.intervalo; $('cfZint').value = CFG.intervaloZonas; $('cfZpat').value = CFG.padraoZona;
   $('cfAmb').disabled = !ehLocal && !MODO_APP;
   $('dlg').showModal();
 };
 $('cfSalvar').onclick = ()=>{
-  const novo = { ambiente:$('cfAmb').value, eleicao:$('cfEle').value.trim(), partidoFoco:$('cfPart').value.trim().toUpperCase()||'PSB', candidata:$('cfCand').value.trim()||'4013',
+  const novo = { ambiente:$('cfAmb').value, eleicao:$('cfEle').value.trim(), partidoFoco:($('cfPart').value||'PSB').toUpperCase(), candidata:$('cfCand').value||'4013',
     intervalo:Math.max(20,+$('cfInt').value||120), intervaloZonas:Math.max(60,+$('cfZint').value||120), padraoZona:$('cfZpat').value.trim()||PADRAO.padraoZona };
   if (new Date() >= new Date('2026-10-04T16:00:00-03:00')) novo.viradaFeita = true;
   try { localStorage.setItem('painelDepFed2', JSON.stringify(novo)); } catch(e){}
   Object.assign(CFG, novo); if (!ehLocal && !MODO_APP) CFG.ambiente='demo';
-  TK_CONF = null;
+  TK_CONF = null; EST = null; BU_RIO = null;
   ESTADO = {ele:null, municipios:null, modoZona:null}; COBERTURA = null; ZONAS = null; PROJ = null; ultZonas = 0; proxima = 0;
 };
 
