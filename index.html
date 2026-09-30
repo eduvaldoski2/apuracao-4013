@@ -276,7 +276,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.mob .top .tit{flex:1 1 60%;min-width:0}
   body.mob #chipModo{font-size:11px}
   body.mob .cards,.cidades{grid-template-columns:minmax(0,1fr)}
-  .tabbar{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--brand);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.18)}
+  .tabbar{display:grid;grid-template-columns:repeat(7,1fr);position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--brand);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -2px 10px rgba(0,0,0,.18)}
   .tabbar button{background:transparent;border:0;color:#d8d2f4;font-size:11px;font-weight:600;display:grid;justify-items:center;gap:1px;padding:4px 0;border-radius:8px}
   .tabbar button b{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.01em}
   .tabbar button[aria-current="true"]{background:rgba(246,135,18,.22);color:#fff}
@@ -336,6 +336,28 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .tr-chip.sem{background:var(--red);color:#fff}
 .tr-sit .tr-s{font-size:12.5px}
 @media (max-width:560px){.tr-body{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ===== tela da Tatiana ===== */
+.tt-wrap{display:grid;gap:14px}
+.tt-box{margin-top:0}
+.tt-cols{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.tt-col td .zmun{display:block}
+.tt-col td.r,.tt-col th.r{white-space:nowrap}
+#ttBNota{font-size:11px;line-height:1.35;margin-top:6px}
+.tt-fonte{font-size:10px;font-weight:800;border-radius:4px;padding:1px 5px;background:var(--bar);color:var(--muted);margin-left:4px;vertical-align:1px}
+.tt-fonte.real{background:var(--ok-soft);color:var(--ok)}
+@media (min-width:900px){
+  .tt-cols{grid-template-columns:repeat(3,minmax(0,1fr))}
+  body.apres .tt-wrap{height:100%;display:flex;flex-direction:column;gap:12px;min-height:0}
+  body.apres .tt-box .tr-body{padding:8px 14px 10px}
+  body.apres .tt-box .tr-v{font-size:26px}
+  body.apres .tt-cols{flex:1;min-height:0}
+  body.apres .tt-col{display:flex;flex-direction:column;min-height:0}
+  body.apres .tt-col .scroll{flex:1;min-height:0;overflow-y:auto}
+  body.apres .tt-col table{font-size:14px}
+  body.apres .tt-col td{padding-top:4px;padding-bottom:4px}
+}
+@media (max-width:899px){ body.mob .tabbar button{font-size:10px} body.mob .tabbar button b{font-size:13px} }
 </style>
 
 <header class="top">
@@ -376,6 +398,27 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
 
   <!-- Tela 2: eleitos -->
+  <section class="tela" data-nome="Tatiana">
+    <div class="tt-wrap">
+      <section class="tr-box tt-box" id="trBox2" aria-label="Votação de Tatiana Roque"><div class="tr-head"><h3>Tatiana Roque <span>4013</span></h3><span class="tr-n">PSB · DEPUTADA FEDERAL</span></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Votação, posições e situação aparecem aqui quando o TSE começar a divulgar.</p></div></section>
+      <div class="tt-cols">
+        <div class="box tt-col">
+          <div class="box-head"><h2>Zonas eleitorais</h2><span class="eyebrow" id="ttZMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Zona</th><th class="r">Votos</th><th class="r">% zona</th><th class="r pj">Proj. (pos.)</th></tr></thead><tbody id="ttZonas"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+        </div>
+        <div class="box tt-col">
+          <div class="box-head"><h2>Bairros do Rio</h2><span class="eyebrow" id="ttBMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos</th><th class="r" id="ttBPctH">% bairro</th><th class="r">% dela</th></tr></thead><tbody id="ttBairros"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+          <p class="legend-proj" id="ttBNota"></p>
+        </div>
+        <div class="box tt-col">
+          <div class="box-head"><h2>Municípios</h2><span class="eyebrow" id="ttMMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Município</th><th class="r">Votos</th><th class="r">% cidade</th><th class="r pj">Proj. (pos.)</th></tr></thead><tbody id="ttMun"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="tela" data-nome="Eleitos">
     <div class="box col-eleitos">
       <div class="box-head"><h2>Eleitos nesta parcial</h2><span class="eyebrow" id="eleitosLbl"></span></div>
@@ -388,7 +431,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
 
   <!-- Tela 3: PSB top 15 -->
-  <section class="tela" data-nome="PSB 15 mais votados">
+  <section class="tela" data-nome="PSB top 15">
     <div class="box col-foco">
       <div class="box-head"><h2 id="focoTitulo">PSB · 15 mais votados</h2><span class="eyebrow" id="focoResumo"></span></div>
       <div class="tbl-wrap scroll">
@@ -400,15 +443,15 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
 
   <!-- Telas 4 e 5: fichas -->
-  <section class="tela" data-nome="Fichas 1º a 3º">
+  <section class="tela" data-nome="Fichas 1–3">
     <div class="cards-head"><h2 class="cardsTitulo">Mais votados do PSB · principais zonas</h2><span class="meta zonasMeta"></span></div>
     <div class="cards c3" id="cards1"></div>
   </section>
-  <section class="tela" data-nome="Fichas 4º e 5º">
+  <section class="tela" data-nome="Fichas 4–5">
     <div class="cards-head"><h2 class="cardsTitulo">Mais votados do PSB · principais zonas</h2><span class="meta zonasMeta"></span></div>
     <div class="cards c2" id="cards2"></div>
   </section>
-  <section class="tela" data-nome="Ranking de cidades">
+  <section class="tela" data-nome="Cidades">
     <div class="cards-head"><h2 id="cidTitulo">Ranking de cidades · 5 mais votados do PSB</h2><span class="meta" id="cidMeta"></span></div>
     <div class="cidades" id="cidades"></div>
   </section>
@@ -421,11 +464,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 </div>
 <nav class="tabbar" id="tabbar" aria-label="Telas">
   <button type="button" data-tela="0"><b>%</b>Total</button>
-  <button type="button" data-tela="1"><b>46</b>Eleitos</button>
-  <button type="button" data-tela="2"><b>40</b>PSB</button>
-  <button type="button" data-tela="3"><b>1-3</b>Fichas</button>
-  <button type="button" data-tela="4"><b>4-5</b>Fichas</button>
-  <button type="button" data-tela="5"><b>RJ</b>Cidades</button>
+  <button type="button" data-tela="1"><b>4013</b>Tatiana</button>
+  <button type="button" data-tela="2"><b>46</b>Eleitos</button>
+  <button type="button" data-tela="3"><b>40</b>PSB</button>
+  <button type="button" data-tela="4"><b>1-3</b>Fichas</button>
+  <button type="button" data-tela="5"><b>4-5</b>Fichas</button>
+  <button type="button" data-tela="6"><b>RJ</b>Cidades</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -745,8 +789,8 @@ async function carregarZonasReal(){
     const C = aggC.get(mun);
     d.cands.forEach(c=>C.votos[c.n]=(C.votos[c.n]||0)+c.votos);
     C.validos += d.agrs.reduce((s,a)=>s+a.votos,0);
-    if (!agg.has(rotulo)) agg.set(rotulo,{rotulo, subs:new Set(), votos:{}, validos:0, secTot:0, secAp:0, compPeso:0, compSoma:0});
-    const A = agg.get(rotulo); A.subs.add(sub);
+    if (!agg.has(rotulo)) agg.set(rotulo,{rotulo, zona, munRio:false, subs:new Set(), votos:{}, validos:0, secTot:0, secAp:0, compPeso:0, compSoma:0});
+    const A = agg.get(rotulo); A.subs.add(sub); if (mun==='60011') A.munRio = true;
     d.cands.forEach(c=>A.votos[c.n]=(A.votos[c.n]||0)+c.votos);
     A.validos += d.agrs.reduce((s,a)=>s+a.votos,0);
     let tot, ap;
@@ -758,7 +802,7 @@ async function carregarZonasReal(){
   }
   CIDADES = [...aggC.values()].map(C=>({...C, rotulo:titulo(C.rotulo)}));
   ESTADO.fontePct = secoes ? 'seções recebidas de cada zona' : 'seções totalizadas do município';
-  return [...agg.values()].map(A=>({ rotulo:A.rotulo, sub:[...A.subs].slice(0,2).join(' / ')+(A.subs.size>2?' e outros':''), votos:A.votos, validos:A.validos,
+  return [...agg.values()].map(A=>({ rotulo:A.rotulo, zona:A.zona, munRio:A.munRio, sub:[...A.subs].slice(0,2).join(' / ')+(A.subs.size>2?' e outros':''), votos:A.votos, validos:A.validos,
     eleit: A.secTot,                                     // unidade da projeção: seções
     pctApurado: A.secTot ? 100*A.secAp/A.secTot : NaN,
     pctComp: A.compPeso ? A.compSoma/A.compPeso : NaN }));
@@ -951,6 +995,7 @@ const LIMITE_C = {};
 const LIMITE = {};   // zonas visíveis por candidatura (de 5 em 5)
 function renderCards(){
   if (!ULTIMO) return;
+  renderTatiana();
   const {calc, top5} = ULTIMO;
   const html = top5.map((c,i)=>{
     let corpo;
@@ -1092,7 +1137,8 @@ async function atualizarTarja(){
 
 /* ============ BOX DA CANDIDATURA EM DESTAQUE (4013) ============ */
 function renderCandidata(d, calc){
-  const box = $('trBox'); if (!box) return;
+  const alvo = ['trBox','trBox2'].map(id=>$(id)).filter(Boolean); if (!alvo.length) return;
+  const box = { set innerHTML(h){ alvo.forEach(el=>el.innerHTML = h); } };
   const foco = CFG.partidoFoco.toUpperCase();
   const c = d.cands.find(x=>x.n===CFG.candidata);
   if (!c) { box.innerHTML = `<div class="tr-head"><h3>Candidatura <span>${esc(CFG.candidata)}</span></h3></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Candidatura ${esc(CFG.candidata)} ainda não aparece nos dados desta parcial.</p></div>`; return; }
@@ -1120,6 +1166,76 @@ function renderCandidata(d, calc){
     </div>`;
 }
 
+
+/* ============ TELA DA TATIANA: ZONAS, BAIRROS DO RIO E MUNICÍPIOS ============ */
+// Peso de cada bairro em cada zona da capital (eleitorado dos locais de votação). Fonte: TSE, Eleitorado por local de votação 2026.
+const RIO_BZ = {"fonte":"TSE · Eleitorado por local de votação 2026 (gerado em 29/09/2026)","bairros":["ACARI","ALTO DA BOA VISTA","ANCHIETA","ANDARAÍ","ANIL","AUGUSTO VASCONCELOS","BAIRRO DE FÁTIMA","BANCÁRIOS","BANGU","BARRA DA TIJUCA","BARRA DE GUARATIBA","BARRA OLÍMPICA","BARROS FILHO","BENFICA","BENTO RIBEIRO","BONSUCESSO","BOTAFOGO","BRÁS DE PINA","CACHAMBI","CACUIA","CAJU","CAMORIM","CAMPINHO","CAMPO GRANDE","CASCADURA","CATETE","CATIRI","CAVALCANTI","CENTRO","CIDADE DE DEUS","CIDADE NOVA","COCOTÁ","COELHO NETO","COLÉGIO","COPACABANA","CORDOVIL","COSME VELHO","COSMOS","COSTA BARROS","CURICICA","DEL CASTILHO","DEODORO","ENCANTADO","ENGENHEIRO LEAL","ENGENHO DA RAINHA","ENGENHO DE DENTRO","ENGENHO NOVO","ESTÁCIO","FLAMENGO","FREGUESIA (ILHA DO GOVERNADOR)","FREGUESIA JPA","FUNDÃO","GALEÃO","GAMBOA","GARDENIA AZUL","GLÓRIA","GRAJAÚ","GUADALUPE","GUARABU","GUARATIBA","GÁVEA","HIGIENÓPOLIS","HONÓRIO GURGEL","HUMAITA","ILHA DE GUARATIBA","INHAUMA","INHOAÍBA","IPANEMA","IRAJÁ","ITANHANGÁ","JACARÉ","JARDIM AMÉRICA","JARDIM BANGU","JARDIM BOTÂNICO","JARDIM CARIOCA","JARDIM GUANABARA","JARDIM SULACAP","LAGOA","LAPA","LARANJEIRAS","LEBLON","LEME","LINS DE VASCONCELOS","MADUREIRA","MAGALHÃES BASTOS","MANGUEIRA","MANGUINHOS","MARACANÃ","MARECHAL HERMES","MARIA DA GRAÇA","MEIER","MONERÓ","OLARIA","OSWALDO CRUZ","PACIÊNCIA","PADRE MIGUEL","PAQUETÁ","PARADA DE LUCAS","PARQUE ANCHIETA","PARQUE COLÚMBIA","PAVUNA","PECHINCHA","PEDRA DE GUARATIBA","PENHA","PENHA CIRCULAR","PIEDADE","PILARES","PITANGUEIRAS","PORTUGUESA","PRAÇA DA BANDEIRA","PRAÇA SECA","QUINTINO BOCAIUVA","RAMOS","REALENGO","RECREIO","RIACHUELO","RIBEIRA","RICARDO DE ALBUQUERQUE","RIO COMPRIDO","RIO DAS PEDRAS","ROCHA","ROCHA MIRANDA","ROCINHA","SANTA CRUZ","SANTA TERESA","SANTO CRISTO","SANTÍSSIMO","SAÚDE","SENADOR CAMARÁ","SENADOR VASCONCELOS","SEPETIBA","SÃO CONRADO","SÃO CRISTÓVÃO","SÃO FRANCISCO XAVIER","SÃO JORGE","TANQUE","TAQUARA","TAUÁ","TIJUCA","TODOS OS SANTOS","TOMAS COELHO","TOMÁS COELHO","TRIAGEM","TUBIACANGA","TURIAÇU","URCA","VARGEM GRANDE","VARGEM PEQUENA","VASCO DA GAMA","VAZ LOBO","VICENTE DE CARVALHO","VIDIGAL","VIGÁRIO GERAL","VILA DA PENHA","VILA ISABEL","VILA KENNEDY","VILA KOSMOS","VILA MILITAR","VILA VALQUEIRE","VISTA ALEGRE","ZUMBI","ÁGUA SANTA"],"zonas":{"0004":[[16,64875],[48,33183],[63,12673],[145,9222]],"0005":[[34,106743],[81,10756]],"0007":[[138,107301]],"0008":[[18,18297],[40,6446],[46,4259],[70,10700],[89,8804],[90,10169],[115,2958],[120,25012]],"0009":[[9,46874],[21,19228],[114,68042],[146,14087],[147,13784]],"0010":[[24,15633],[42,11195],[83,10321],[93,15021],[105,11115],[111,13876],[161,7744]],"0014":[[24,9045],[27,4352],[45,9994],[105,20298],[106,24647],[111,15024],[141,3108]],"0016":[[6,9567],[25,33041],[36,7365],[55,8770],[78,5176],[79,41270],[124,13832]],"0017":[[34,25402],[60,4883],[67,35533],[77,5751],[80,39053]],"0021":[[15,7318],[44,9085],[65,9652],[92,27111],[112,35358],[141,2294]],"0022":[[0,8457],[33,9597],[68,67781],[99,7733],[100,18731],[153,1764]],"0023":[[14,11439],[41,10773],[57,39084],[88,17013],[157,1372]],"0024":[[8,65062],[95,12593],[113,11242],[128,10172]],"0025":[[59,16002],[102,5183],[123,41641],[130,37493]],"0118":[[24,6508],[27,8281],[43,2969],[83,18978],[93,3104],[140,3796],[149,5611],[150,14289]],"0119":[[1,6342],[9,67296],[50,59387],[69,17463]],"0120":[[23,73435],[129,8430]],"0122":[[23,58544],[126,22782],[129,7292]],"0123":[[2,28587],[41,4727],[84,3454],[98,2620],[113,35947],[117,15056]],"0125":[[123,106137]],"0161":[[15,82909],[112,8957]],"0162":[[17,20677],[35,16835],[92,20127],[97,2984],[103,21360],[104,10426],[112,27021]],"0167":[[2,28728],[38,8346],[57,2179],[100,24317],[117,6287]],"0169":[[13,26606],[15,3392],[40,8507],[61,24507],[65,6855],[85,5380],[86,2542],[89,2590],[142,7734]],"0170":[[3,30624],[56,32744],[87,11261],[138,8420],[154,47493]],"0176":[[17,3273],[35,16253],[71,30415],[97,9443],[152,11415],[153,8555],[159,13302]],"0179":[[4,23405],[29,31149],[54,18273],[101,30265],[119,43467]],"0180":[[135,33081],[136,57732]],"0182":[[11,16013],[39,35654],[136,57806]],"0185":[[14,3782],[22,12951],[76,11615],[110,48497],[158,31194]],"0188":[[17,7290],[68,6955],[103,43466],[104,25840],[153,36111],[156,9760]],"0191":[[7,15111],[19,7773],[31,19535],[49,14757],[58,2555],[74,4589],[91,13229],[107,1688],[116,5577],[137,9681],[160,7615]],"0192":[[51,1420],[52,23415],[75,19502],[108,16736],[143,1460]],"0204":[[20,15301],[28,41923],[30,2776],[53,3399],[96,3128],[125,6008],[127,5100],[132,30498],[148,4699]],"0211":[[60,24204],[73,15695],[77,6988],[122,1638],[131,40432],[151,10938]],"0214":[[45,26159],[46,29193],[82,15751],[90,41304],[115,6901],[120,2520],[133,2979],[139,6418]],"0216":[[18,21546],[44,21262],[45,10067],[65,16152],[90,6442],[139,8750]],"0218":[[14,10059],[62,8298],[68,3746],[83,10595],[88,19852],[93,7613],[121,4512],[144,11177],[149,21872]],"0219":[[12,5678],[32,22338],[33,8905],[38,9373],[62,11891],[100,12778],[121,32897]],"0229":[[47,8979],[87,16666],[109,13706],[118,34729],[138,35421]],"0230":[[8,784],[26,3977],[72,17802],[155,39708]],"0233":[[8,16761],[95,52740],[113,34773]],"0234":[[84,25265],[113,58641]],"0238":[[5,6333],[8,42221],[126,13595],[128,47877]],"0241":[[37,10954],[94,44115],[123,19493]],"0242":[[23,51736],[66,19096],[134,1135]],"0243":[[10,5426],[59,43265],[64,12143],[102,27124]],"0245":[[23,96212],[66,10599]],"0246":[[23,18772],[37,35223],[66,7618],[94,47980],[123,1161]]}};
+const semAcento = t => String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+let BU_RIO = null;
+async function atualizarBU(){
+  if (MODO_APP || !ehLocal || CFG.ambiente==='demo' || !ESTADO.pleito) { BU_RIO = null; return; }
+  try {
+    const q = new URLSearchParams({ amb: CFG.ambiente, ano: CFG.ano, pleito: ESTADO.pleito, cand: CFG.candidata });
+    const r = await fetch('/bu/rio?' + q, {cache:'no-store'});
+    if (r.ok) BU_RIO = await r.json();
+  } catch(e){ BU_RIO = null; }
+}
+function bairrosEstimados(c){
+  if (!ZONAS) return [];
+  const codigos = Object.keys(RIO_BZ.zonas);
+  const zonasRio = CFG.ambiente==='demo'
+    ? ZONAS.filter(z=>z.sub==='Rio de Janeiro').map((z,i)=>({z, zc:codigos[i % codigos.length]}))
+    : ZONAS.filter(z=>z.munRio).map(z=>({z, zc:z.zona}));
+  const acc = new Map();
+  for (const {z, zc} of zonasRio) {
+    const pesos = RIO_BZ.zonas[zc]; if (!pesos) continue;
+    const tot = pesos.reduce((s,[,n])=>s+n,0) || 1;
+    for (const [b,n] of pesos) {
+      const nome = RIO_BZ.bairros[b], k = semAcento(nome), w = n/tot;
+      const a = acc.get(k) || {nome, v:0, val:0};
+      if (nome.length >= a.nome.length && /[^\x00-\x7F]/.test(nome)) a.nome = nome;
+      a.v += (z.votos[c.n]||0)*w; a.val += (z.validos||0)*w; acc.set(k, a);
+    }
+  }
+  return [...acc.values()].map(a=>({nome:a.nome, v:a.v, pct: a.val ? 100*a.v/a.val : NaN}));
+}
+function bairrosReais(c){
+  const acc = new Map();
+  for (const [b,[v,tot]] of Object.entries(BU_RIO.bairros||{})) {
+    const nome = RIO_BZ.bairros[+b] || ('Bairro '+b), k = semAcento(nome);
+    const a = acc.get(k) || {nome, v:0, val:0};
+    a.v += v; a.val += tot; acc.set(k, a);
+  }
+  return [...acc.values()].map(a=>({nome:a.nome, v:a.v, pct: a.val ? 100*a.v/a.val : NaN}));
+}
+function renderTatiana(){
+  if (!ULTIMO || !$('ttZonas')) return;
+  const {d} = ULTIMO, c = d.cands.find(x=>x.n===CFG.candidata);
+  const vazio = (msg, n=4) => `<tr><td colspan="${n}" class="empty">${msg}</td></tr>`;
+  if (!c) { ['ttZonas','ttBairros','ttMun'].forEach(id=>$(id).innerHTML = vazio(`Candidatura ${esc(CFG.candidata)} ainda sem votos nesta parcial.`)); return; }
+  if (!ZONAS) { ['ttZonas','ttBairros','ttMun'].forEach(id=>$(id).innerHTML = vazio('Carregando dados por zona…')); return; }
+  const taxa = PROJ ? PROJ.taxa[c.n]||0 : 0;
+  const lista = itens => itens.map(z=>Object.assign(Object.create(z), {v:z.votos[c.n]||0, p:projZona(z,c.n,taxa)})).filter(z=>z.v>0).sort((a,b)=>b.v-a.v);
+  const linha = (z,k,pctRot) => `<tr><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div>${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td><td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?` <span class="rkp">(${posNaZona(z,c.n)}º)</span>`:''}</td></tr>`;
+  const zs = lista(ZONAS), ms = lista(CIDADES||[]);
+  $('ttZonas').innerHTML = zs.map((z,k)=>linha(z,k)).join('') || vazio('Sem votos por zona ainda.');
+  $('ttZMeta').textContent = zs.length ? `${zs.length} zonas com votos` : '';
+  $('ttMun').innerHTML = ms.map((z,k)=>linha(z,k)).join('') || vazio('Sem votos por município ainda.');
+  $('ttMMeta').textContent = ms.length ? `${ms.length} municípios com votos` : '';
+  // bairros: boletins de urna (real) quando cobrem 90% das seções totalizadas da capital; senão, estimativa pelas zonas
+  const real = BU_RIO && BU_RIO.ok && BU_RIO.totalizadas > 0 && BU_RIO.com_votos >= 0.9 * BU_RIO.totalizadas;
+  const bs = (real ? bairrosReais(c) : bairrosEstimados(c)).filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
+  const totRio = bs.reduce((s,b)=>s+b.v,0);
+  $('ttBPctH').textContent = real ? '% nominais' : '% bairro';
+  $('ttBairros').innerHTML = bs.map((b,k)=>`<tr><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${real?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${totRio?fmtP(100*b.v/totRio,1):'—'}</td></tr>`).join('') || vazio('Sem votos na capital ainda.');
+  $('ttBMeta').innerHTML = real ? `<span class="tt-fonte real">BOLETINS DE URNA</span>` : `<span class="tt-fonte">ESTIMATIVA</span>`;
+  let nota = real
+    ? `Votos reais somados seção a seção pelo bairro do local de votação: ${fmt(BU_RIO.com_votos)} de ${fmt(BU_RIO.totalizadas)} seções totalizadas da capital.`
+    : `Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026).`;
+  if (!real && BU_RIO && BU_RIO.ok && BU_RIO.totalizadas) nota += ` Boletins de urna lidos: ${fmt(BU_RIO.com_votos)} de ${fmt(BU_RIO.totalizadas)} seções; a coluna passa a mostrar votos reais ao chegar a 90%.`;
+  $('ttBNota').textContent = nota + ' "% dela" = fatia da votação dela na capital.';
+}
+
 /* ============ CICLO ============ */
 let ultimaHora = null;
 function setChip(tipo, txt){ $('chipModo').className = 'chip '+tipo; $('chipTxt').textContent = txt; }
@@ -1137,6 +1253,7 @@ async function atualizar(){
     if (d.meta && d.meta.qe) calc.QE_TSE = d.meta.qe;
     render(d, calc);
     atualizarTarja();
+    atualizarBU().then(renderTatiana);
     const agora = new Date().toLocaleTimeString('pt-BR');
     const novo = d.tot.hora && d.tot.hora !== ultimaHora;
     $('meta').textContent = (d.tot.hora ? `Totalização ${d.tot.hora} · ` : '') + `verificado às ${agora}` + (ultimaHora && !novo ? ' · sem dados novos' : (ultimaHora ? ' · dados novos' : ''));
