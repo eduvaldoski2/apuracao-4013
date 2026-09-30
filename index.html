@@ -406,6 +406,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .de-pchip b{font-family:var(--f-display);font-size:19px;font-weight:900;line-height:1}
 .de-pchip small{font-size:10.5px;font-weight:800;color:var(--ok)}
 .de-pchip.zero{opacity:.55}
+.de-partidos:not(.todos) .de-pchip.zero:not(.sel){display:none}
+.de-pchip.mais{border-style:dashed;color:var(--muted)}
 .de-pchip.sel{border-color:var(--pc);box-shadow:inset 0 0 0 2px var(--pc);background:color-mix(in srgb, var(--pc) 14%, var(--panel));opacity:1}
 .de-main{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
 .de-cols{display:grid;gap:10px 16px;grid-template-columns:minmax(0,1fr)}
@@ -417,6 +419,17 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .de-lista th:nth-child(3),.de-det th:nth-child(3){width:5.2em}
 .de-lista th:nth-child(4){width:4.8em}
 .de-lista th:nth-child(5),.de-det th:nth-child(4){width:10.4em}
+.lp-fed .de-lista th:nth-child(5){width:7.4em}
+.lp-fed .de-lista th:nth-child(6){width:10.4em}
+.lp-fed .de-det th:nth-child(4){width:5.4em}
+.lp-fed .de-det th:nth-child(5){width:10.4em}
+.de-lista tr.cand td .de-nm{color:var(--accent-ink)}
+@media (max-width:899px){
+  .de-lista th:nth-child(4),.de-lista td:nth-child(4),.lp-fed .de-lista th:nth-child(5),.lp-fed .de-lista td:nth-child(5),.lp-fed .de-det th:nth-child(4),.lp-fed .de-det td:nth-child(4){display:none}
+  .de-lista th:nth-child(5),.lp-fed .de-lista th:nth-child(6),.de-det th:nth-child(4),.lp-fed .de-det th:nth-child(5){width:7.6em}
+  .de-lista .selo,.de-det .selo{font-size:9.5px;padding:0 3px}
+  .de-lista td:nth-child(2),.de-det td:nth-child(2){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
 .de-lista tr.sel td{background:color-mix(in srgb, var(--pc) 14%, transparent)}
 .de-lista tr.sel td:first-child{box-shadow:inset 4px 0 0 var(--pc)}
 .de-det{border-top:6px solid var(--pc,var(--brand))}
@@ -512,14 +525,27 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
 
   <section class="tela" data-nome="Eleitos">
-    <div class="box col-eleitos">
-      <div class="box-head"><h2>Eleitos nesta parcial</h2><span class="eyebrow" id="eleitosLbl"></span></div>
-      <div class="eleitos-cols">
-        <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r pj">Projeção (pos.)</th><th></th></tr></thead><tbody id="tbEleitosA"></tbody></table></div>
-        <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r pj">Projeção (pos.)</th><th></th></tr></thead><tbody id="tbEleitosB"></tbody></table></div>
+    <div class="de-wrap lp-fed">
+      <div class="box de-top">
+        <div class="box-head"><h2>Câmara · deputados federais eleitos por partido</h2><span class="eyebrow" id="feMeta"></span></div>
+        <div class="de-partidos" id="fePartidos"><span class="empty">Aparece quando o TSE começar a divulgar.</span></div>
       </div>
-      <p class="selo-leg"></p>
-      <p class="legend-proj" id="projNota1"></p>
+      <div class="de-main">
+        <div class="box de-lista">
+          <div class="box-head"><h2>100 mais votados</h2><span class="eyebrow">clique num partido acima para ver a lista dele</span></div>
+          <div class="de-cols">
+            <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r pj">Proj. (pos.)</th><th class="r">Situação</th></tr></thead><tbody id="feA"><tr><td colspan="6" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+            <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r pj">Proj. (pos.)</th><th class="r">Situação</th></tr></thead><tbody id="feB"></tbody></table></div>
+          </div>
+          <p class="selo-leg"></p>
+          <p class="legend-proj" id="projNota1"></p>
+        </div>
+        <div class="box de-det" id="feDet">
+          <div class="box-head"><h2 id="feDetTit">Partido</h2><span class="eyebrow" id="feDetMeta"></span></div>
+          <p class="de-det-res" id="feDetRes"></p>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r pj">Proj.</th><th class="r">Situação</th></tr></thead><tbody id="feDetLista"></tbody></table></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1253,14 +1279,7 @@ function render(d, calc){
     return `<li class="${p.toUpperCase()===foco?'foco':''}"><span class="sw" style="background:${corPartido(p)}"></span><span>${esc(p)}${fed}</span><span class="n num">${contC[p] ? `<small class="n-conf" title="confirmados pelo TSE">✓${contC[p]}</small> ` : ''}${n}</span></li>`; }).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
 
   const pctV = c => 100*c.votos/calc.validos;
-  const linha = (c,i,extra='') => `<tr class="${c.n===CFG.candidata?'cand':(c.partido.toUpperCase()===foco?'foco':'')} ${extra}"><td class="rk">${i}</td><td><div class="nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pctV(c))}</td><td class="r num pj">${fmt(projDe(c))}${posProj(c)}</td>`;
-  $('eleitosLbl').textContent = `${calc.eleitos.length} de ${VAGAS} · ${calc.oficial ? 'todos confirmados pelo TSE' : (calc.nConf ? calc.nConf+' confirmados pelo TSE' : 'cálculo do painel · nenhum confirmado pelo TSE ainda')}`;
-  document.querySelectorAll('.selo-leg').forEach(el=>el.innerHTML = LEGENDA_SELO);
-  const rowsE = calc.eleitos.map((c,i)=>linha(c,i+1)+`<td>${selo(c,calc)}</td></tr>`);
-  const metade = Math.ceil(VAGAS/2);
-  $('tbEleitosA').innerHTML = rowsE.slice(0,metade).join('');
-  $('tbEleitosB').innerHTML = rowsE.slice(metade).join('')
-    + (calc.naoEleitos.length ? `<tr><td colspan="6" class="cut-label">Primeiros fora</td></tr>` + calc.naoEleitos.slice(0,5).map((c,i)=>linha(c,'',`out`)+`<td>${selo(c,calc)}</td></tr>`).join('') : '');
+  renderListaPartidos('fe', d, calc, VAGAS, true);
 
   const doFoco = d.cands.filter(c=>c.partido.toUpperCase()===foco).sort((a,b)=>b.votos-a.votos);
   const eleitosFoco = doFoco.filter(c=>calc.setE.has(c.n)).length;
@@ -1773,46 +1792,51 @@ async function atualizarEstaduais(){
     renderEstaduais();
   } catch(e){ diag('Dep. estaduais: ' + e.message); }
 }
-let EST_PART = null;
-try { EST_PART = localStorage.getItem('painelEstPart'); } catch(e){}
-function renderEstaduais(){
-  if (!EST || !$('deA')) return;
-  const {d, calc, vagas} = EST;
+// Lista por partido (usada na Câmara e na Alerj): partidos no topo, 100 mais votados, e a lista do partido escolhido
+const PART_SEL = {};
+try { PART_SEL.fe = localStorage.getItem('painelFedPart'); PART_SEL.de = localStorage.getItem('painelEstPart'); } catch(e){}
+const CHAVE_PART = { fe:'painelFedPart', de:'painelEstPart' };
+const ULT_LP = {};
+function renderListaPartidos(px, d, calc, vagas, proj){
+  if (!$(px+'A')) return;
+  ULT_LP[px] = [d, calc, vagas, proj];
   const pv = c => calc.validos ? 100*c.votos/calc.validos : NaN;
-  $('deMeta').textContent = `${calc.eleitos.length} de ${vagas} vagas · ${calc.oficial ? 'todos confirmados pelo TSE' : (calc.nConf ? calc.nConf+' confirmados pelo TSE' : 'cálculo do painel · nenhum confirmado pelo TSE ainda')}`;
-  // eleitos por partido
+  $(px+'Meta').textContent = `${calc.eleitos.length} de ${vagas} vagas · ${calc.oficial ? 'todos confirmados pelo TSE' : (calc.nConf ? calc.nConf+' confirmados pelo TSE' : 'cálculo do painel · nenhum confirmado pelo TSE ainda')}`;
   const P = {};
   d.cands.forEach(c=>{ const k = c.partido; P[k] ??= {p:k, cands:[], eleitos:0, conf:0, votos:0}; P[k].cands.push(c); P[k].votos += c.votos; });
   calc.eleitos.forEach(e=>{ const x = P[e.partido]; if (x) { x.eleitos++; if (e.conf) x.conf++; } });
   const lista = Object.values(P).sort((a,b)=>b.eleitos-a.eleitos || b.votos-a.votos);
   const acha = k => lista.find(x=>x.p.toUpperCase()===String(k||'').toUpperCase());
-  const sel = acha(EST_PART) || acha(CFG.partidoFoco) || lista[0];
+  const sel = acha(PART_SEL[px]) || acha(CFG.partidoFoco) || lista[0];
   if (!sel) return;
-  $('dePartidos').innerHTML = lista.map(x=>`<button type="button" class="de-pchip${x.eleitos?'':' zero'}${x===sel?' sel':''}" data-p="${esc(x.p)}" style="--pc:${corPartido(x.p)}" title="${esc(x.p)}: ${x.eleitos} eleito(s)${x.conf?`, ${x.conf} confirmado(s) pelo TSE`:''} · clique para ver a lista"><i></i>${esc(x.p)} <b>${x.eleitos}</b>${x.conf?`<small>✓${x.conf}</small>`:''}</button>`).join('');
-  // 100 mais votados
+  $(px+'Partidos').innerHTML = lista.map(x=>`<button type="button" class="de-pchip${x.eleitos?'':' zero'}${x===sel?' sel':''}" data-p="${esc(x.p)}" style="--pc:${corPartido(x.p)}" title="${esc(x.p)}: ${x.eleitos} eleito(s)${x.conf?`, ${x.conf} confirmado(s) pelo TSE`:''} · clique para ver a lista"><i></i>${esc(x.p)} <b>${x.eleitos}</b>${x.conf?`<small>✓${x.conf}</small>`:''}</button>`).join('')
+    + (lista.some(x=>!x.eleitos) ? `<button type="button" class="de-pchip mais" data-todos="1">${$(px+'Partidos').classList.contains('todos') ? '− esconder partidos sem cadeira' : `+ ${lista.filter(x=>!x.eleitos).length} partidos sem cadeira`}</button>` : '');
+  const colProj = c => proj ? `<td class="r num pj">${fmt(projDe(c))}${posProj(c)}</td>` : '';
   const top = [...d.cands].sort((a,b)=>b.votos-a.votos).slice(0,100);
-  const linha = (c,i) => `<tr class="${c.partido===sel.p?'sel':''}" style="--pc:${corPartido(c.partido)}"><td class="rk">${i}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pv(c))}</td><td class="r">${selo(c,calc)}</td></tr>`;
-  $('deA').innerHTML = top.slice(0,50).map((c,i)=>linha(c,i+1)).join('') || '<tr><td colspan="5" class="empty">Sem votos ainda.</td></tr>';
-  $('deB').innerHTML = top.slice(50).map((c,i)=>linha(c,51+i)).join('');
-  // lista completa do partido escolhido
+  const linha = (c,i) => `<tr class="${c.partido===sel.p?'sel':''}${c.n===CFG.candidata&&proj?' cand':''}" style="--pc:${corPartido(c.partido)}"><td class="rk">${i}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pv(c))}</td>${colProj(c)}<td class="r">${selo(c,calc)}</td></tr>`;
+  const nc = proj ? 6 : 5;
+  $(px+'A').innerHTML = top.slice(0,50).map((c,i)=>linha(c,i+1)).join('') || `<tr><td colspan="${nc}" class="empty">Sem votos ainda.</td></tr>`;
+  $(px+'B').innerHTML = top.slice(50).map((c,i)=>linha(c,51+i)).join('');
   const ag = d.agrs.find(a=>a.partidos.includes(sel.p));
   const fed = ag && ag.tipo!=='Partido' && ag.partidos.length>1 ? ag : null;
   const votosAg = ag ? ag.votos : sel.votos;
-  $('deDet').style.setProperty('--pc', corPartido(sel.p));
-  $('deDetTit').innerHTML = `<i></i>${esc(sel.p)}`;
-  $('deDetMeta').textContent = `${sel.eleitos} ${sel.eleitos===1?'eleito':'eleitos'}${sel.conf?` · ✓${sel.conf} TSE`:''} · ${sel.cands.length} candidaturas`;
-  $('deDetRes').innerHTML = fed
+  $(px+'Det').style.setProperty('--pc', corPartido(sel.p));
+  $(px+'DetTit').innerHTML = `<i></i>${esc(sel.p)}`;
+  $(px+'DetMeta').textContent = `${sel.eleitos} ${sel.eleitos===1?'eleito':'eleitos'}${sel.conf?` · ✓${sel.conf} TSE`:''} · ${sel.cands.length} candidaturas`;
+  $(px+'DetRes').innerHTML = fed
     ? `Federação <b>${esc(fed.nome)}</b> (${fed.partidos.map(esc).join(', ')}): <b>${calc.eleitos.filter(e=>e.agr===fed.id).length}</b> cadeiras · ${fmtP(pv({votos:votosAg}),1)} dos válidos. A suplência segue a lista única da federação.`
     : `<b>${fmt(votosAg)}</b> votos (nominais + legenda) · ${fmtP(pv({votos:votosAg}),1)} dos válidos.`;
-  $('deDetLista').innerHTML = [...sel.cands].sort((a,b)=>b.votos-a.votos).map((c,i)=>`<tr><td class="rk">${i+1}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.n)}${fed?' · '+esc(c.partido):''}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r">${selo(c,calc)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem candidaturas.</td></tr>';
+  $(px+'DetLista').innerHTML = [...sel.cands].sort((a,b)=>b.votos-a.votos).map((c,i)=>`<tr class="${c.n===CFG.candidata&&proj?'cand':''}"><td class="rk">${i+1}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.n)}${fed?' · '+esc(c.partido):''}</span></td><td class="r num">${fmt(c.votos)}</td>${proj?`<td class="r num pj">${fmt(projDe(c))}</td>`:''}<td class="r">${selo(c,calc)}</td></tr>`).join('') || `<tr><td colspan="${nc-1}" class="empty">Sem candidaturas.</td></tr>`;
   document.querySelectorAll('.selo-leg').forEach(el=>el.innerHTML = LEGENDA_SELO);
 }
-$('dePartidos').addEventListener('click', e=>{
+function renderEstaduais(){ if (EST) renderListaPartidos('de', EST.d, EST.calc, EST.vagas, false); }
+['fe','de'].forEach(px=>$(px+'Partidos').addEventListener('click', e=>{
+  if (e.target.closest('button[data-todos]')) { $(px+'Partidos').classList.toggle('todos'); if (ULT_LP[px]) renderListaPartidos(px, ...ULT_LP[px]); return; }
   const b = e.target.closest('button[data-p]'); if (!b) return;
-  EST_PART = b.dataset.p; try { localStorage.setItem('painelEstPart', EST_PART); } catch(err){}
-  renderEstaduais();
-  if (document.body.classList.contains('mob')) $('deDet').scrollIntoView({behavior:'smooth', block:'start'});
-});
+  PART_SEL[px] = b.dataset.p; try { localStorage.setItem(CHAVE_PART[px], b.dataset.p); } catch(err){}
+  if (ULT_LP[px]) renderListaPartidos(px, ...ULT_LP[px]);
+  if (document.body.classList.contains('mob')) $(px+'Det').scrollIntoView({behavior:'smooth', block:'start'});
+}));
 
 /* ============ CICLO ============ */
 let ultimaHora = null;
@@ -1976,7 +2000,6 @@ function tickTela(){
   const r = tocando ? fimTela-Date.now() : restante;
   if (tocando && r <= 0) { mostrarTela(telaAtual+1); return; }
   $('telaBar').style.width = (100*(1-r/DUR_TELA)).toFixed(2)+'%';
-  if (tocando) rolarListas(1 - r/DUR_TELA);
   const sec = Math.ceil(r/1000);
   $('telaTempo').textContent = `Tela ${telaAtual+1} de ${TELAS.length} · ${tocando ? 'troca em' : 'pausado ·'} ${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
 }
