@@ -1,0 +1,84 @@
+# Votos por bairro a partir dos boletins de urna (todo o RJ, Deputado Federal).
+# Roda a cada 5 minutos só na janela da apuração (4/10 16h30 a 5/10 12h, horário de Brasília)
+# e publica os totais no ramo "dados", lido pelo painel no site e no celular.
+# Depois da eleição: Actions > Bairros > "..." > Disable workflow.
+name: Bairros (boletins de urna)
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      amb:
+        description: 'Ambiente do TSE'
+        type: choice
+        options: [oficial, simulado]
+        default: oficial
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bairros
+  cancel-in-progress: false
+
+env:
+  AMB: ${{ github.event.inputs.amb || 'oficial' }}
+
+jobs:
+  ler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Janela da apuração
+        id: janela
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "rodar=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          agora=$(date -u +%s)
+          ini=$(date -u -d '2026-10-04T19:30:00Z' +%s)
+          fim=$(date -u -d '2026-10-05T15:00:00Z' +%s)
+          if [ "$agora" -ge "$ini" ] && [ "$agora" -le "$fim" ]; then echo "rodar=1" >> "$GITHUB_OUTPUT"; else echo "rodar=0" >> "$GITHUB_OUTPUT"; echo "Fora da janela da apuração: nada a fazer."; fi
+
+      - uses: actions/checkout@v4
+        if: steps.janela.outputs.rodar == '1'
+
+      - name: Recupera o que já foi lido
+        if: steps.janela.outputs.rodar == '1'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            estado
+            saida
+          key: bu-${{ env.AMB }}-${{ github.run_id }}
+          restore-keys: bu-${{ env.AMB }}-
+
+      - name: Lê boletins novos (até 4,5 minutos por rodada, para publicar com frequência)
+        if: steps.janela.outputs.rodar == '1'
+        run: python3 scripts/bu_bairros.py --amb "$AMB" --tempo 270 --estado estado --saida saida/bairros --mapa scripts/rj_secoes_bairros.json
+
+      - name: Guarda o estado para a próxima rodada
+        if: always() && steps.janela.outputs.rodar == '1'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            estado
+            saida
+          key: bu-${{ env.AMB }}-${{ github.run_id }}
+
+      - name: Publica no ramo "dados"
+        if: steps.janela.outputs.rodar == '1'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # mantém no ramo os dados do outro ambiente (ex.: um teste no simulado não apaga o oficial)
+          git clone -q --depth 1 -b dados "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" anterior 2>/dev/null || true
+          if [ -d anterior/bairros ]; then for d in anterior/bairros/*/; do a=$(basename "$d"); [ "$a" = "$AMB" ] || { mkdir -p saida/bairros; rm -rf "saida/bairros/$a"; cp -r "$d" "saida/bairros/$a"; }; done; fi
+          cd saida
+          touch .nojekyll
+          git init -q -b dados
+          git config user.name "apuracao-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "bairros $AMB $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" dados
+          echo "Publicado:"; cat bairros/*/resumo.json 2>/dev/null | head -40
