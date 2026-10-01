@@ -62,6 +62,14 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;margin:0;text-wrap:balance
 .top h1{font-size:26px;line-height:1.05;font-weight:800;color:#fff}
 .top h1 span{color:var(--accent)}
 .top .meta{color:var(--brand-muted)}
+.top .idade{display:block;font-size:12px;font-weight:600;margin-top:2px;color:var(--brand-muted)}
+.top .idade.ok::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#7ee2a8;margin-right:6px;vertical-align:1px}
+.top .idade.atencao{color:#ffd28a}
+.top .idade.atencao::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#ffb347;margin-right:6px;vertical-align:1px}
+.top .idade.velho{display:inline-block;width:fit-content;background:#ffe1d6;color:#9b1c14;border-radius:6px;padding:1px 8px}
+body.sem-dados #telas{visibility:hidden}
+.sem-dados-aviso{display:none;margin:28px auto;max-width:640px;text-align:center;font-size:17px;font-weight:600;color:var(--muted)}
+body.sem-dados .sem-dados-aviso{display:block}
 .top button{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
 .top button:hover{border-color:var(--accent);color:#fff}
 .top .chip{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:#fff}
@@ -549,6 +557,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <div class="tit">
     <h1>Apuração · Deputado Federal <span>RJ</span></h1>
     <span class="meta num" id="meta">—</span>
+    <span class="idade num" id="idade"></span>
   </div>
   <span id="chipModo" class="chip"><span class="dot"></span><span id="chipTxt">Carregando…</span></span>
   <span class="spacer"></span>
@@ -564,6 +573,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button type="button" data-p="10">10%</button><button type="button" data-p="50">50%</button><button type="button" data-p="85">85%</button><button type="button" data-p="100">100%</button>
 </div>
 
+<div class="sem-dados-aviso" id="semDados">Aguardando os primeiros dados do TSE neste ambiente.</div>
 <div class="telas" id="telas">
   <!-- Tela 1: totalização + cadeiras -->
   <section class="tela ativa" data-nome="Totalização">
@@ -886,11 +896,40 @@ const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>
 let diagLog = [];
 const diag = m => { diagLog.push(m); if (diagLog.length>40) diagLog.shift(); $('diag').textContent = diagLog.join('\n'); };
 
-async function getJSON(url){
-  if (url.startsWith('tse2022/')) return T22.get(url.slice(8));
-  const r = await fetch(url, {cache: MODO_APP ? 'no-cache' : 'no-store'});
-  if (!r.ok) throw Object.assign(new Error('HTTP '+r.status+' em '+url), {status:r.status});
-  return r.json();
+// Situação da coleta: tentativas, erros e idade dos dados (linha de status no topo)
+const STATUS = { req:0, n404:0, nErro:0, timeouts:0, rejeitados:0, regressoes:0, msMax:0,
+  lastAttemptAt:0, lastSuccessfulUpdateAt:0, tseGeradoEm:'', ultimoErro:'' };
+// 404 recente: não pede de novo por 5 min (o TSE avisa que muitos 404 podem bloquear o IP)
+const REC404 = new Map();
+const erroTempo = (limite, url) => Object.assign(new Error(`Tempo esgotado (${limite/1000} s) em ${url}`), {status:0, timeout:true});
+// Toda leitura do TSE tem tempo limite: uma requisição pendurada não pode travar o ciclo
+async function getJSON(url, {limite = 15000, recuo404 = false} = {}){
+  const ate = REC404.get(url);
+  if (ate && Date.now() < ate) throw Object.assign(new Error('404 recente (aguardando) em '+url), {status:404, recuo:true});
+  STATUS.req++;
+  const t0 = performance.now();
+  const anotar404 = () => { STATUS.n404++; if (recuo404) REC404.set(url, Date.now() + 5*60000); };
+  if (url.startsWith('tse2022/')) {                  // TSE virtual do ambiente de teste: mesmo tempo limite
+    let tm;
+    try { return await Promise.race([T22.get(url.slice(8)), new Promise((_,rej)=>{ tm = setTimeout(()=>rej(erroTempo(limite, url)), limite); })]); }
+    catch(e){ if (e.timeout) STATUS.timeouts++; else if (e.status===404) anotar404(); else STATUS.nErro++; throw e; }
+    finally { clearTimeout(tm); STATUS.msMax = Math.max(STATUS.msMax, performance.now()-t0); }
+  }
+  const ac = new AbortController(), tm = setTimeout(()=>ac.abort(), limite);
+  try {
+    const r = await fetch(url, {cache: MODO_APP ? 'no-cache' : 'no-store', signal: ac.signal});
+    if (!r.ok) {
+      if (r.status === 404) anotar404(); else STATUS.nErro++;
+      throw Object.assign(new Error('HTTP '+r.status+' em '+url), {status:r.status});
+    }
+    const j = await r.json();                         // o corpo também fica sob o tempo limite
+    REC404.delete(url);
+    return j;
+  } catch(e){
+    if (e.name === 'AbortError') { STATUS.timeouts++; throw erroTempo(limite, url); }
+    if (e.status == null) STATUS.nErro++;
+    throw e;
+  } finally { clearTimeout(tm); STATUS.msMax = Math.max(STATUS.msMax, performance.now()-t0); }
 }
 /* ============ AMBIENTE DE TESTE: ELEIÇÃO 2022 COM DADOS OFICIAIS ============
    Os arquivos de 2022 saíram do site de resultados do TSE. Aqui eles são remontados, no formato da
@@ -968,7 +1007,35 @@ const T22 = (()=>{
     return { ele:'544', dg:'02/10/2022', hg:hora(), carg:[{ cd:'1', nv:'1', agr: meta.br.cands.map(([n,nome,sg,sit,v])=>{ const s = situacao(1, sit); return { n:sg, nm:sg, tp:'p', par:[{ sg, n:sg, tval:'0', cand:[{ n, nm:nome, nmu:nome, vap:String(Math.round(+v*p)), pvap: vv ? fmtP(100*Math.round(+v*p)/vv) : '0,00', dvt:'Válido', e:s.e, st:s.st }] }] }; }) }],
       s:{ pst:fmtP(100*p) }, v:{ vv:String(vv) } };
   }
+  // Modo caos (só no teste 2022): ?caos=<modo> na URL ou T22.caos = '<modo>' no console.
+  // Simula falhas do TSE para conferir que o painel não trava, não zera e não volta para trás.
+  let caos = (new URLSearchParams(location.search).get('caos') || '').toLowerCase();
+  const ehEstado = c => /\/dados\/rj\/rj-c0006-e\d+-u\.json$/.test(c);
+  const ehZona = c => /-z\d{4}-c\d{4}-e\d+-u\.json$/.test(c);
+  const falha = (st, c) => Object.assign(new Error(`HTTP ${st} em (teste 2022 · caos) ${c}`), {status:st});
   async function get(caminho){
+    const modo = caos;
+    if (modo === 'lento') await new Promise(r=>setTimeout(r, 8000));
+    if (modo === 'fora') throw new TypeError('Failed to fetch (teste 2022 · caos: TSE fora do ar)');
+    if (ehEstado(caminho)) {
+      if (modo === 'timeout') return new Promise(()=>{});                       // nunca responde
+      if (modo === '404' || modo === 'nao-publicado') throw falha(404, caminho);
+      if (modo === '500') throw falha(500, caminho);
+      if (modo === '429') throw falha(429, caminho);
+      if (modo === 'json-ruim') throw new SyntaxError('Unexpected end of JSON input (teste 2022 · caos)');
+      if (modo === 'incompleto') return { ele:'546', dg:'02/10/2022', hg:hora(), carg:[] };
+      if (modo === 'sem-campo') { const j = await getReal(caminho); for (const a of j.carg[0].agr) for (const pp of a.par) for (const c of pp.cand) delete c.vap; return j; }
+      if (modo === 'antigo') { const p0 = P; P = Math.max(0, P - 10); try { return await getReal(caminho); } finally { P = p0; } }
+      if (modo === 'campo-extra') { const j = await getReal(caminho); j.novoCampo = {x:1}; for (const a of j.carg[0].agr) { a.extra = 'x'; for (const pp of a.par) for (const c of pp.cand) { c.campoNovo = 'y'; } } return j; }
+    }
+    if (ehZona(caminho)) {
+      if (modo === 'nao-publicado') throw falha(404, caminho);
+      if (modo === 'zona404' && h01(caminho) < 0.5) throw falha(404, caminho);
+      if (modo === 'zona-timeout' && h01(caminho) < 0.1) return new Promise(()=>{});
+    }
+    return getReal(caminho);
+  }
+  async function getReal(caminho){
     let m;
     if (caminho === 'comum/config/ele-c.json') return ELEC;
     if ((m = caminho.match(/^ele2022\/(544|546)\/config\/mun-e\d+-cm\.json$/))) {
@@ -1004,7 +1071,7 @@ const T22 = (()=>{
     }
     return { atualizado: new Date().toISOString(), ambiente:'2022', totalizadas: Math.round(b.secoes*P/100), lidas: Math.round(b.secoes*P/100), mz };
   }
-  return { get, reais, get P(){ return P; }, set P(v){ P = Math.max(0, Math.min(100, v)); try { localStorage.setItem('painelT22P', String(P)); } catch(e){} } };
+  return { get, reais, get caos(){ return caos; }, set caos(v){ caos = String(v||'').toLowerCase(); }, get P(){ return P; }, set P(v){ P = Math.max(0, Math.min(100, v)); try { localStorage.setItem('painelT22P', String(P)); } catch(e){} } };
 })();
 
 function bfs(root, pred){
@@ -1186,7 +1253,7 @@ async function detectarPleito(){
 // EA16: lista de seções por zona; seção com data/hora (da/ha) = arquivo da urna recebido
 async function carregarSecoes(){
   if (!ESTADO.pleito) ESTADO.pleito = await detectarPleito();
-  const j = await getJSON(`${urlBase()}/${CFG.ano}/arquivo-urna/${ESTADO.pleito}/config/${CFG.uf}/${CFG.uf}-p${pad6(ESTADO.pleito)}-cs.json`);
+  const j = await getJSON(`${urlBase()}/${CFG.ano}/arquivo-urna/${ESTADO.pleito}/config/${CFG.uf}/${CFG.uf}-p${pad6(ESTADO.pleito)}-cs.json`, {limite:20000, recuo404:true});
   const map = new Map(); let tot=0, ap=0;
   for (const uf of (j.abr||[])) for (const m of (uf.mu||[])) for (const z of (m.zon||[])) {
     const secs = z.sec||[]; const a = secs.filter(x=>x.da||x.ha).length;
@@ -1234,7 +1301,10 @@ async function carregarReal(){
 
 async function pool(tarefas, n){ const out=[]; let i=0; await Promise.all(Array.from({length:n},async()=>{ while(i<tarefas.length){ const k=i++; try{ out[k]=await tarefas[k](); }catch(e){ out[k]=null; } } })); return out; }
 
+let DISJ_ZONAS = 0;
 async function carregarZonasReal(){
+  // disjuntor: muitos 404 ou tempos esgotados seguidos param o lote e dão 5 min de pausa (as zonas anteriores ficam na tela)
+  if (Date.now() < DISJ_ZONAS) throw Object.assign(new Error(`zonas em pausa até ${new Date(DISJ_ZONAS).toLocaleTimeString('pt-BR')} (muitas falhas seguidas)`), {status:404});
   if (!ESTADO.municipios) ESTADO.municipios = await carregarMunicipios();
   const muns = ESTADO.municipios;
   // Padrão oficial (instruções de download 2026): <uf><MUNIC>-z<ZONA>-c<CCCC>-e<ELEICA>-u.json
@@ -1253,13 +1323,20 @@ async function carregarZonasReal(){
       else secoes = sc;
     } catch(e){ diag('Configuração de seções (EA16) indisponível: '+e.message); }
   }
+  let falhas = 0;
+  const lerZona = async url => {
+    if (falhas > 10) return null;
+    try { return await getJSON(url, {limite:20000, recuo404:true}); }
+    catch(e){ if ((e.status===404 && !e.recuo) || e.timeout) falhas++; throw e; }
+  };
   let tarefas;
   if (ESTADO.modoZona==='zona') {
-    tarefas = muns.flatMap(m=>m.zonas.map(z=>async()=>{ const j=await getJSON(`${urlBase()}/${CFG.ano}/${ESTADO.ele}/dados/${CFG.uf}/${fill(z,m.cd)}`); return {rotulo:'Zona '+Number(z), sub:m.nm, mun:m.cd, zona:pad4(z), nz:m.zonas.length, j}; }));
+    tarefas = muns.flatMap(m=>m.zonas.map(z=>async()=>{ const j=await lerZona(`${urlBase()}/${CFG.ano}/${ESTADO.ele}/dados/${CFG.uf}/${fill(z,m.cd)}`); return j && {rotulo:'Zona '+Number(z), sub:m.nm, mun:m.cd, zona:pad4(z), nz:m.zonas.length, j}; }));
   } else {
-    tarefas = muns.map(m=>async()=>{ const j=await getJSON(urlArquivo(CFG.uf+m.cd)); return {rotulo:m.nm, sub:'Município', mun:m.cd, nz:1, j}; });
+    tarefas = muns.map(m=>async()=>{ const j=await lerZona(urlArquivo(CFG.uf+m.cd)); return j && {rotulo:m.nm, sub:'Município', mun:m.cd, nz:1, j}; });
   }
   const res = (await pool(tarefas, 8)).filter(Boolean);
+  if (falhas > 10) { DISJ_ZONAS = Date.now() + 5*60000; throw Object.assign(new Error(`${falhas} falhas seguidas (404 ou tempo esgotado); mantidas as zonas anteriores e nova tentativa em 5 min`), {status:404}); }
   COBERTURA = { lidas: res.length, total: tarefas.length };
   if (res.length < tarefas.length) diag(`Zonas lidas: ${res.length} de ${tarefas.length}; a projeção completa as que faltam pelo total do estado.`);
   // agrega (uma zona pode abranger mais de um município)
@@ -1438,6 +1515,7 @@ function desenharHemiciclo(eleitos, vagas){
 }
 
 function render(d, calc){
+  document.body.classList.remove('sem-dados');
   const t = d.tot, foco = CFG.partidoFoco.toUpperCase();
   PCT_EST = t.pctApurado; calcularRanking(d.cands);
   $('barApur').style.width = (t.pctApurado||0)+'%';
@@ -1635,9 +1713,13 @@ function tarjaProxima(){
   tr.style.animation = `tk-roll ${Math.max(6, (vista + larg) / tkVel())}s linear 1 forwards`;
 }
 $('tkTrack').addEventListener('animationend', tarjaProxima);   // terminou de passar: próxima modalidade
+let TK_TOKEN = 0;
 async function atualizarTarja(){
+  const g = GERACAO, k = ++TK_TOKEN;
   try {
-    TK_DADOS = CFG.ambiente==='demo' ? dadosTarjaDemo() : await dadosTarjaReal();   // entra na próxima modalidade exibida
+    const novo = CFG.ambiente==='demo' ? dadosTarjaDemo() : await dadosTarjaReal();
+    if (g !== GERACAO || k !== TK_TOKEN) return;                 // resposta atrasada ou de outro ambiente
+    TK_DADOS = novo;   // entra na próxima modalidade exibida
     MAJ = TK_DADOS; renderMaj(); alertasMaj(MAJ);
     if (TK_IDX < 0) tarjaProxima();
   } catch(e){ diag('Tarja: '+e.message); }
@@ -1695,14 +1777,16 @@ const REPO_DADOS = 'https://raw.githubusercontent.com/eduvaldoski2/apuracao-4013
 const REAIS = {};
 async function atualizarReais(pref){
   if (!pref || CFG.ambiente==='demo') return null;
-  if (CFG.ambiente==='2022') { try { REAIS[pref] = {...(await T22.reais(pref)), fonte:'teste'}; } catch(e){ REAIS[pref] = null; } return REAIS[pref]; }
+  const g = GERACAO;
+  if (CFG.ambiente==='2022') { try { const r = {...(await T22.reais(pref)), fonte:'teste'}; if (g === GERACAO) REAIS[pref] = r; } catch(e){ if (g === GERACAO) REAIS[pref] = null; } return REAIS[pref]; }
   try {
     const local = ehLocal && !MODO_APP;
     const url = local ? `/bu/bairros?amb=${encodeURIComponent(CFG.ambiente)}&pref=${pref}`
                       : `${REPO_DADOS}/${CFG.ambiente}/${pref}.json?m=${Math.floor(Date.now()/120000)}`;
-    const r = await fetch(url, {cache:'no-store'});
-    REAIS[pref] = r.ok ? { ...(await r.json()), fonte: local ? 'mac' : 'github' } : null;
-  } catch(e){ REAIS[pref] = null; }
+    const r = await fetch(url, {cache:'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(20000) : undefined});
+    const v = r.ok ? { ...(await r.json()), fonte: local ? 'mac' : 'github' } : null;
+    if (g === GERACAO) REAIS[pref] = v;
+  } catch(e){ if (g === GERACAO) REAIS[pref] = null; }
   return REAIS[pref];
 }
 // Bairros de um município, zona a zona: votos reais dos boletins já lidos + estimativa só do que falta
@@ -1804,14 +1888,16 @@ function cel22(par, pctAgora){
 
 /* ============ GRÁFICO DA NOITE ============ */
 const HIST_MAX = 400;
-const chaveHist = () => `painelHist-${CFG.ambiente}-${CFG.candidata}`;
+// Histórico do gráfico: por ambiente, eleição e candidatura (leituras antigas de outras versões são descartadas)
+const chaveHist = () => `painelHist2-${CFG.ambiente}-${ESTADO.ele||''}-${CFG.candidata}`;
+try { Object.keys(localStorage).filter(k=>k.startsWith('painelHist-')).forEach(k=>localStorage.removeItem(k)); } catch(e){}
 let HIST = [];
 function carregarHist(){ try { HIST = JSON.parse(localStorage.getItem(chaveHist()) || '[]'); } catch(e){ HIST = []; } }
 function registrarHist(d, calc){
   const c = d.cands.find(x=>x.n===CFG.candidata); const p = d.tot.pctApurado;
   if (!c || isNaN(p)) return;
   if (HIST._k !== chaveHist()) { carregarHist(); HIST._k = chaveHist(); }
-  if (CFG.ambiente === 'demo' && HIST.length && p < HIST[HIST.length-1].p - 1) HIST = [];   // demonstração recomeçou
+  if (HIST.length && p < HIST[HIST.length-1].p - 2) HIST = [];   // a apuração recomeçou (teste ou demonstração): gráfico novo
   const todos = [...d.cands].sort((a,b)=>b.votos-a.votos);
   const fx = faixaProj(c);
   const pt = { p: Math.round(p*100)/100, v: c.votos, pj: Math.round(projDe(c)) || null, lo: fx ? Math.round(fx.lo) : null, hi: fx ? Math.round(fx.hi) : null, pos: todos.findIndex(x=>x.n===c.n)+1, t: Date.now() };
@@ -2097,7 +2183,7 @@ async function carregarMunicipioReal(mun, cargo){
   const zs = await zonasDoMunicipio(mun, e);
   const [muni, zonas] = await Promise.all([
     getJSON(base + fim),
-    pool(zs.map(z=>async()=>({ zc:z, d:extrair(await getJSON(`${base}-z${z}${fim}`)) })), 6),
+    pool(zs.map(z=>async()=>({ zc:z, d:extrair(await getJSON(`${base}-z${z}${fim}`, {limite:20000, recuo404:true})) })), 6),
   ]);
   const d = extrair(muni);
   if (isNaN(d.tot.pctApurado) && ESTADO.ab && e.ele===ESTADO.ele && ESTADO.ab.mun[mun]) d.tot.pctApurado = ESTADO.ab.mun[mun].pst;
@@ -2258,18 +2344,22 @@ function estaduaisDemo(){
   [...cands].sort((a,b)=>b.votos-a.votos).slice(0, Math.max(0, Math.floor((DEMO.pct()-40)/60*45))).forEach(c=>{ c.e='s'; c.st='Eleito por QP'; });
   return { cands, agrs, legPart, meta:{nv:70}, tot:{} };
 }
+let EST_TOKEN = 0;
 async function atualizarEstaduais(){
+  const g = GERACAO, k = ++EST_TOKEN;
   try {
     let d;
     if (CFG.ambiente==='demo') d = estaduaisDemo();
     else {
       if (!ESTADO.ele) return;
       d = extrair(await getJSON(`${urlBase()}/${CFG.ano}/${ESTADO.ele}/dados/${CFG.uf}/${CFG.uf}-c0007-e${pad6(ESTADO.ele)}-u.json`));
+      if (g !== GERACAO || k !== EST_TOKEN) return;               // resposta atrasada ou de outro ambiente
+      if (!d.cands.length && EST && EST.d.cands.length) { diag('Dep. estaduais: arquivo sem candidatos recusado; mantidos os dados anteriores.'); return; }
     }
     const vagas = d.meta && d.meta.nv ? d.meta.nv : 70;
     EST = { d, vagas, calc: aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d, vagas) };
     renderEstaduais();
-  } catch(e){ diag('Dep. estaduais: ' + e.message); }
+  } catch(e){ if (g === GERACAO) diag('Dep. estaduais: ' + e.message); }
 }
 // Lista por partido (usada na Câmara e na Alerj): partidos no topo, 100 mais votados, e a lista do partido escolhido
 const PART_SEL = {};
@@ -2325,14 +2415,41 @@ let ultimaHora = null;
 function setChip(tipo, txt){ $('chipModo').className = 'chip '+tipo; $('chipTxt').textContent = txt; }
 let proxima = 0, carregandoZonas = false, ultZonas = 0;
 
-let rodando = false;
+// Validação do arquivo do estado antes de virar tela: nunca trocar a apuração por um arquivo vazio
+// nem por uma versão anterior. A mesma "regressão" 3 vezes seguidas é aceita como correção do TSE.
+// "04/10/2026 21:14:05" (horário de Brasília) -> ms
+const instante = h => { const m = /(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})(?::(\d{2}))?/.exec(h||''); return m ? Date.UTC(+m[3], m[2]-1, +m[1], +m[4]+3, +m[5], +(m[6]||0)) : NaN; };
+function validarU(d, ant){
+  if (!d.cands.length) return 'arquivo sem candidatos';
+  const p = d.tot.pctApurado; if (!isNaN(p) && (p < 0 || p > 100)) return '% apurado inválido: ' + p;
+  if (!ant || !ant.cands.length) return '';
+  if (d.cands.length < 0.9 * ant.cands.length) return `candidatos caíram de ${ant.cands.length} para ${d.cands.length}`;
+  const soma = x => x.cands.reduce((s,c)=>s+c.votos, 0);
+  if (soma(d) < 0.99 * soma(ant)) return 'total de votos diminuiu';
+  if (instante(d.tot.hora) < instante(ant.tot.hora)) return `versão anterior (${d.tot.hora} < ${ant.tot.hora})`;
+  return '';
+}
+let REJ = { motivo:'', n:0 }, SEM_BASE = false;   // SEM_BASE: o teste 2022 voltou a apuração de propósito
+let rodando = false, inicioCiclo = 0, CICLO_ID = 0;
 async function atualizar(){
   if (rodando) return; rodando = true;
-  const g = GERACAO;
+  const g = GERACAO, k = ++CICLO_ID; inicioCiclo = Date.now(); STATUS.lastAttemptAt = Date.now();
   try {
     let d;
     if (CFG.ambiente==='demo') { DEMO.avancar(); d = DEMO.dados(); setChip('demo','Demonstração · dados fictícios'); ESTADO.modoZona='zona'; }
-    else { d = await carregarReal(); if (g !== GERACAO) return; setChip('live', CFG.ambiente==='oficial' ? 'Oficial · TSE' : (CFG.ambiente==='2022' ? 'Teste · eleição 2022 (dados reais)' : 'Simulado · TSE')); }
+    else {
+      d = await carregarReal(); if (g !== GERACAO || k !== CICLO_ID) return;
+      const motivo = validarU(d, SEM_BASE ? null : ULTIMO && ULTIMO.d); SEM_BASE = false;
+      if (motivo) {
+        REJ = REJ.motivo === motivo ? {motivo, n: REJ.n + 1} : {motivo, n: 1};
+        STATUS.rejeitados++; if (/anterior|diminuiu/.test(motivo)) STATUS.regressoes++;
+        if (!(REJ.n >= 3 && d.cands.length)) throw Object.assign(new Error('Resposta do TSE recusada: ' + motivo), {recusada:true});
+        diag('Correção do TSE aceita (3 vezes seguidas): ' + motivo);
+      }
+      REJ = { motivo:'', n:0 };
+      setChip('live', CFG.ambiente==='oficial' ? 'Oficial · TSE' : (CFG.ambiente==='2022' ? 'Teste · eleição 2022 (dados reais)' : 'Simulado · TSE'));
+    }
+    STATUS.lastSuccessfulUpdateAt = Date.now(); STATUS.tseGeradoEm = d.tot.hora || ''; STATUS.ultimoErro = '';
     VAGAS = d.meta && d.meta.nv ? d.meta.nv : CFG.vagas;
     const calc = aplicarOficial(calcularCadeiras(d.agrs, d.cands, VAGAS), d, VAGAS);
     if (d.meta && d.meta.qe) calc.QE_TSE = d.meta.qe;
@@ -2350,10 +2467,13 @@ async function atualizar(){
     const idade = Date.now()-ultZonas;
     if (!ZONAS || idade > CFG.intervaloZonas*1000 || (novo && idade > 60000) || CFG.ambiente==='demo') atualizarZonas();
   } catch(e) {
-    if (g !== GERACAO) return;
-    console.error(e); diag('Erro: '+e.message);
+    if (g !== GERACAO || k !== CICLO_ID) return;
+    console.error(e); diag('Erro: '+e.message); STATUS.ultimoErro = e.message;
     const antesDas17 = new Date() < new Date('2026-10-04T17:00:00-03:00');
-    if (CFG.ambiente==='oficial' && (e.status===404 || /ele-c|ainda não lista/.test(e.message) || (e instanceof TypeError && antesDas17))) {
+    if (e.recusada) {
+      setChip('err', 'Resposta do TSE recusada');
+      $('meta').textContent = e.message.slice(0,140) + ' · mantidos os últimos dados válidos';
+    } else if (CFG.ambiente==='oficial' && (e.status===404 || /ele-c|ainda não lista/.test(e.message) || (e instanceof TypeError && antesDas17))) {
       setChip('err', 'Aguardando o TSE');
       $('meta').textContent = antesDas17 ? 'Resultados oficiais a partir de domingo, 4/10, às 17h. Antes disso, veja o simulado em Configurações.' : 'O TSE ainda não publicou os arquivos. Nova tentativa em instantes.';
     } else {
@@ -2365,25 +2485,50 @@ async function atualizar(){
   rodando = false;
   if (CFG.ambiente === '2022') t22Ciclo();
 }
+let inicioZonas = 0, ZONAS_ID = 0;
 async function atualizarZonas(){
   if (carregandoZonas) return; carregandoZonas = true;
-  const g = GERACAO;
+  const g = GERACAO, k = ++ZONAS_ID; inicioZonas = Date.now();
   try {
     let Z, C;
     if (CFG.ambiente==='demo') { Z = DEMO.zonas(); C = agregarCidades(Z); }
-    else { const r = await carregarZonasReal(); if (g !== GERACAO) return; Z = r.zonas; C = ESTADO.modoZona==='municipio' ? Z : r.cidades; }
+    else { const r = await carregarZonasReal(); if (g !== GERACAO || k !== ZONAS_ID) return; Z = r.zonas; C = ESTADO.modoZona==='municipio' ? Z : r.cidades; }
     ZONAS = Z; CIDADES = C;     // troca de uma vez só: as tabelas não ficam vazias durante a recarga
     ZONAS_HORA = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); ultZonas = Date.now(); PROJ = calcularProjecao(ZONAS);
     if (ULTIMO) render(ULTIMO.d, ULTIMO.calc);
   }
-  catch(e){ if (g === GERACAO) diag('Erro nas zonas: '+e.message); }
-  finally { if (g === GERACAO) carregandoZonas = false; }
+  catch(e){ if (g === GERACAO && k === ZONAS_ID) diag('Erro nas zonas: '+e.message); }
+  finally { if (g === GERACAO && k === ZONAS_ID) carregandoZonas = false; }
 }
+// Vigia: libera um ciclo travado mesmo que algo escape do tempo limite
+setInterval(()=>{
+  const t = Date.now();
+  if (rodando && t - inicioCiclo > 60000) { rodando = false; CICLO_ID++; proxima = 0; STATUS.ultimoErro = 'ciclo travado; liberado pelo vigia'; diag('Vigia: '+STATUS.ultimoErro); }
+  if (carregandoZonas && t - inicioZonas > 300000) { carregandoZonas = false; ZONAS_ID++; diag('Vigia: carga das zonas travada; liberada.'); }
+}, 5000);
 setInterval(()=>{
   const r = Math.max(0, Math.round((proxima-Date.now())/1000));
   $('countdown').textContent = proxima ? `próxima verificação em ${Math.floor(r/60)}:${String(r%60).padStart(2,'0')}` : '';
   if (Date.now()>=proxima) atualizar();
+  linhaIdade();
 }, 1000);
+// Idade dos dados: hora do TSE + quanto tempo desde a última resposta válida (verde / âmbar / vermelho)
+function linhaIdade(){
+  const el = $('idade'); if (!el) return;
+  if (CFG.ambiente==='demo') { el.textContent = ''; el.className = 'idade num'; return; }
+  const ok = STATUS.lastSuccessfulUpdateAt;
+  el.title = `Tentativas ${STATUS.req} · 404 ${STATUS.n404} · outros erros ${STATUS.nErro} · tempo esgotado ${STATUS.timeouts} · respostas recusadas ${STATUS.rejeitados} · maior espera ${(STATUS.msMax/1000).toFixed(1)} s` + (STATUS.ultimoErro ? ' · último erro: ' + STATUS.ultimoErro : '');
+  if (!ok) { el.textContent = STATUS.lastAttemptAt ? 'aguardando a primeira resposta válida' : ''; el.className = 'idade num'; return; }
+  const s = Math.round((Date.now() - ok)/1000), min = Math.floor(s/60);
+  const quanto = s < 60 ? `${s} s` : `${min} min`;
+  const hTSE = (STATUS.tseGeradoEm.match(/(\d{2}:\d{2})(?::\d{2})?\s*$/)||[])[1];
+  const cor = s <= 2*CFG.intervalo + 30 ? 'ok' : (s <= 600 ? 'atencao' : 'velho');
+  const zonas = COBERTURA ? ` · zonas ${COBERTURA.lidas}/${COBERTURA.total}` : '';
+  el.className = 'idade num ' + cor;
+  el.textContent = cor === 'velho'
+    ? `dados de ${hTSE || '—'} · sem atualização há ${min} min`
+    : `dados do TSE ${hTSE ? 'de ' + hTSE + ' · ' : ''}recebidos há ${quanto}${zonas}`;
+}
 
 $('btnAtualizar').onclick = ()=>{ proxima = 0; };
 $('btnConfig').onclick = ()=>{
@@ -2405,7 +2550,15 @@ $('cfSalvar').onclick = ()=>{
 // Descarta tudo o que foi carregado (troca de ambiente/candidatura); cargas em andamento da geração anterior são ignoradas
 let GERACAO = 0;
 function redefinirDados(){
-  GERACAO++;
+  GERACAO++; MUN_TOKEN++;
+  // os números do ambiente anterior saem da tela: nada de simulado exibido como oficial
+  ULTIMO = null; for (const k in REAIS) delete REAIS[k]; REJ = { motivo:'', n:0 }; REC404.clear(); DISJ_ZONAS = 0;
+  STATUS.lastSuccessfulUpdateAt = 0; STATUS.tseGeradoEm = ''; STATUS.ultimoErro = '';
+  const nomes = {oficial:'Oficial · TSE', simulado:'Simulado · TSE', '2022':'Teste · eleição 2022', demo:'Demonstração'};
+  $('semDados').textContent = `Ambiente ${nomes[CFG.ambiente]||CFG.ambiente}: aguardando os primeiros dados do TSE. Os números do ambiente anterior foram retirados da tela.`;
+  document.body.classList.add('sem-dados');
+  $('barApur').style.width = '0%'; TK_IDX = -1;
+  $('tkCat').innerHTML = '<b>Aguardando o TSE</b><span class="tk-parc"></span>'; $('tkTrack').innerHTML = ''; $('tkTrack').style.animation = 'none';
   TK_CONF = null; TK_DADOS = null; EST = null; MUN_DADOS = null; ALERTA_ANT = null; MAJ_ANT = null; MAJ = null; delete MUN_SEL.cand[6];
   ESTADO = {ele:null, municipios:null, modoZona:null}; COBERTURA = null; ZONAS = null; CIDADES = null; PROJ = null; ultZonas = 0; ultimaHora = null;
   rodando = false; carregandoZonas = false; proxima = 0;
@@ -2430,7 +2583,7 @@ function t22Mostrar(){
   $('t22auto').classList.toggle('on', T22_AUTO); $('t22auto').textContent = T22_AUTO ? '❚❚ Parar' : '▶ Avançar sozinho';
 }
 function t22Ir(v){
-  T22.P = v; t22Mostrar();
+  T22.P = v; t22Mostrar(); SEM_BASE = true;
   ultZonas = 0; ultimaHora = null; EST = null; proxima = 0;       // recarrega tudo na hora
 }
 $('t22p').addEventListener('input', ()=>{ $('t22v').textContent = $('t22p').value + '%'; });
