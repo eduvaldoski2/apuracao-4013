@@ -408,7 +408,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .dica b{font-variant-numeric:tabular-nums}
 .dica span{color:var(--muted)}
 .alertas{position:fixed;z-index:70;top:12px;right:12px;display:grid;gap:6px;width:min(430px,calc(100vw - 24px));pointer-events:none}
-.alerta{pointer-events:auto;display:grid;grid-template-columns:1fr auto;gap:1px 10px;background:var(--brand);color:#fff;border-left:6px solid var(--accent);border-radius:9px;padding:7px 10px 7px 12px;box-shadow:0 10px 28px rgba(0,0,0,.35);animation:alerta-in .35s ease-out;transition:opacity .8s}
+.alerta{transition:opacity .6s;pointer-events:auto;display:grid;grid-template-columns:1fr auto;gap:1px 10px;background:var(--brand);color:#fff;border-left:6px solid var(--accent);border-radius:9px;padding:7px 10px 7px 12px;box-shadow:0 10px 28px rgba(0,0,0,.35);animation:alerta-in .35s ease-out;transition:opacity .8s}
 .alerta b{font-size:15px;font-weight:900}
 .alerta span{grid-column:1;font-size:12.5px;color:#e6e0ff}
 .alerta button{grid-row:1/span 2;grid-column:2;background:transparent;border:0;color:#fff;font-size:22px;cursor:pointer;line-height:1}
@@ -616,7 +616,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         <div><div class="gl-t">Votos apurados e projeção final</div><figure id="gVotos" class="gl-fig"></figure></div>
         <div><div class="gl-t">Posição geral entre todos os candidatos</div><figure id="gPos" class="gl-fig"></figure></div>
       </div>
-      <p class="legend-proj">Cada ponto é uma leitura do TSE feita pelo painel (eixo horizontal: % de seções apuradas no estado). As leituras ficam guardadas neste aparelho. A linha pontilhada mostra o resultado de 2022.</p>
+      <p class="legend-proj">Cada ponto é uma leitura do TSE feita pelo painel (eixo horizontal: % de seções apuradas no estado). A projeção soma cada zona no ritmo das suas seções já apuradas; a faixa mostra onde o resultado final deve cair em 9 de cada 10 casos (calibrada com os votos de 2022 seção a seção). As leituras ficam guardadas neste aparelho. A linha pontilhada mostra o resultado de 2022.</p>
     </div>
   </section>
 
@@ -806,7 +806,6 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <label for="cfInt">Atualizar a cada (segundos) <input id="cfInt" type="number" min="20" step="10"></label>
     <label for="cfZint">Atualizar zonas a cada (segundos) <span class="hint">São ~170 arquivos por rodada; não use menos de 120.</span><input id="cfZint" type="number" min="60" step="30"></label>
     <label for="cfZpat">Padrão do arquivo por zona <span class="hint">Variáveis: {uf} {mun} {zona} {cargo} {ele}. Se não existir, o painel usa município.</span><input id="cfZpat"></label>
-    <label class="chk"><input type="checkbox" id="cfSom"> Som nos alertas <span class="hint">Avisos na tela quando muda a situação da candidatura, as cadeiras do partido ou o TSE confirma eleitos. O som só toca depois de um clique na página.</span></label>
     <div class="eyebrow">Diagnóstico</div>
     <div class="diag" id="diag">—</div>
     <div class="actions"><button value="cancel" type="submit">Cancelar</button><button class="primary" id="cfSalvar" value="ok" type="submit">Salvar e recarregar</button></div>
@@ -943,7 +942,13 @@ const T22 = (()=>{
     const meta = await carregar('meta.json'), B = await carregar(`c${cargo}.json`);
     const ks = chaves(meta, mun, zona);
     const tot = new Array(B.cands.length).fill(0), leg = {};
-    for (const k of ks) { const p = pz(k); for (const [i,v] of (B.mz[k]||[])) tot[i] += Math.round(v*p); for (const [sg,v] of Object.entries((B.leg||{})[k]||{})) leg[sg] = (leg[sg]||0) + Math.round(v*p); }
+    // Tatiana (4013): votos reais seção a seção de 2022, em ordem de chegada sorteada por local de votação
+    // (o resto dos candidatos cresce proporcionalmente em cada zona)
+    const T = cargo === 6 ? await carregar('t4013.json').catch(()=>null) : null, iT = cargo === 6 ? B.cands.findIndex(c=>c[0]==='4013') : -1;
+    for (const k of ks) { const p = pz(k); for (const [i,v] of (B.mz[k]||[])) {
+        if (i === iT && T && T[k]) { const L = T[k], n = Math.round(p*L.length); let s = 0; for (let q = 0; q < n; q++) s += L[q]; tot[i] += p >= 1 ? v : s; }
+        else tot[i] += Math.round(v*p); }
+      for (const [sg,v] of Object.entries((B.leg||{})[k]||{})) leg[sg] = (leg[sg]||0) + Math.round(v*p); }
     const valido = i => !/anulad|cassad|indefer/i.test(B.cands[i][4]);
     let vv = Object.values(leg).reduce((s,v)=>s+v,0); B.cands.forEach((c,i)=>{ if (valido(i)) vv += tot[i]; });
     const agr = B.agrs.map(([id, nm, tp, partidos])=>({ n:id, nm, tp, par: partidos.map(sg=>({ sg, n:sg, tval:String(leg[sg]||0), cand:[] })) }));
@@ -1047,6 +1052,7 @@ function extrair(json){
   const s = bfs(json, o=>o.s && typeof o.s==='object' && pick(o.s,CAMPOS.pctSecoes)!=null) || json;
   const tot = {
     pctApurado: pctNum(pick(s.s||{},CAMPOS.pctSecoes)),
+    secoes: num((s.s||{}).ts), secoesTot: num((s.s||{}).st),
     comparecimento: num(pick(s.e||{},CAMPOS.comparecimento)),
     pctComparecimento: pctNum(pick(s.e||{},CAMPOS.pctComparecimento)),
     eleitorado: num(pick(s.e||{},CAMPOS.eleitorado)),
@@ -1270,13 +1276,18 @@ async function carregarZonasReal(){
     A.validos += d.agrs.reduce((s,a)=>s+a.votos,0);
     let tot, ap;
     const sz = secoes && zona ? secoes.map.get(mun+'|'+zona) : null;
-    if (sz) { tot = sz.tot; ap = sz.ap; }
+    // % apurado DA ZONA: o arquivo de cada zona traz suas seções (s.ts, s.st). Só sem ele usa o município.
+    const zt = d.tot.secoes, zs = d.tot.secoesTot, zp = d.tot.pctApurado;
+    if (zt > 0 && !isNaN(zs)) { tot = zt; ap = zs; }
+    else if (zt > 0 && !isNaN(zp)) { tot = zt; ap = zt*zp/100; }
+    else if (sz) { tot = sz.tot; ap = sz.ap; }
     else { tot = (M.ts||0)/nz; ap = tot*((M.pst||0)/100); }
     A.secTot += tot; A.secAp += ap;
-    if (!isNaN(M.pc)) { A.compSoma += M.pc*tot; A.compPeso += tot; }
+    const pcz = !isNaN(d.tot.pctComparecimento) ? d.tot.pctComparecimento : M.pc;
+    if (!isNaN(pcz)) { A.compSoma += pcz*tot; A.compPeso += tot; }
   }
   const cidades = [...aggC.values()].map(C=>({...C, rotulo:titulo(C.rotulo)}));
-  ESTADO.fontePct = secoes ? 'seções recebidas de cada zona' : 'seções totalizadas do município';
+  ESTADO.fontePct = 'seções totalizadas de cada zona';
   return { cidades, zonas: [...agg.values()].map(A=>({ rotulo:A.rotulo, zona:A.zona, munRio:A.munRio, sub:[...A.subs].slice(0,2).join(' / ')+(A.subs.size>2?' e outros':''), votos:A.votos, validos:A.validos,
     eleit: A.secTot,                                     // unidade da projeção: seções
     pctApurado: A.secTot ? 100*A.secAp/A.secTot : NaN,
@@ -1372,6 +1383,14 @@ function projDe(c){
   // zonas que não puderam ser lidas: completa com os votos do estado que não aparecem nas zonas lidas
   if (!PROJ.completo && PCT_EST > 0) { const falta = c.votos - (PROJ.somaZ[c.n]||0); if (falta > 0) p += falta/(PCT_EST/100); }
   return Math.max(c.votos, p);
+}
+// Faixa provável (≈90%) da projeção: medida simulando a chegada das urnas com os votos de 2022 seção a seção
+// (ordem aleatória por local de votação). Erro relativo ≈ 4,7 × √((1 − fração já contada) ÷ votos já contados).
+function faixaProj(c){
+  const pj = projDe(c); if (isNaN(pj) || !c.votos) return null;
+  const f = Math.min(1, c.votos / pj); if (f >= 0.999) return { lo: pj, hi: pj, pj };
+  const e = Math.min(0.6, 4.7 * Math.sqrt((1 - f) / Math.max(c.votos, 1)));
+  return { lo: Math.max(c.votos, pj*(1-e)), hi: pj*(1+e), pj, e };
 }
 function calcularRanking(cands){
   RANK_PROJ = {};
@@ -1659,7 +1678,7 @@ function renderCandidata(d, calc){
       <div><div class="eyebrow">Votação</div><div class="tr-v big num">${fmt(c.votos)}</div><div class="tr-s num">${fmtP(100*c.votos/calc.validos)} dos válidos</div></div>
       <div><div class="eyebrow">Posição no ${esc(c.partido)}</div><div class="tr-v num">${posPart}º</div><div class="tr-s">de ${doPartido.length}</div></div>
       <div><div class="eyebrow">Posição geral</div><div class="tr-v num">${posGeral}º</div><div class="tr-s">de ${todos.length}</div></div>
-      <div><div class="eyebrow">Projeção final</div><div class="tr-v num">${isNaN(pj)?'—':fmt(pj)}</div><div class="tr-s">${RANK_PROJ[c.n] ? RANK_PROJ[c.n]+'º geral na projeção' : 'aguardando zonas'}</div></div>
+      <div><div class="eyebrow">Projeção final</div><div class="tr-v num">${isNaN(pj)?'—':fmt(pj)}</div><div class="tr-s">${(()=>{ const fx = faixaProj(c); return (fx && fx.e ? `entre ${fmt(fx.lo)} e ${fmt(fx.hi)} · ` : '') + (RANK_PROJ[c.n] ? RANK_PROJ[c.n]+'º geral na projeção' : 'aguardando zonas'); })()}</div></div>
       <div class="tr-sit">${chip}<span class="tr-s">${detalhe}</span></div>
     </div>`;
 }
@@ -1793,7 +1812,8 @@ function registrarHist(d, calc){
   if (HIST._k !== chaveHist()) { carregarHist(); HIST._k = chaveHist(); }
   if (CFG.ambiente === 'demo' && HIST.length && p < HIST[HIST.length-1].p - 1) HIST = [];   // demonstração recomeçou
   const todos = [...d.cands].sort((a,b)=>b.votos-a.votos);
-  const pt = { p: Math.round(p*100)/100, v: c.votos, pj: Math.round(projDe(c)) || null, pos: todos.findIndex(x=>x.n===c.n)+1, t: Date.now() };
+  const fx = faixaProj(c);
+  const pt = { p: Math.round(p*100)/100, v: c.votos, pj: Math.round(projDe(c)) || null, lo: fx ? Math.round(fx.lo) : null, hi: fx ? Math.round(fx.hi) : null, pos: todos.findIndex(x=>x.n===c.n)+1, t: Date.now() };
   HIST = HIST.filter(x=>Math.abs(x.p - pt.p) > 0.001); HIST.push(pt); HIST.sort((a,b)=>a.p-b.p);
   if (HIST.length > HIST_MAX) HIST.splice(0, HIST.length - HIST_MAX);
   const k = chaveHist(); try { localStorage.setItem(k, JSON.stringify(HIST)); } catch(e){}
@@ -1810,9 +1830,9 @@ function mostrarDica(ev, linhas){
 }
 const esconderDica = () => { DICA.hidden = true; };
 // Linha simples: um eixo, x = % de seções apuradas (0–100). series: [{nome, cor, tracejado, pts:[[x,y]]}]
-function graficoLinha(fig, {series, yInv=false, fmtY=fmt, ref=null, rotuloY=''}){
+function graficoLinha(fig, {series, yInv=false, fmtY=fmt, ref=null, rotuloY='', banda=null}){
   const W = Math.max(320, Math.round(fig.clientWidth || 900)), H = mqApres.matches ? 190 : 200, m = {l:56, r:16, t:12, b:24};
-  const ys = series.flatMap(s=>s.pts.map(p=>p[1])).concat(ref ? [ref.y] : []).filter(v=>v!=null && !isNaN(v));
+  const ys = series.flatMap(s=>s.pts.map(p=>p[1])).concat(ref ? [ref.y] : [], banda ? banda.pts.flatMap(p=>[p[1],p[2]]) : []).filter(v=>v!=null && !isNaN(v));
   if (!series.some(s=>s.pts.length)) { fig.innerHTML = '<p class="empty">O gráfico aparece a partir da segunda atualização.</p>'; return; }
   let y0 = yInv ? 1 : 0, y1 = Math.max(...ys, 1);
   if (yInv) { y1 = Math.max(...ys) ; y0 = Math.max(1, Math.min(...ys)); const pad = Math.max(2, Math.round((y1-y0)*0.15)); y1 += pad; y0 = Math.max(1, y0 - pad); }
@@ -1827,6 +1847,10 @@ function graficoLinha(fig, {series, yInv=false, fmtY=fmt, ref=null, rotuloY=''})
   g += [0,25,50,75,100].map(x=>`<text class="ax" x="${X(x).toFixed(1)}" y="${H-8}" text-anchor="middle">${x}%</text>`).join('');
   g += `<line class="base" x1="${m.l}" x2="${W-m.r}" y1="${H-m.b}" y2="${H-m.b}"/>`;
   if (ref) g += `<line class="ref" x1="${m.l}" x2="${W-m.r}" y1="${Y(ref.y).toFixed(1)}" y2="${Y(ref.y).toFixed(1)}"/><text class="ref-t" x="${W-m.r-4}" y="${(Y(ref.y)-5).toFixed(1)}" text-anchor="end">${esc(ref.rotulo)}</text>`;
+  if (banda && banda.pts.length > 1) {
+    const sup = banda.pts.map(([x,lo,hi])=>`${X(x).toFixed(1)} ${Y(hi).toFixed(1)}`), inf = banda.pts.slice().reverse().map(([x,lo])=>`${X(x).toFixed(1)} ${Y(lo).toFixed(1)}`);
+    g += `<path d="M${sup.join('L')}L${inf.join('L')}Z" fill="${banda.cor}" fill-opacity=".16" stroke="none"/>`;
+  }
   for (const s of series) {
     if (!s.pts.length) continue;
     const pts = s.pts.map(([x,y])=>[X(x),Y(y)]);
@@ -1836,14 +1860,15 @@ function graficoLinha(fig, {series, yInv=false, fmtY=fmt, ref=null, rotuloY=''})
     g += `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="4" fill="${s.cor}" stroke="var(--panel)" stroke-width="2"/>`;
   }
   g += `<line class="mira" x1="0" x2="0" y1="${m.t}" y2="${H-m.b}" visibility="hidden"/><rect class="hit" x="${m.l}" y="${m.t}" width="${W-m.l-m.r}" height="${H-m.t-m.b}" fill="transparent"/></svg>`;
-  fig.innerHTML = (series.length > 1 ? `<div class="gl-leg">${series.map(s=>`<span><i style="border-top:2px ${s.tracejado?'dashed':'solid'} ${s.cor}"></i>${esc(s.nome)}</span>`).join('')}</div>` : '') + g;
+  fig.innerHTML = (series.length > 1 ? `<div class="gl-leg">${series.map(s=>`<span><i style="border-top:2px ${s.tracejado?'dashed':'solid'} ${s.cor}"></i>${esc(s.nome)}</span>`).join('')}${banda && banda.pts.length ? `<span><i style="height:10px;border:0;background:${banda.cor};opacity:.25"></i>${esc(banda.nome)}</span>` : ''}</div>` : '') + g;
   const svg = fig.querySelector('svg'), mira = svg.querySelector('.mira'), hit = svg.querySelector('.hit');
   const xsTodos = [...new Set(series.flatMap(s=>s.pts.map(p=>p[0])))].sort((a,b)=>a-b);
   hit.addEventListener('pointermove', ev=>{
     const r = svg.getBoundingClientRect(), xv = ((ev.clientX - r.left) * W / r.width - m.l) / (W-m.l-m.r) * 100;
     let best = xsTodos[0]; for (const x of xsTodos) if (Math.abs(x - xv) < Math.abs(best - xv)) best = x;
     mira.setAttribute('x1', X(best)); mira.setAttribute('x2', X(best)); mira.setAttribute('visibility','visible');
-    mostrarDica(ev, [[`${fmtP(best,1)} apurado`, ''], ...series.map(s=>{ const pt = s.pts.find(p=>p[0]===best); return [pt ? fmtY(pt[1]) : '—', s.nome]; })]);
+    const bp = banda && banda.pts.find(p=>p[0]===best);
+    mostrarDica(ev, [[`${fmtP(best,1)} apurado`, ''], ...series.map(s=>{ const pt = s.pts.find(p=>p[0]===best); return [pt ? fmtY(pt[1]) : '—', s.nome]; }), ...(bp ? [[`${fmtY(bp[1])} a ${fmtY(bp[2])}`, banda.nome]] : [])]);
   });
   hit.addEventListener('pointerleave', ()=>{ mira.setAttribute('visibility','hidden'); esconderDica(); });
 }
@@ -1854,6 +1879,7 @@ function renderGrafico(){
   graficoLinha($('gVotos'), { series:[
     { nome:'Votos apurados', cor:'var(--brand)', pts: HIST.map(h=>[h.p, h.v]) },
     { nome:'Projeção final', cor:'var(--accent)', tracejado:true, pts: HIST.filter(h=>h.pj).map(h=>[h.p, h.pj]) } ],
+    banda: { nome:'faixa provável', cor:'var(--accent)', pts: HIST.filter(h=>h.lo && h.hi).map(h=>[h.p, h.lo, h.hi]) },
     fmtY: v=>v>=1000 ? (v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil' : fmt(v), ref: c22 });
   graficoLinha($('gPos'), { series:[{ nome:'Posição geral', cor:'var(--brand)', degrau:true, pts: HIST.map(h=>[h.p, h.pos]) }], yInv:true, fmtY: v=>Math.round(v)+'º',
     ref: usa22(CFG.candidata) ? { y: COMP22.pos, rotulo: `2022: ${COMP22.pos}º` } : null });
@@ -1881,8 +1907,7 @@ function alerta(titulo, texto, tipo='info'){
   const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label','Fechar aviso'); x.onclick = ()=>el.remove();
   el.append(b, s, x); box.prepend(el);
   while (box.children.length > 3) box.lastChild.remove();
-  setTimeout(()=>el.classList.add('sai'), 20000); setTimeout(()=>el.remove(), 21000);
-  somAlerta(tipo === 'forte');
+  setTimeout(()=>el.classList.add('sai'), 6400); setTimeout(()=>el.remove(), 7000);
 }
 function situacaoTxt(S, fem){ if (!S) return 'sem votos'; if (S.tipo==='eleito') return (fem?'ELEITA':'ELEITO(A)') + (S.conf?' (confirmado pelo TSE)':' na parcial'); if (S.tipo==='suplente') return `${S.ord}ª suplente`; return 'fora das vagas'; }
 function verificarAlertas(d, calc){
@@ -2362,14 +2387,13 @@ setInterval(()=>{
 $('btnAtualizar').onclick = ()=>{ proxima = 0; };
 $('btnConfig').onclick = ()=>{
   $('cfAmb').value = CFG.ambiente; $('cfEle').value = CFG.eleicao; preencherEscolha(CFG.partidoFoco, CFG.candidata);
-  $('cfSom').checked = CFG.somAlertas !== false;
   $('cfInt').value = CFG.intervalo; $('cfZint').value = CFG.intervaloZonas; $('cfZpat').value = CFG.padraoZona;
   $('cfAmb').disabled = !ehLocal && !MODO_APP;
   $('dlg').showModal();
 };
 $('cfSalvar').onclick = ()=>{
   const novo = { ambiente:$('cfAmb').value, eleicao:$('cfEle').value.trim(), partidoFoco:($('cfPart').value||'PSB').toUpperCase(), candidata:$('cfCand').value||'4013',
-    intervalo:Math.max(20,+$('cfInt').value||120), intervaloZonas:Math.max(60,+$('cfZint').value||120), padraoZona:$('cfZpat').value.trim()||PADRAO.padraoZona, somAlertas:$('cfSom').checked };
+    intervalo:Math.max(20,+$('cfInt').value||120), intervaloZonas:Math.max(60,+$('cfZint').value||120), padraoZona:$('cfZpat').value.trim()||PADRAO.padraoZona };
   if (new Date() >= new Date('2026-10-04T16:00:00-03:00')) novo.viradaFeita = true;
   if (novo.eleicao) novo.eleicaoAmb = novo.ambiente;
   try { localStorage.setItem(CHAVE, JSON.stringify(novo)); } catch(e){}
