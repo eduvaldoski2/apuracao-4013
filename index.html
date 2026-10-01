@@ -608,7 +608,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         </div>
         <div class="box tt-col">
           <div class="box-head"><h2>Bairros do Rio</h2><span class="eyebrow" id="ttBMeta"></span></div>
-          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos</th><th class="r" id="ttBPctH">% bairro</th><th class="r">% dela</th><th class="r c22">2022</th></tr></thead><tbody id="ttBairros"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos (pos.)</th><th class="r" id="ttBPctH">% bairro</th><th class="r">% dela</th><th class="r c22">2022</th></tr></thead><tbody id="ttBairros"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
           <p class="legend-proj" id="ttBNota"></p>
         </div>
         <div class="box tt-col">
@@ -727,7 +727,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         </div>
         <div class="box tt-col">
           <div class="box-head"><h2>Bairros</h2><span class="eyebrow" id="munBMeta"></span></div>
-          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos</th><th class="r" id="munBPctH">% bairro</th><th class="r">% do total</th><th class="r c22">2022</th></tr></thead><tbody id="munBairros"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos (pos.)</th><th class="r" id="munBPctH">% bairro</th><th class="r">% do total</th><th class="r c22">2022</th></tr></thead><tbody id="munBairros"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
           <p class="legend-proj" id="munBNota"></p>
         </div>
       </div>
@@ -1058,17 +1058,26 @@ const T22 = (()=>{
   }
   // votos reais por bairro (votação por seção de 2022), liberados no mesmo ritmo das zonas
   async function reais(pref){
-    const b = await carregar('b6.json'), mz = {};
+    const b = await carregar('b6.json'), mz = {}, pos = {};
     let lidas = 0;
-    for (const [mc, zonas] of Object.entries(b.mz)) for (const [zc, bairros] of Object.entries(zonas)) {
-      const p = pz(mc+'|'+zc); if (!p) continue;
-      for (const [bi, vs] of Object.entries(bairros)) {
-        const d = {_t: Math.round(vs._t*p)};
-        for (const [n,v] of Object.entries(vs)) if (n !== '_t' && n.startsWith(pref)) d[n] = Math.round(v*p);
-        ((mz[mc] ??= {})[zc] ??= {})[bi] = d;
+    for (const [mc, zonas] of Object.entries(b.mz)) {
+      const soma = {};                                  // bairro -> votos de todos os candidatos (para a posição)
+      for (const [zc, bairros] of Object.entries(zonas)) {
+        const p = pz(mc+'|'+zc); if (!p) continue;
+        for (const [bi, vs] of Object.entries(bairros)) {
+          const d = {_t: Math.round(vs._t*p)}, sb = soma[bi] ??= {};
+          for (const [n,v] of Object.entries(vs)) { if (n === '_t') continue; const x = Math.round(v*p); sb[n] = (sb[n]||0) + x; if (n.startsWith(pref)) d[n] = x; }
+          ((mz[mc] ??= {})[zc] ??= {})[bi] = d;
+        }
+      }
+      for (const [bi, sb] of Object.entries(soma)) {
+        const ordem = Object.values(sb).filter(v=>v>0).sort((x,y)=>y-x); if (!ordem.length) continue;
+        const linha = {};
+        for (const [n,v] of Object.entries(sb)) if (n.startsWith(pref) && v >= 3) { let lo = 0, hi = ordem.length; while (lo < hi) { const m = (lo+hi)>>1; if (ordem[m] > v) lo = m+1; else hi = m; } linha[n] = lo + 1; }
+        if (Object.keys(linha).length) { linha.n = ordem.length; (pos[mc] ??= {})[bi] = linha; }
       }
     }
-    return { atualizado: new Date().toISOString(), ambiente:'2022', totalizadas: Math.round(b.secoes*P/100), lidas: Math.round(b.secoes*P/100), mz };
+    return { atualizado: new Date().toISOString(), ambiente:'2022', totalizadas: Math.round(b.secoes*P/100), lidas: Math.round(b.secoes*P/100), mz, pos };
   }
   return { get, reais, get caos(){ return caos; }, set caos(v){ caos = String(v||'').toLowerCase(); }, get P(){ return P; }, set P(v){ P = Math.max(0, Math.min(100, v)); try { localStorage.setItem('painelT22P', String(P)); } catch(e){} } };
 })();
@@ -1816,6 +1825,38 @@ function bairrosDoMunicipio(mun, zonas, cand, real){
   const lista = [...acc.values()].map(a=>({nome:a.nome, v:a.v, val:a.val, pct: a.val ? 100*a.v/a.val : NaN, parcialReal: a.v ? a.real/a.v : 0}));
   return { lista, real:rTot, total };
 }
+// Posição da candidatura em cada bairro: os votos de TODOS os candidatos em cada zona são repartidos pelos
+// bairros conforme o eleitorado dos locais de votação (mesma estimativa para todos, para a comparação ser justa).
+// zonas: [{zc, votos:{numero: votos}}] -> Map(nome do bairro sem acento -> {pos, n})
+function posicoesBairros(mun, zonas, cand){
+  const M = RJB.mun[mun], out = new Map(); if (!M) return out;
+  const est = new Map();
+  for (const {zc, votos} of zonas) {
+    const pesos = M.z[zc]; if (!pesos || !votos) continue;
+    const tot = pesos.reduce((s,[,n])=>s+n,0) || 1;
+    for (const [b, n] of pesos) {
+      const k = semAcento(M.b[b] || ('Bairro '+b)), f = n / tot, e = est.get(k) || {};
+      for (const c in votos) if (votos[c]) e[c] = (e[c]||0) + f * votos[c];
+      est.set(k, e);
+    }
+  }
+  for (const [k, e] of est) {
+    const minha = e[cand] || 0; if (minha < 0.5) continue;
+    let pos = 1, n = 0; for (const c in e) { const v = e[c]; if (v >= 0.5) n++; if (v > minha) pos++; }
+    out.set(k, {pos, n});
+  }
+  return out;
+}
+// Posição real no bairro, contada nos boletins de urna já lidos (todos os candidatos): Map(nome -> {pos, n})
+function posicoesReais(mun, cand, real){
+  const M = RJB.mun[mun], out = new Map(), P = real && real.pos && real.pos[mun]; if (!M || !P) return out;
+  for (const [bi, linha] of Object.entries(P)) {
+    if (!linha[cand]) continue;
+    const k = semAcento(M.b[+bi] || ('Bairro '+bi)), ant = out.get(k);
+    if (!ant || linha[cand] < ant.pos) out.set(k, {pos: linha[cand], n: linha.n});
+  }
+  return out;
+}
 // Tabela de bairros (usada na tela da candidatura e na tela do município)
 function tabelaBairros(ids, comb, ctx){
   const {tb, meta, nota, pctH} = ids;
@@ -1823,7 +1864,9 @@ function tabelaBairros(ids, comb, ctx){
   const tot = bs.reduce((s,b)=>s+b.v,0);
   const pctReal = comb.total ? 100*comb.real/comb.total : 0;
   if (pctH) $(pctH).textContent = '% bairro';
-  $(tb).innerHTML = bs.map((b,k)=>`<tr><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td>${ctx.c22 ? cel22((ctx.c22[semAcento(b.nome)]||null), b.pct) : ''}</tr>`).join('')
+  $(tb).innerHTML = bs.map((b,k)=>`<tr><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}${(()=>{ const k = semAcento(b.nome), R = ctx.posReal && b.parcialReal >= 0.5 ? ctx.posReal.get(k) : null, E = ctx.pos && ctx.pos.get(k);
+      if (R) return ` <span class="rkp" title="Posição entre ${R.n} candidaturas com votos no bairro, contada nos boletins de urna já lidos">(${R.pos}º)</span>`;
+      return E ? ` <span class="rkp" title="Posição estimada pelo eleitorado da zona (boletins do bairro ainda não lidos)">(≈${E.pos}º)</span>` : ''; })()}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td>${ctx.c22 ? cel22((ctx.c22[semAcento(b.nome)]||null), b.pct) : ''}</tr>`).join('')
     || `<tr><td colspan="${ctx.c22?5:4}" class="empty">${ctx.vazio || 'Sem votos ainda.'}</td></tr>`;
   $(meta).innerHTML = !ctx.podeReal ? `<span class="tt-fonte">ESTIMATIVA</span>`
     : pctReal >= 99.5 ? `<span class="tt-fonte real">BOLETINS DE URNA</span>`
@@ -1866,7 +1909,7 @@ function renderTatiana(){
   $('ttMMeta').textContent = ms.length ? `${ms.length} municípios com votos` : '';
   const comb = bairrosCapital(c), real = REAIS[c.n.slice(0,2)];
   tabelaBairros({tb:'ttBairros', meta:'ttBMeta', nota:'ttBNota', pctH:'ttBPctH'}, comb,
-    {podeReal:true, real, c22: com22 ? COMP22.b['60011'] : null, vazio:'Sem votos na capital ainda.', rodape:`"% ${c.n==='4013'?'dela':'do(a) candidato(a)'}" = fatia da votação na capital.` + (com22 ? ' "2022" = % no mesmo recorte em 2022; ▲▼ comparam com o % atual.' : '')});
+    {podeReal:true, real, posReal: posicoesReais('60011', c.n, real), pos: posicoesBairros('60011', CAP_ZONAS.map(({zc,z})=>({zc, votos:z.votos})), c.n), c22: com22 ? COMP22.b['60011'] : null, vazio:'Sem votos na capital ainda.', rodape:`"(Nº)" = posição no bairro (≈ = estimada até o bairro ser lido). "% ${c.n==='4013'?'dela':'do(a) candidato(a)'}" = fatia da votação na capital.` + (com22 ? ' "2022" = % no mesmo recorte em 2022; ▲▼ comparam com o % atual.' : '')});
   renderMapa(comb, c);
   renderMapaRJ(c);
 }
@@ -2038,7 +2081,7 @@ function montarMapa(){
   svg.addEventListener('pointermove', ev=>{ const pth = ev.target.closest('path'); if (!pth || !MAPA_ULT) return esconderDica(); const r = MAPA_ULT[+pth.dataset.i];
     const inf = infoBairro(+pth.dataset.i);
     mostrarDica(ev, [[MAPA_RIO.p[+pth.dataset.i][0], ''], r ? [fmt(r.v) + ' votos', `${fmtP(r.pct,1)} do bairro${r.est ? ' · parte estimada' : ''}`] : ['sem votos', ''],
-      ...(inf ? [[fmtP(inf.apur,1), 'das seções do bairro apuradas'], [inf.pos ? `${inf.pos}º` : '—', `posição de ${nomeCurto()} no bairro (de ${inf.n}, estimada pelas zonas)`]] : []) ]); });
+      ...(inf ? [[fmtP(inf.apur,1), 'das seções do bairro apuradas'], [inf.pos ? `${inf.pos}º` : '—', `posição de ${nomeCurto()} no bairro (de ${inf.n}, ${inf.real ? 'contada nos boletins de urna' : 'estimada pelas zonas'})`]] : []) ]); });
   svg.addEventListener('pointerleave', esconderDica);
 }
 const nomeCurto = () => { const c = ULTIMO && ULTIMO.d.cands.find(x=>x.n===CFG.candidata); return c ? titulo(c.nome).split(' ')[0] : CFG.candidata; };
@@ -2060,6 +2103,8 @@ function infoBairro(i){
   }
   if (!peso) return INFO_B[i] = null;
   const minha = est[CFG.candidata] || 0, n = Object.values(est).filter(v=>v >= 0.5).length;
+  const R = REAIS[CFG.candidata.slice(0,2)], rp = R && R.pos && R.pos['60011'];
+  if (rp && bs.size === 1) { const L = rp[[...bs][0]]; if (L && L[CFG.candidata]) return INFO_B[i] = { apur: ap/peso, pos: L[CFG.candidata], n: L.n, real: true }; }
   return INFO_B[i] = { apur: ap/peso, pos: minha >= 0.5 ? 1 + Object.values(est).filter(v=>v > minha).length : 0, n };
 }
 function renderMapa(comb, c){
@@ -2088,7 +2133,7 @@ function renderMapa(comb, c){
   document.querySelectorAll('#mpModo button, #mrModo button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.m === MAPA_MODO));
   $('mpTit').textContent = c ? `${titulo(c.nome)} ${c.n} · bairros do Rio` : 'Bairros do Rio';
   const top = MAPA_RIO.p.map(([nm],i)=>({nm, i, a:porPol[i]})).filter(x=>x.a && x.a.v >= 0.5).sort((x,y)=>val(y.a)-val(x.a));
-  $('mpLista').innerHTML = top.map((x,k)=>`<tr><td><div class="zname">${k+1}. ${esc(x.nm)}</div></td><td class="r num">${x.a.est?'≈ ':''}${fmt(x.a.v)}</td><td class="r num">${fmtP(x.a.pct,1)}</td><td class="r num">${(infoBairro(x.i)||{}).pos ? infoBairro(x.i).pos+'º' : '—'}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem votos na capital ainda.</td></tr>';
+  $('mpLista').innerHTML = top.map((x,k)=>`<tr><td><div class="zname">${k+1}. ${esc(x.nm)}</div></td><td class="r num">${x.a.est?'≈ ':''}${fmt(x.a.v)}</td><td class="r num">${fmtP(x.a.pct,1)}</td><td class="r num">${(()=>{ const f = infoBairro(x.i)||{}; return f.pos ? (f.real ? '' : '≈') + f.pos + 'º' : '—'; })()}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem votos na capital ainda.</td></tr>';
   $('mpMeta').textContent = top.length ? `${top.length} bairros com votos` : '';
   $('mpNota').textContent = 'Limites dos bairros: Prefeitura do Rio (data.rio). Votos pelo bairro do local de votação (TSE); "≈" = parte ainda estimada pelo eleitorado da zona.' + (semMapa.length ? ` Sem correspondência no mapa oficial: ${[...new Set(semMapa)].map(titulo).join(', ')}.` : '');
 }
@@ -2253,7 +2298,7 @@ function renderMunicipio(){
   const podeReal = D.cargo===6, real = podeReal ? REAIS[n.slice(0,2)] : null;
   tabelaBairros({tb:'munBairros', meta:'munBMeta', nota:'munBNota', pctH:'munBPctH'},
     bairrosDoMunicipio(D.mun, zs.map(z=>({zc:z.zc, v:z.v, t:z.t})), n, real),
-    {podeReal, real, c22: c22 ? (COMP22.b[D.mun]||{}) : null, vazio:'Sem votos no município ainda.', rodape:'"% do total" = fatia da votação da candidatura no município.' + (c22 && COMP22_M[D.mun] ? ` Em 2022: ${fmt(COMP22_M[D.mun][0])} votos neste município.` : '')});
+    {podeReal, real, posReal: podeReal ? posicoesReais(D.mun, n, real) : null, pos: posicoesBairros(D.mun, (D.zonas||[]).map(z=>({zc:z.zc, votos:Object.fromEntries(z.d.cands.map(x=>[x.n, x.votos]))})), n), c22: c22 ? (COMP22.b[D.mun]||{}) : null, vazio:'Sem votos no município ainda.', rodape:'"(Nº)" = posição no bairro (≈ = estimada até o bairro ser lido). "% do total" = fatia da votação da candidatura no município.' + (c22 && COMP22_M[D.mun] ? ` Em 2022: ${fmt(COMP22_M[D.mun][0])} votos neste município.` : '')});
 }
 async function atualizarMunicipio(){
   if (!$('munSel')) return;
