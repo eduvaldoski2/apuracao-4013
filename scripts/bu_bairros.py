@@ -13,7 +13,7 @@ votação (tabela rj_secoes_bairros.json, montada do arquivo oficial "Eleitorado
 votação 2026"). Só lê seções novas e respeita o limite do TSE (~20 pedidos/s; o TSE permite 100).
 Só biblioteca padrão do Python 3.8+.
 """
-import argparse, gzip, json, os, re, sys, threading, time, urllib.error, urllib.request
+import bisect, argparse, gzip, json, os, re, sys, threading, time, urllib.error, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
@@ -237,10 +237,32 @@ class Leitor:
                         d = {n: v for n, v in votos.items() if n.startswith(prefixo)}
                         d["_t"] = votos.get("_t", 0)
                         mz.setdefault(mc, {}).setdefault(zc, {})[b] = d
+            # posição de cada candidato do partido no bairro (todas as zonas do município somadas),
+            # entre TODOS os candidatos com voto nos boletins já lidos: {mun: {bairro: {"n": candidatos, numero: posição}}}
+            pos = {}
+            for mc, zonas in self.agg.items():
+                soma = {}
+                for bairros in zonas.values():
+                    for b, votos in bairros.items():
+                        s_b = soma.setdefault(b, {})
+                        for n, v in votos.items():
+                            if n != "_t":
+                                s_b[n] = s_b.get(n, 0) + v
+                for b, s_b in soma.items():
+                    ordem = sorted(-v for v in s_b.values() if v > 0)   # negativo: maior voto primeiro
+                    if not ordem:
+                        continue
+                    linha = {}
+                    for n, v in s_b.items():
+                        if n.startswith(prefixo) and v >= 3:
+                            linha[n] = 1 + bisect.bisect_left(ordem, -v)
+                    if linha:
+                        linha["n"] = len(ordem)
+                        pos.setdefault(mc, {})[b] = linha
             stat = {k: v for k, v in self.stat.items() if k != "amostra"}
             n_proc = len(self.proc)
         return {"atualizado": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ambiente": self.amb,
-                "pleito": self.pleito, **stat, "com_votos": n_proc, "mz": mz}
+                "pleito": self.pleito, **stat, "com_votos": n_proc, "mz": mz, "pos": pos}
 
     def prefixos(self):
         ps = set()
