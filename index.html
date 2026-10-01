@@ -458,8 +458,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.apres .mj-wrap{height:100%;display:flex;flex-direction:column;min-height:0}
   body.apres .mj-grid{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr)}
   body.apres .mj-card{min-height:0;overflow:hidden}
-  body.apres .mj-lista li:nth-child(n+5){display:none}
-  body.apres .mj-lista{gap:4px}
+  body.apres .mj-card{display:flex;flex-direction:column}
+  body.apres .mj-lista{gap:3px;flex:1;min-height:0;overflow-y:auto}
+  body.apres .mj-lista li{font-size:13.5px}
+  body.apres .mj-bar{height:10px}
+  body.apres .mj-v b{font-size:13.5px}
+  body.apres .mj-v span{display:inline;margin-left:6px}
 }
 /* ===== município em destaque ===== */
 .mu-sel{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:end;padding:10px 14px}
@@ -1139,16 +1143,29 @@ function urlArquivo(abr){ const e=ESTADO.ele; return `${urlBase()}/${CFG.ano}/${
 
 // EA11 (ele-c.json): escolhe a eleição de 1º turno que tem o cargo 6 (Deputado Federal).
 // Não faz tentativas às cegas: o TSE avisa que muitos 404 podem bloquear o IP por 10 minutos.
+// Escolhe no ele-c.json a eleição de 1º turno com o cargo: ciclo mais recente e abrangência BR ou do próprio estado.
+// (o ele-c oficial também lista eleições antigas e suplementares de outros estados, como RR em 2024)
+function escolherEleicao(conf, cargo){
+  const ops = [];
+  for (const pl of (conf.pl||[])) for (const e of (pl.e||[])) {
+    if (String(e.t||'1') !== '1') continue;
+    const abrs = (e.abr||[]).filter(a=>(a.cp||[]).some(c=>Number(c.cd)===Number(cargo)));
+    if (!abrs.length) continue;
+    if (!abrs.some(a=>{ const cd = String(a.cd||'').toLowerCase(); return !cd || cd==='br' || cd===CFG.uf; })) continue;
+    ops.push({pl, e});
+  }
+  ops.sort((a,b)=>String(b.pl.c||'').localeCompare(String(a.pl.c||'')) || (/suplementar/i.test(a.e.nm||'') - /suplementar/i.test(b.e.nm||'')));
+  return ops[0] || null;
+}
 async function detectarEleicao(){
   if (CFG.eleicao) return CFG.eleicao;
   const conf = await getJSON(`${urlBase()}/comum/config/ele-c.json`);
-  for (const pl of (conf.pl||[])) for (const e of (pl.e||[])) {
-    const temCargo = (e.abr||[]).some(a=>(a.cp||[]).some(c=>Number(c.cd)===Number(CFG.cargo)));
-    if (temCargo && String(e.t||'1')==='1') {
-      ESTADO.pleito = String(pl.cd); if (pl.c) CFG.ano = pl.c;
-      diag(`Eleição ${e.cd} (${e.nm||''}) · pleito ${pl.cd} · ciclo ${pl.c||CFG.ano}`);
-      return String(e.cd);
-    }
+  const x = escolherEleicao(conf, CFG.cargo);
+  if (x) {
+    const {pl, e} = x;
+    ESTADO.pleito = String(pl.cd); if (pl.c) CFG.ano = pl.c;
+    diag(`Eleição ${e.cd} (${e.nm||''}) · pleito ${pl.cd} · ciclo ${pl.c||CFG.ano}`);
+    return String(e.cd);
   }
   throw new Error('O ele-c.json ainda não lista uma eleição com Deputado Federal. Tente mais tarde ou informe o código em Configurações.');
 }
@@ -1530,8 +1547,8 @@ const TARJA = [
 let TK_CONF = null;
 async function eleicaoDoCargo(cargo){
   if (!TK_CONF) TK_CONF = await getJSON(`${urlBase()}/comum/config/ele-c.json`);
-  for (const pl of (TK_CONF.pl||[])) for (const e of (pl.e||[]))
-    if (String(e.t||'1')==='1' && (e.abr||[]).some(a=>(a.cp||[]).some(c=>Number(c.cd)===cargo))) return { ele:String(e.cd), ano: pl.c || CFG.ano };
+  const x = escolherEleicao(TK_CONF, cargo);
+  if (x) return { ele:String(x.e.cd), ano: x.pl.c || CFG.ano };
   throw new Error('cargo '+cargo+' não encontrado no ele-c.json');
 }
 // candidatos de um cargo (EA20): carg[cd=cargo] > agr > par > cand
