@@ -72,11 +72,14 @@ def eleicao_dep_federal(base):
     if st != 200:
         raise RuntimeError(f"ele-c.json indisponível (HTTP {st})")
     conf = json.loads(corpo)
+    ops = []
     for pl in conf.get("pl", []):
         for e in pl.get("e", []):
-            cargos = [int(c["cd"]) for a in e.get("abr", []) for c in a.get("cp", [])]
-            if 6 in cargos and str(e.get("t", "1")) == "1":
-                return pl.get("c", "ele2026"), str(e["cd"]), str(pl["cd"])
+            abrs = [a for a in e.get("abr", []) if any(int(c["cd"]) == 6 for c in a.get("cp", []))]
+            if abrs and str(e.get("t", "1")) == "1" and any(str(a.get("cd", "")).lower() in ("", "br", "rj") for a in abrs):
+                ops.append((pl.get("c", "ele2026"), str(e["cd"]), str(pl["cd"])))
+    if ops:
+        return sorted(ops, key=lambda x: x[0], reverse=True)[0]   # ciclo mais recente (o ele-c também lista eleições antigas)
     raise RuntimeError("ele-c.json ainda sem eleição com Deputado Federal")
 
 
