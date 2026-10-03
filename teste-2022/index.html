@@ -459,7 +459,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .mj-nm .selo{margin-left:6px}
 .mj-bar{height:12px;background:var(--bar);border-radius:0 4px 4px 0}
 .mj-bar i{display:block;height:100%;background:var(--brand);border-radius:0 4px 4px 0;min-width:2px}
-.mj-lista li:first-child .mj-bar i{background:var(--accent)}
+.sw-pt{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:0}
+.tk-cor{display:inline-block;width:.55em;height:.55em;border-radius:2px;margin-right:.3em;vertical-align:.12em}
 .mj-v{text-align:right;white-space:nowrap}
 .mj-v b{font-size:15px}
 .mj-v span{display:block;font-size:11px;color:var(--muted)}
@@ -1511,7 +1512,8 @@ const CORES_PARTIDOS = {
   'MDB':'#00923F','PSOL':'#FFC400','PDT':'#E2231A','NOVO':'#F9A03F','PODE':'#00A99D','PODEMOS':'#00A99D','AVANTE':'#2BB5C4',
   'SOLIDARIEDADE':'#E4572E','PCdoB':'#8B0000','PCDOB':'#8B0000','PV':'#3AAA35','PSDB':'#0073BC','CIDADANIA':'#EC008C',
   'REDE':'#00A89C','MOBILIZA':'#7A3E97','DC':'#0067A5','PRD':'#1B3E8C','AGIR':'#8CC63F','PMB':'#E6007E','PRTB':'#008542',
-  'PSTU':'#E30613','PCO':'#B30000','UP':'#D0021B','MISSÃO':'#1A1A1A','PCB':'#CC0000','PSB':'#F68712'
+  'PSTU':'#E30613','PCO':'#B30000','UP':'#D0021B','MISSÃO':'#1A1A1A','PCB':'#CC0000','PSB':'#F68712',
+  'PC DO B':'#8B0000','PROS':'#F39200','PTB':'#2E7D32','PSC':'#00A651','PATRIOTA':'#0B6E4F','PMN':'#D81E05'
 };
 const PALETA = ['#6b7a90','#8a6f5a','#5f8a7a','#8f6a95','#7d8a4f','#5a7299'];
 const corPartido = (() => { const m={}; let i=0; return sg => {
@@ -1685,7 +1687,7 @@ function horaParcial(ht){ const m = String(ht||'').match(/^(\d{1,2}):(\d{2})/); 
 function blocoTarja(rot, hora, pct, cands){
   const lista = cands.map(c=>{
     const st = /eleit|turno/i.test(c.st) && !/n[ãa]o eleit/i.test(c.st) ? `<span class="tk-st">${esc(c.st.toUpperCase())}</span>` : '';
-    return `<span class="tk-nome">${esc(c.nome)}</span> ${isNaN(c.pct)?'—':fmtP(c.pct,1)}${st}`;
+    return `${c.partido ? `<span class="tk-cor" style="background:${corPartido(c.partido)}"></span>` : ''}<span class="tk-nome">${esc(c.nome)}</span> ${isNaN(c.pct)?'—':fmtP(c.pct,1)}${st}`;
   }).join('<span class="tk-sep">|</span>');
   return { rot, cands, parc:`[Parcial ${hora} – ${isNaN(pct)?'—':fmtP(pct,1)} APURADO]`, lista: `<span class="tk-item">${lista || 'aguardando os primeiros votos'}</span>` };
 }
@@ -2198,7 +2200,7 @@ function renderMaj(){
     const cs = b.cands || [], max = Math.max(1, ...cs.map(c=>c.pct||0));
     const linhas = cs.map((c,i)=>{
       const selo = /2º turno|turno/i.test(c.st) ? '<span class="selo turno">2º TURNO</span>' : (/eleit/i.test(c.st) && !/n[ãa]o/i.test(c.st) ? '<span class="selo conf">✓ ELEITO</span>' : '');
-      return `<li><div class="mj-nm"><b>${esc(titulo(c.nome))}</b>${c.partido?` <span class="pt">${esc(c.partido)}</span>`:''}${selo}</div><div class="mj-bar"><i style="width:${(100*(c.pct||0)/max).toFixed(1)}%"></i></div><div class="mj-v num"><b>${fmtP(c.pct,1)}</b>${c.votos?`<span>${fmt(c.votos)}</span>`:''}</div></li>`;
+      return `<li><div class="mj-nm"><b>${esc(titulo(c.nome))}</b>${c.partido?` <span class="pt"><span class="sw-pt" style="background:${corPartido(c.partido)}"></span>${esc(c.partido)}</span>`:''}${selo}</div><div class="mj-bar"><i style="width:${(100*(c.pct||0)/max).toFixed(1)}%;background:${c.partido ? corPartido(c.partido) : 'var(--brand)'}"></i></div><div class="mj-v num"><b>${fmtP(c.pct,1)}</b>${c.votos?`<span>${fmt(c.votos)}</span>`:''}</div></li>`;
     }).join('');
     return `<article class="box mj-card"><div class="box-head"><h2>${esc(titulo(b.rot).replace(/\((rj|br)\)/i, m=>m.toUpperCase()))}</h2><span class="eyebrow">${esc(b.parc || '')}</span></div><ol class="mj-lista">${linhas || '<li class="empty">Aguardando os primeiros votos.</li>'}</ol></article>`;
   }).join('');
