@@ -264,6 +264,26 @@ class Leitor:
         return {"atualizado": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ambiente": self.amb,
                 "pleito": self.pleito, **stat, "com_votos": n_proc, "mz": mz, "pos": pos}
 
+    def exportar_top(self, n_top=40):
+        """Mais votados de cada bairro (todas as zonas do município somadas), entre todos os candidatos:
+        {mun: {bairro: {"t": votos nominais, "c": [[numero, votos], ...]}}} — usado ao clicar num bairro no painel."""
+        mz = {}
+        with self.trava:
+            for mc, zonas in self.agg.items():
+                soma = {}
+                for bairros in zonas.values():
+                    for b, votos in bairros.items():
+                        s_b = soma.setdefault(b, {})
+                        for n, v in votos.items():
+                            if n != "_t":
+                                s_b[n] = s_b.get(n, 0) + v
+                for b, s_b in soma.items():
+                    top = sorted(((n, v) for n, v in s_b.items() if v > 0), key=lambda x: -x[1])[:n_top]
+                    if top:
+                        mz.setdefault(mc, {})[b] = {"t": sum(s_b.values()), "c": [[n, v] for n, v in top]}
+            stat = {k: v for k, v in self.stat.items() if k != "amostra"}
+        return {"atualizado": datetime.now(timezone.utc).isoformat(timespec="seconds"), "ambiente": self.amb, **stat, "mz": mz}
+
     def prefixos(self):
         ps = set()
         with self.trava:
@@ -299,6 +319,8 @@ def main():
     for p in lt.prefixos():
         with open(os.path.join(pasta, f"{p}.json"), "w", encoding="utf-8") as f:
             json.dump(lt.exportar(p), f, ensure_ascii=False, separators=(",", ":"))
+    with open(os.path.join(pasta, "top.json"), "w", encoding="utf-8") as f:
+        json.dump(lt.exportar_top(), f, ensure_ascii=False, separators=(",", ":"))
     resumo = lt.exportar("__")
     resumo.pop("mz", None)
     resumo["prefixos"] = lt.prefixos()
