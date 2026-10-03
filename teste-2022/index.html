@@ -735,11 +735,11 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="tt-cols mu-cols sem22" id="munCols">
         <div class="box tt-col">
           <div class="box-head"><h2>Zonas eleitorais</h2><span class="eyebrow" id="munZMeta"></span></div>
-          <div class="tbl-wrap scroll"><table><thead><tr><th>Zona</th><th class="r">Votos</th><th class="r">% zona</th><th class="r">Posição</th><th class="r c22">2022</th></tr></thead><tbody id="munZonas"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Zona</th><th class="r">Votos</th><th class="r">% zona</th><th class="r" id="munZDelaH">% dela</th><th class="r">Posição</th><th class="r c22">2022</th></tr></thead><tbody id="munZonas"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
         </div>
         <div class="box tt-col">
           <div class="box-head"><h2>Bairros</h2><span class="eyebrow" id="munBMeta"></span></div>
-          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos (pos.)</th><th class="r" id="munBPctH">% bairro</th><th class="r">% do total</th><th class="r c22">2022</th></tr></thead><tbody id="munBairros"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">Votos (pos.)</th><th class="r" id="munBPctH">% bairro</th><th class="r" id="munBDelaH">% dela</th><th class="r c22">2022</th></tr></thead><tbody id="munBairros"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>
           <p class="legend-proj" id="munBNota"></p>
         </div>
       </div>
@@ -2286,7 +2286,7 @@ function renderMunicipio(){
   const D = MUN_DADOS; if (!D || !$('munZonas')) return;
   const n = candMun(), c = D.d.cands.find(x=>x.n===n);
   const nomeMun = titulo((RJB.mun[D.mun]||{}).nm || D.mun);
-  const vazio = m => `<tr><td colspan="4" class="empty">${m}</td></tr>`;
+  const vazio = m => `<tr><td colspan="6" class="empty">${m}</td></tr>`;
   if (!c) { $('munZonas').innerHTML = vazio('Sem candidaturas neste recorte ainda.'); $('munBairros').innerHTML = ''; return; }
   const validos = baseValidos(D.d);
   const ord = [...D.d.cands].sort((a,b)=>b.votos-a.votos), pos = ord.findIndex(x=>x.n===n)+1;
@@ -2308,12 +2308,14 @@ function renderMunicipio(){
     </div>`;
   const c22 = D.cargo===6 && usa22(n);
   $('munCols').classList.toggle('sem22', !c22);
-  $('munZonas').innerHTML = zs.map((z,k)=>`<tr><td><div class="zname">${k+1}. Zona ${Number(z.zc)}</div><span class="zmun">apur. ${fmtP(z.ap,1)}</span></td><td class="r num">${fmt(z.v)}</td><td class="r num">${fmtP(z.pct,1)}</td><td class="r num">${z.pos?`<span class="mu-pos">${z.pos}º</span> <span class="zmun" style="display:inline">de ${z.n}</span>`:'—'}</td>${c22 ? cel22(COMP22.z[D.mun+'|'+z.zc], z.pct) : ''}</tr>`).join('') || vazio('Sem zonas neste município.');
+  const totZ = zs.reduce((s,z)=>s+(z.v||0),0), dela = n==='4013' ? '% dela' : '% do total';   // fatia da votação da candidatura no município
+  if ($('munZDelaH')) $('munZDelaH').textContent = dela; if ($('munBDelaH')) $('munBDelaH').textContent = dela;
+  $('munZonas').innerHTML = zs.map((z,k)=>`<tr><td><div class="zname">${k+1}. Zona ${Number(z.zc)}</div><span class="zmun">apur. ${fmtP(z.ap,1)}</span></td><td class="r num">${fmt(z.v)}</td><td class="r num">${fmtP(z.pct,1)}</td><td class="r num">${totZ ? fmtP(100*(z.v||0)/totZ,1) : '—'}</td><td class="r num">${z.pos?`<span class="mu-pos">${z.pos}º</span> <span class="zmun" style="display:inline">de ${z.n}</span>`:'—'}</td>${c22 ? cel22(COMP22.z[D.mun+'|'+z.zc], z.pct) : ''}</tr>`).join('') || vazio('Sem zonas neste município.');
   $('munZMeta').textContent = `${zs.filter(z=>z.v>0).length} de ${zs.length} zonas com votos`;
   const podeReal = D.cargo===6, real = podeReal ? REAIS[n.slice(0,2)] : null;
   tabelaBairros({tb:'munBairros', meta:'munBMeta', nota:'munBNota', pctH:'munBPctH'},
     bairrosDoMunicipio(D.mun, zs.map(z=>({zc:z.zc, v:z.v, t:z.t})), n, real),
-    {podeReal, real, posReal: podeReal ? posicoesReais(D.mun, n, real) : null, pos: posicoesBairros(D.mun, (D.zonas||[]).map(z=>({zc:z.zc, votos:Object.fromEntries(z.d.cands.map(x=>[x.n, x.votos]))})), n), c22: c22 ? (COMP22.b[D.mun]||{}) : null, vazio:'Sem votos no município ainda.', rodape:'"(Nº)" = posição no bairro (≈ = estimada até o bairro ser lido). "% do total" = fatia da votação da candidatura no município.' + (c22 && COMP22_M[D.mun] ? ` Em 2022: ${fmt(COMP22_M[D.mun][0])} votos neste município.` : '')});
+    {podeReal, real, posReal: podeReal ? posicoesReais(D.mun, n, real) : null, pos: posicoesBairros(D.mun, (D.zonas||[]).map(z=>({zc:z.zc, votos:Object.fromEntries(z.d.cands.map(x=>[x.n, x.votos]))})), n), c22: c22 ? (COMP22.b[D.mun]||{}) : null, vazio:'Sem votos no município ainda.', rodape:'"(Nº)" = posição no bairro (≈ = estimada até o bairro ser lido). "% ' + (n==='4013' ? 'dela' : 'do total') + '" = fatia da votação da candidatura no município.' + (c22 && COMP22_M[D.mun] ? ` Em 2022: ${fmt(COMP22_M[D.mun][0])} votos neste município.` : '')});
 }
 async function atualizarMunicipio(){
   if (!$('munSel')) return;
