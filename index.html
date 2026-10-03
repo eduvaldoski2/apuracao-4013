@@ -129,6 +129,10 @@ th.ord .seta{display:inline-block;margin-left:3px;font-size:9px;opacity:.35;lett
 th.ord.r .seta{margin:0 3px 0 0}
 th.ord.ativa{color:var(--purple-ink)}
 th.ord.ativa .seta{opacity:1}
+/* municípios da candidatura: 6 colunas, mais compactas */
+table:has(#ttMun) th, table:has(#ttMun) td{padding-left:3px;padding-right:3px}
+table:has(#ttMun) th{font-size:9.5px;letter-spacing:.02em}
+table:has(#ttMun) th.ord .seta{margin-right:1px}
 td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 td.r,th.r{text-align:right}
 td.rk{color:var(--muted);width:2.2em;font-variant-numeric:tabular-nums}
@@ -619,7 +623,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
         </div>
         <div class="box tt-col">
           <div class="box-head"><h2>Municípios</h2><span class="eyebrow" id="ttMMeta"></span></div>
-          <div class="tbl-wrap scroll"><table><thead><tr><th>Município</th><th class="r">Votos</th><th class="r">% cidade</th><th class="r pj">Proj. (pos.)</th><th class="r c22">2022</th></tr></thead><tbody id="ttMun"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Município</th><th class="r">Votos</th><th class="r">% cidade</th><th class="r" id="ttMDelaH">% dela</th><th class="r pj">Proj. (pos.)</th><th class="r c22">2022</th></tr></thead><tbody id="ttMun"><tr><td colspan="4" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
         </div>
       </div>
     </div>
@@ -1907,11 +1911,13 @@ function renderTatiana(){
   if (!ZONAS) { ['ttZonas','ttBairros','ttMun'].forEach(id=>$(id).innerHTML = vazio('Carregando dados por zona…')); return; }
   const taxa = PROJ ? PROJ.taxa[c.n]||0 : 0;
   const lista = itens => itens.map(z=>Object.assign(Object.create(z), {v:z.votos[c.n]||0, p:projZona(z,c.n,taxa)})).filter(z=>z.v>0).sort((a,b)=>b.v-a.v);
-  const linha = (z,k,par22) => `<tr><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div>${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td><td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?` <span class="rkp">(${posNaZona(z,c.n)}º)</span>`:''}</td>${com22 ? cel22(par22, z.validos ? 100*z.v/z.validos : NaN) : ''}</tr>`;
+  const linha = (z,k,par22,tot) => `<tr><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div>${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td>${tot !== undefined ? `<td class="r num">${tot ? fmtP(100*z.v/tot,1) : '—'}</td>` : ''}<td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?` <span class="rkp">(${posNaZona(z,c.n)}º)</span>`:''}</td>${com22 ? cel22(par22, z.validos ? 100*z.v/z.validos : NaN) : ''}</tr>`;
   const zs = lista(ZONAS), ms = lista(CIDADES||[]);
   $('ttZonas').innerHTML = zs.map((z,k)=>linha(z,k, z.zona ? COMP22_Z[z.zona] : null)).join('') || vazio('Sem votos por zona ainda.');
   $('ttZMeta').textContent = zs.length ? `${zs.length} zonas com votos` : '';
-  $('ttMun').innerHTML = ms.map((z,k)=>linha(z,k, z.mun ? COMP22_M[z.mun] : null)).join('') || vazio('Sem votos por município ainda.');
+  const totMun = ms.reduce((s,z)=>s+z.v,0);
+  if ($('ttMDelaH')) $('ttMDelaH').textContent = c.n==='4013' ? '% dela' : '% do total';              // "% dela": fatia da votação da candidatura em cada município
+  $('ttMun').innerHTML = ms.map((z,k)=>linha(z,k, z.mun ? COMP22_M[z.mun] : null, totMun)).join('') || vazio('Sem votos por município ainda.');
   $('ttMMeta').textContent = ms.length ? `${ms.length} municípios com votos` : '';
   const comb = bairrosCapital(c), real = REAIS[c.n.slice(0,2)];
   tabelaBairros({tb:'ttBairros', meta:'ttBMeta', nota:'ttBNota', pctH:'ttBPctH'}, comb,
