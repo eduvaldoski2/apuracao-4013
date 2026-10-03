@@ -124,6 +124,12 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+th.ord{cursor:pointer;user-select:none;-webkit-user-select:none;white-space:nowrap}
+th.ord:hover{color:var(--ink)}
+th.ord .seta{display:inline-block;margin-left:3px;font-size:9px;opacity:.35;letter-spacing:0}
+th.ord.r .seta{margin:0 3px 0 0}
+th.ord.ativa{color:var(--purple-ink)}
+th.ord.ativa .seta{opacity:1}
 td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
 td.r,th.r{text-align:right}
 td.rk{color:var(--muted);width:2.2em;font-variant-numeric:tabular-nums}
@@ -2716,6 +2722,83 @@ $('tabbar').onclick = e=>{ const b=e.target.closest('button'); if (b) mostrarTel
 addEventListener('resize', ()=>{ ajustarEscala(); renderGrafico(); }); ajustarEscala(); mostrarTela(0);
 setInterval(tickTela, 250);
 if (!ehLocal && !MODO_APP) diag('Aberto fora do servidor local: exibindo dados fictícios. Rode servidor.py para ler o TSE.');
+
+/* ============ ORDENAR TABELAS PELO CABEÇALHO ============
+   Toque/clique no título da coluna: 1º toque ordena (maior primeiro; nomes e posições em ordem crescente),
+   2º inverte, 3º volta à ordem original. A escolha vale até mudar de novo e é reaplicada a cada atualização.
+   Listas divididas em duas colunas (Câmara, Alerj, PSB) são ordenadas juntas. */
+const ORD = (()=>{
+  const PARES = { feB:'feA', deB:'deA', tbFocoB:'tbFoco' };
+  const IDS = ['ttZonas','ttBairros','ttMun','mpLista','mrLista','feA','feB','feDetLista','tbFoco','tbFocoB','munZonas','munBairros','deA','deB','deDetLista'];
+  let est = {}; try { est = JSON.parse(localStorage.getItem('painelOrdem') || '{}'); } catch(e){}
+  const salvar = () => { try { localStorage.setItem('painelOrdem', JSON.stringify(est)); } catch(e){} };
+  const grupo = id => { const a = PARES[id] || id, b = Object.keys(PARES).find(k=>PARES[k]===a); return b ? [a, b] : [a]; };
+  const rotulo = th => th.textContent.replace(/[⇅▲▼]/g,'').trim();
+  const ehTexto = th => /^(zona|bairro|munic|candidatura)/i.test(rotulo(th));
+  const ehSit = th => /^situa/i.test(rotulo(th));
+  const ehPos = th => /^(#|pos)/i.test(rotulo(th)) || ehSit(th);
+  // situação: eleito confirmado, eleito na parcial, suplentes em ordem, fora
+  const chaveSit = t => { t = t.toUpperCase(); const m = t.match(/(\d+)\s*º\s*SUPL/);
+    if (/ELEIT/.test(t) && !/NÃO ELEIT|NAO ELEIT/.test(t)) return /✓/.test(t) ? 0 : 1;
+    if (m) return 2 + (+m[1])/1000; if (/LEGENDA/.test(t)) return 9; return 5; };
+  const valor = (td, texto) => {
+    if (!td) return texto ? '' : NaN;
+    const t = td.textContent.replace(/\s+/g,' ').trim();
+    if (texto) return t.replace(/^\d+\.\s*/, '');                          // tira o "1. " do ranking
+    const m = t.match(/-?\d[\d.]*(?:,\d+)?/); if (!m) return NaN;
+    return parseFloat(m[0].replace(/\./g,'').replace(',','.'));
+  };
+  const movendo = new Set();                         // grupos sendo reordenados agora (ignora as próprias mudanças)
+  function aplicar(chave){
+    const e = est[chave], ids = grupo(chave), bodies = ids.map(id=>$(id)).filter(Boolean);
+    if (!bodies.length) return;
+    const ths = bodies[0].closest('table').querySelectorAll('thead th');
+    marcarCabecalhos(chave);
+    const linhas = bodies.flatMap(b=>[...b.children]);
+    if (!linhas.length || linhas.some(tr=>tr.querySelector('td[colspan]') && !tr.classList.contains('leg'))) return;
+    linhas.forEach((tr,i)=>{ if (tr.dataset.o === undefined) tr.dataset.o = i; });
+    const fixas = linhas.filter(tr=>tr.classList.contains('leg')), moveis = linhas.filter(tr=>!tr.classList.contains('leg'));
+    const th = e ? ths[e.col] : null, texto = th && ehTexto(th), sit = th && ehSit(th);
+    moveis.sort((a,b)=>{
+      if (!e || !th) return a.dataset.o - b.dataset.o;
+      const va = sit ? chaveSit(a.children[e.col]?.textContent||'') : valor(a.children[e.col], texto), vb = sit ? chaveSit(b.children[e.col]?.textContent||'') : valor(b.children[e.col], texto);
+      if (texto) return e.dir * va.localeCompare(vb, 'pt-BR', {numeric:true, sensitivity:'base'});
+      const na = isNaN(va), nb = isNaN(vb); if (na || nb) return na - nb;   // sem valor sempre no fim
+      return e.dir * (va - vb) || (a.dataset.o - b.dataset.o);
+    });
+    const cortes = bodies.map(b=>b.children.length);
+    movendo.add(chave);
+    let k = 0; const todas = fixas.filter(tr=>+tr.dataset.o === 0).concat(moveis, fixas.filter(tr=>+tr.dataset.o !== 0));   // linha fixa (legenda) fica onde estava
+    bodies.forEach((b,i)=>{ const n = i === bodies.length-1 ? todas.length - k : cortes[i]; b.append(...todas.slice(k, k+n)); k += n; });
+    queueMicrotask(()=>{ movendo.delete(chave); });
+  }
+  function marcarCabecalhos(chave){
+    const e = est[chave];
+    grupo(chave).forEach(id=>{ const b = $(id); if (!b) return;
+      b.closest('table').querySelectorAll('thead th').forEach((th,i)=>{
+        if (!th.querySelector('.seta')) { th.classList.add('ord'); th.insertAdjacentHTML(th.classList.contains('r') ? 'afterbegin' : 'beforeend','<span class="seta" aria-hidden="true">⇅</span>'); th.title = 'Ordenar por esta coluna'; }
+        const at = e && e.col === i; th.classList.toggle('ativa', !!at);
+        th.querySelector('.seta').textContent = at ? (e.dir > 0 ? '▲' : '▼') : '⇅';
+        th.setAttribute('aria-sort', at ? (e.dir > 0 ? 'ascending' : 'descending') : 'none');
+      }); });
+  }
+  IDS.forEach(id=>{
+    const b = $(id); if (!b) return;
+    const chave = PARES[id] || id;
+    marcarCabecalhos(chave);
+    new MutationObserver(()=>{ if (movendo.has(chave)) return; [...b.children].forEach((tr,i)=>{ delete tr.dataset.o; }); if (grupo(chave).length > 1) grupo(chave).forEach(x=>{ const bb = $(x); if (bb) [...bb.children].forEach(tr=>delete tr.dataset.o); }); if (est[chave]) aplicar(chave); else marcarCabecalhos(chave); }).observe(b, {childList:true});
+    b.closest('table').querySelector('thead').addEventListener('click', ev=>{
+      const th = ev.target.closest('th'); if (!th) return;
+      const col = [...th.parentElement.children].indexOf(th), e = est[chave];
+      const primeiro = (ehTexto(th) || ehPos(th)) ? 1 : -1;
+      if (!e || e.col !== col) est[chave] = {col, dir: primeiro};
+      else if (e.dir === primeiro) est[chave] = {col, dir: -primeiro};
+      else delete est[chave];
+      salvar(); aplicar(chave);
+    });
+  });
+  return { aplicar, est };
+})();
 </script>
 
 </body>
