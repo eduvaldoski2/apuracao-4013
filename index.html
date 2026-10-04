@@ -160,6 +160,18 @@ dialog.det[open]{display:flex}
 .det-corpo tr.sep td{border-top:2px dashed var(--line)}
 .det-msg{color:var(--muted);margin:8px 0}
 .det-nota{color:var(--muted);font-size:12px;margin-top:6px}
+@media (min-width:900px){ .p5-cols{grid-template-columns:repeat(2,minmax(0,1fr))!important} }
+td.p5-max{font-weight:800;color:var(--purple-ink)}
+td.p5-cand, th.p5-cand{background:rgba(246,135,18,.08)}
+#p5MunH th, #p5BaiH th{line-height:1.15;white-space:nowrap}
+.p5-cols table{font-size:13px}
+.p5-cols td, .p5-cols th{padding-left:4px;padding-right:4px}
+.p5-cols td .zinfo{font-size:10.5px}
+body.mob .p5-soma{display:none}
+body.mob #p5MunH th, body.mob #p5BaiH th{white-space:normal;font-size:8.5px}
+body.mob #p5MunH th .seta, body.mob #p5BaiH th .seta{display:none}
+body.mob .p5-cols table{font-size:11.5px}
+body.mob .p5-cols td, body.mob .p5-cols th{padding-left:2px;padding-right:2px}
 td.cp-sobe{color:#1a7f37;font-weight:700}
 td.cp-cai{color:#b42318;font-weight:700}
 /* municípios da candidatura: 6 colunas, mais compactas */
@@ -322,7 +334,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .controles .meta{color:var(--brand-muted)}
   .controles .spacer{flex:1}
   .dots{display:flex;gap:3px;flex-wrap:wrap;margin-left:6px}
-  .dots button{font-size:10.5px;padding:2px 6px;border-radius:999px}
+  .dots button{font-size:10px;padding:2px 5px;border-radius:999px}
   .dots button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#2a1600}
   .telabar{position:absolute;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.15)}
   .telabar i{display:block;height:100%;width:0;background:var(--accent)}
@@ -823,6 +835,21 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="mj-grid" id="majCards"><p class="empty">Carregando…</p></div>
     </div>
   </section>
+  <section class="tela" id="telaP5" data-nome="Top 5 PSB">
+    <div class="tt-wrap">
+      <div class="cards-head"><h2 id="p5Tit">Os 5 mais votados do partido</h2><span class="meta">votos e % dos válidos do local · em destaque o maior de cada linha · clique numa linha para ver os mais votados ali</span></div>
+      <div class="tt-cols p5-cols">
+        <div class="box tt-col">
+          <div class="box-head"><h2>Municípios</h2><span class="eyebrow" id="p5MunMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead id="p5MunH"></thead><tbody id="p5Mun"><tr><td class="empty">Carregando…</td></tr></tbody></table></div>
+        </div>
+        <div class="box tt-col">
+          <div class="box-head"><h2>Bairros da capital</h2><span class="eyebrow" id="p5BaiMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead id="p5BaiH"></thead><tbody id="p5Bai"><tr><td class="empty">Carregando…</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
   <section class="tela" id="telaComp" data-nome="2022 × 2026">
     <div class="tt-wrap mu-wrap">
       <div class="box mu-sel">
@@ -871,7 +898,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button type="button" data-tela="10"><b>MUN</b>Município</button>
   <button type="button" data-tela="11"><b>70</b>Estaduais</button>
   <button type="button" data-tela="12"><b>GOV</b>Majoritárias</button>
-  <button type="button" data-tela="13"><b>22×26</b>Comparativo</button>
+  <button type="button" data-tela="13"><b>TOP5</b>PSB local</button>
+  <button type="button" data-tela="14"><b>22×26</b>Comparativo</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -1680,7 +1708,7 @@ function render(d, calc){
   const metF = Math.ceil(doFoco.length/2);
   $('tbFoco').innerHTML = doFoco.slice(0,metF).map((c,i)=>linhaF(c,i)).join('') || `<tr><td colspan="6" class="empty">Nenhum candidato do ${esc(foco)} encontrado.</td></tr>`;
   $('tbFocoB').innerHTML = doFoco.slice(metF).map((c,i)=>linhaF(c,metF+i)).join('');
-  document.querySelectorAll('.cardsTitulo').forEach((el,k)=>el.textContent = `${k===0?'1º a 3º':'4º e 5º'} mais votados do ${foco} · zonas e cidades`);
+  document.querySelectorAll('.cardsTitulo').forEach((el,k)=>el.textContent = `${k===0?'1º a 3º':'4º e 5º'} mais votados do ${foco} · cidades, bairros e zonas`);
   const recorte = ESTADO.modoZona==='municipio' ? 'municípios' : 'zonas eleitorais';
   const nota = PROJ ? `Projeção final somando todas as ${PROJ.nZonas} ${recorte} do estado, cada uma no ritmo das suas seções já apuradas${ESTADO.fontePct?' ('+ESTADO.fontePct+')':''}${PROJ.completo?'':'; zonas não lidas completadas pelo total do estado'}. Entre parênteses, a posição final geral segundo a projeção.` : 'Projeção aparece quando os dados por zona terminarem de carregar.';
   $('projNota1').textContent = nota; $('projNota2').textContent = nota;
@@ -1705,10 +1733,38 @@ function agregarCidades(zonas){
 }
 const LIMITE_C = {};
 const LIMITE = {};   // zonas visíveis por candidatura (de 5 em 5)
+// bairros da capital de uma candidatura de Dep. Federal (boletins de urna já lidos + estimativa do resto)
+function bairrosCap(n){
+  if (!ZONAS) return [];
+  const capZ = ZONAS.filter(z=>z.munRio).map(z=>({zc:z.zona, v:z.votos[n]||0, t:z.validos||0}));
+  return bairrosDoMunicipio('60011', capZ, n, REAIS[n.slice(0,2)]).lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
+}
+// Tela comparativa: os 5 mais votados do partido em destaque, lado a lado, por município e por bairro da capital
+function renderPSB5(){
+  if (!$('p5Mun') || !ULTIMO) return;
+  const top5 = ULTIMO.top5 || [];
+  const foco = CFG.partidoFoco.toUpperCase();
+  $('p5Tit').textContent = `${foco} · os ${top5.length} mais votados por município e bairro`;
+  const curto = c => { const w = titulo(c.nome).split(' '); return w[0].length <= 3 && w[1] ? w[0] + ' ' + w[1] : w[0]; };
+  const cab = rot => `<tr><th>${rot}</th>${top5.map(c=>`<th class="r${c.n===CFG.candidata?' p5-cand':''}" title="${esc(c.nome)} · ${esc(c.n)}">${esc(curto(c))}<br><small>${esc(c.n)}</small></th>`).join('')}<th class="r p5-soma">Soma</th></tr>`;
+  $('p5MunH').innerHTML = cab('Município'); $('p5BaiH').innerHTML = cab('Bairro (capital)');
+  const linha = (nome, vals, loc) => { const max = Math.max(...vals.map(x=>x.v)), soma = vals.reduce((s,x)=>s+x.v,0);
+    return `<tr${loc?` data-loc="${esc(loc)}"`:''}><td><div class="zname">${esc(nome)}</div></td>${vals.map((x,i)=>`<td class="r num${x.v && x.v===max ? ' p5-max' : ''}${top5[i].n===CFG.candidata?' p5-cand':''}">${x.v ? (x.est?'≈ ':'') + fmt(x.v) : '—'}${x.v && x.pct ? `<div class="zinfo">${fmtP(x.pct,1)}</div>` : ''}</td>`).join('')}<td class="r num p5-soma"><b>${fmt(soma)}</b></td></tr>`; };
+  if (!CIDADES || !ZONAS) { $('p5Mun').innerHTML = $('p5Bai').innerHTML = `<tr><td colspan="${top5.length+2}" class="empty">Carregando dados por zona…</td></tr>`; return; }
+  const muns = CIDADES.map(z=>({nome:z.rotulo, mun:z.mun, vals: top5.map(c=>({v:z.votos[c.n]||0, pct: z.validos ? 100*(z.votos[c.n]||0)/z.validos : NaN}))}))
+    .filter(m=>m.vals.some(x=>x.v>0)).sort((a,b)=>b.vals.reduce((s,x)=>s+x.v,0) - a.vals.reduce((s,x)=>s+x.v,0));
+  $('p5Mun').innerHTML = muns.map(m=>linha(m.nome, m.vals, 'm:'+m.mun)).join('') || `<tr><td colspan="${top5.length+2}" class="empty">Sem votos ainda.</td></tr>`;
+  const B = new Map();
+  top5.forEach((c,i)=>bairrosCap(c.n).forEach(b=>{ const k = semAcento(b.nome); const e = B.get(k) || {nome:b.nome, vals: top5.map(()=>({v:0}))}; e.vals[i] = {v:b.v, pct:b.pct, est: b.parcialReal < 0.995}; B.set(k, e); }));
+  const bais = [...B.values()].sort((a,b)=>b.vals.reduce((s,x)=>s+x.v,0) - a.vals.reduce((s,x)=>s+x.v,0));
+  $('p5Bai').innerHTML = bais.map(b=>linha(titulo(b.nome), b.vals, 'b:60011:'+b.nome)).join('') || `<tr><td colspan="${top5.length+2}" class="empty">Sem votos na capital ainda.</td></tr>`;
+  $('p5MunMeta').textContent = `${muns.length} municípios`; $('p5BaiMeta').textContent = `${bais.length} bairros`;
+}
 function renderCards(){
   if (!ULTIMO) return;
   renderTatiana();
   const {calc, top5} = ULTIMO;
+  try { renderPSB5(); } catch(e){ diag('PSB por local: ' + e.message); }
   const html = top5.map((c,i)=>{
     let corpo;
     if (!ZONAS) corpo = '<p class="empty">Carregando dados por zona…</p>';
@@ -1724,8 +1780,11 @@ function renderCards(){
         <div class="more">${todas.length>lim?`<button type="button" data-${attr}="${esc(c.n)}">+5 ${tipo==='zona'?'zonas':'cidades'}</button>`:''}${lim>5?`<button type="button" data-${attr}-menos="${esc(c.n)}">Voltar a 5</button>`:''}<span class="zinfo" style="align-self:center">${Math.min(lim,todas.length)} de ${todas.length} com votos · (nº) = posição no local</span></div>`;
       };
       const temZonas = ESTADO.modoZona!=='municipio';
-      corpo = `<div class="corpo">${temZonas ? `<div class="sec-t">Zonas eleitorais</div>${tabela(ZONAS,'zona',LIMITE[c.n]||5,'mais','Zona','% zona')}` : ''}
-        <div class="sec-t">Ranking de cidades</div>${tabela(CIDADES||[], 'cidade', LIMITE_C[c.n]||5, 'maisc', 'Cidade', '% cid.')}</div>`;
+      const bs = bairrosCap(c.n).slice(0, 5);
+      const tabB = bs.length ? `<div class="tbl-wrap"><table><thead><tr><th>Bairro (capital)</th><th class="r">Votos</th><th class="r">% bairro</th><th class="r">% do total</th></tr></thead><tbody>${bs.map((b,k)=>`<tr data-loc="b:60011:${esc(b.nome)}"><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${c.votos?fmtP(100*b.v/c.votos,1):'—'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">Sem votos nos bairros da capital ainda.</p>';
+      corpo = `<div class="corpo"><div class="sec-t">Ranking de cidades</div>${tabela(CIDADES||[], 'cidade', LIMITE_C[c.n]||5, 'maisc', 'Cidade', '% cid.')}
+        <div class="sec-t">Bairros da capital</div>${tabB}
+        ${temZonas ? `<div class="sec-t">Zonas eleitorais</div>${tabela(ZONAS,'zona',LIMITE[c.n]||5,'mais','Zona','% zona')}` : ''}</div>`;
     }
     return `<article class="card ${c.n===CFG.candidata?'cand':''}"><div class="who"><div><div class="eyebrow">${esc(c.partido)} · ${esc(c.n)}</div><h3>${esc(c.nome)}</h3></div><div class="pos">${i+1}º</div></div>
       <div class="tot num"><b>${fmt(c.votos)}</b> votos · ${fmtP(100*c.votos/calc.validos)} dos válidos<br>Projeção final <b style="color:var(--accent-ink)">${fmt(projDe(c))}</b>${RANK_PROJ[c.n]?` <b style="color:var(--accent-ink)">(${RANK_PROJ[c.n]}º geral)</b>`:''} · ${selo(c,calc)}</div>${corpo}</article>`;
@@ -2635,7 +2694,7 @@ async function atualizar(){
     render(d, calc);
     verificarAlertas(d, calc);
     atualizarTarja();
-    atualizarReais(CFG.candidata.slice(0,2)).then(renderTatiana);
+    atualizarReais(CFG.candidata.slice(0,2)).then(renderCards);
     if (mqApres.matches || telaAtual===IDX_EST || !EST) atualizarEstaduais();
     if (mqApres.matches || telaAtual===IDX_MUN) atualizarMunicipio();
     if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
@@ -2789,7 +2848,7 @@ const TELAS = [...document.querySelectorAll('.tela')];
 const IDX_MUN = TELAS.findIndex(t=>t.id==='telaMun'), IDX_EST = TELAS.findIndex(t=>t.id==='telaEst');
 let telaAtual = 0, tocando = true, fimTela = Date.now()+DUR_TELA, restante = DUR_TELA;
 const mqApres = matchMedia('(min-width: 900px)');
-const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','2022 × 2026':'22×26','Município':'Município'};
+const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','2022 × 2026':'22×26','Top 5 PSB':'Top 5','Município':'Município'};
 $('dots').innerHTML = TELAS.map((t,k)=>`<button type="button" data-tela="${k}" title="${k+1}. ${esc(t.dataset.nome)}">${esc(CURTO[t.dataset.nome]||t.dataset.nome)}</button>`).join('');
 function mostrarTela(i){
   telaAtual = (i + TELAS.length) % TELAS.length;
@@ -2859,7 +2918,7 @@ if (!ehLocal && !MODO_APP) diag('Aberto fora do servidor local: exibindo dados f
    Listas divididas em duas colunas (Câmara, Alerj, PSB) são ordenadas juntas. */
 const ORD = (()=>{
   const PARES = { feB:'feA', deB:'deA', tbFocoB:'tbFoco' };
-  const IDS = ['cpZonas','cpBairros','cpMunis','ttZonas','ttBairros','ttMun','mpLista','mrLista','feA','feB','feDetLista','tbFoco','tbFocoB','munZonas','munBairros','deA','deB','deDetLista'];
+  const IDS = ['p5Mun','p5Bai','cpZonas','cpBairros','cpMunis','ttZonas','ttBairros','ttMun','mpLista','mrLista','feA','feB','feDetLista','tbFoco','tbFocoB','munZonas','munBairros','deA','deB','deDetLista'];
   let est = {}; try { est = JSON.parse(localStorage.getItem('painelOrdem') || '{}'); } catch(e){}
   const salvar = () => { try { localStorage.setItem('painelOrdem', JSON.stringify(est)); } catch(e){} };
   const grupo = id => { const a = PARES[id] || id, b = Object.keys(PARES).find(k=>PARES[k]===a); return b ? [a, b] : [a]; };
