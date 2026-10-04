@@ -160,6 +160,8 @@ dialog.det[open]{display:flex}
 .det-corpo tr.sep td{border-top:2px dashed var(--line)}
 .det-msg{color:var(--muted);margin:8px 0}
 .det-nota{color:var(--muted);font-size:12px;margin-top:6px}
+td.cp-sobe{color:#1a7f37;font-weight:700}
+td.cp-cai{color:#b42318;font-weight:700}
 /* municípios da candidatura: 6 colunas, mais compactas */
 table:has(#ttMun) th, table:has(#ttMun) td{padding-left:3px;padding-right:3px}
 table:has(#ttMun) th{font-size:9.5px;letter-spacing:.02em}
@@ -319,8 +321,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   .controles button:hover{border-color:var(--accent)}
   .controles .meta{color:var(--brand-muted)}
   .controles .spacer{flex:1}
-  .dots{display:flex;gap:4px;flex-wrap:wrap;margin-left:6px}
-  .dots button{font-size:11.5px;padding:3px 7px;border-radius:999px}
+  .dots{display:flex;gap:3px;flex-wrap:wrap;margin-left:6px}
+  .dots button{font-size:10.5px;padding:2px 6px;border-radius:999px}
   .dots button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#2a1600}
   .telabar{position:absolute;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.15)}
   .telabar i{display:block;height:100%;width:0;background:var(--accent)}
@@ -813,6 +815,32 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="mj-grid" id="majCards"><p class="empty">Carregando…</p></div>
     </div>
   </section>
+  <section class="tela" id="telaComp" data-nome="2022 × 2026">
+    <div class="tt-wrap mu-wrap">
+      <div class="box mu-sel">
+        <label for="cpMun">Município <select id="cpMun"></select></label>
+        <label for="cpCargo">Cargo <select id="cpCargo"><option value="6">Deputado federal</option><option value="7">Deputado estadual</option><option value="5">Senador</option><option value="3">Governador</option><option value="1">Presidente</option></select></label>
+        <label for="cpCand" class="mu-cand">Candidatura em 2026 <select id="cpCand"><option value="">Carregando…</option></select></label>
+        <label for="cpCand22" class="mu-cand">Comparar com 2022 <select id="cpCand22"><option value="">Carregando…</option></select></label>
+      </div>
+      <section class="tr-box tt-box" id="cpBox" aria-label="Comparação 2022 e 2026"><div class="tr-head"><h3>Comparação 2022 × 2026</h3><span class="tr-n"></span></div><div class="tr-body"><p class="tr-s" style="grid-column:1/-1">Escolha o município, o cargo e a candidatura.</p></div></section>
+      <div class="tt-cols">
+        <div class="box tt-col">
+          <div class="box-head"><h2>Zonas</h2><span class="eyebrow" id="cpZMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Zona</th><th class="r">2026</th><th class="r">% 2026</th><th class="r">2022</th><th class="r">% 2022</th><th class="r">Dif. (p.p.)</th></tr></thead><tbody id="cpZonas"><tr><td colspan="6" class="empty">Carregando…</td></tr></tbody></table></div>
+        </div>
+        <div class="box tt-col">
+          <div class="box-head"><h2>Bairros</h2><span class="eyebrow" id="cpBMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Bairro</th><th class="r">2026</th><th class="r">% 2026</th><th class="r">2022</th><th class="r">% 2022</th><th class="r">Dif. (p.p.)</th></tr></thead><tbody id="cpBairros"><tr><td colspan="6" class="empty">Carregando…</td></tr></tbody></table></div>
+          <p class="legend-proj" id="cpBNota"></p>
+        </div>
+        <div class="box tt-col">
+          <div class="box-head"><h2>Municípios</h2><span class="eyebrow" id="cpMMeta"></span></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Município</th><th class="r">2026</th><th class="r">% 2026</th><th class="r">2022</th><th class="r">% 2022</th><th class="r">Dif. (p.p.)</th></tr></thead><tbody id="cpMunis"><tr><td colspan="6" class="empty">Carregando…</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <div class="ticker" id="ticker" aria-label="Apuração presidente, governador e senado">
@@ -835,6 +863,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button type="button" data-tela="10"><b>MUN</b>Município</button>
   <button type="button" data-tela="11"><b>70</b>Estaduais</button>
   <button type="button" data-tela="12"><b>GOV</b>Majoritárias</button>
+  <button type="button" data-tela="13"><b>22×26</b>Comparativo</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -989,7 +1018,7 @@ async function getJSON(url, {limite = 15000, recuo404 = false} = {}){
 const T22 = (()=>{
   const BASE = document.documentElement.dataset.t22 || 'https://eduvaldoski2.github.io/apuracao-4013/teste-2022/dados/';
   const cache = {};
-  const carregar = nome => cache[nome] ??= fetch(BASE + nome).then(r=>{ if (!r.ok) throw Object.assign(new Error('HTTP '+r.status+' em '+nome), {status:r.status}); return r.json(); });
+  const carregar = nome => cache[nome] ??= fetch(BASE + nome).then(r=>{ if (!r.ok) throw Object.assign(new Error('HTTP '+r.status+' em '+nome), {status:r.status}); return r.json(); }).catch(e=>{ delete cache[nome]; throw e; });   // falha não fica guardada
   let P = 100;
   try { const v = +localStorage.getItem('painelT22P'); if (v >= 0 && v <= 100 && localStorage.getItem('painelT22P') !== null) P = v; } catch(e){}
   const h01 = s => { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return ((h>>>0) % 100000) / 100000; };
@@ -1144,7 +1173,7 @@ const T22 = (()=>{
     }
     return { atualizado: new Date().toISOString(), ambiente:'2022', mz };
   }
-  return { get, reais, top, get caos(){ return caos; }, set caos(v){ caos = String(v||'').toLowerCase(); }, get P(){ return P; }, set P(v){ P = Math.max(0, Math.min(100, v)); try { localStorage.setItem('painelT22P', String(P)); } catch(e){} } };
+  return { get, reais, top, dados: carregar, get caos(){ return caos; }, set caos(v){ caos = String(v||'').toLowerCase(); }, get P(){ return P; }, set P(v){ P = Math.max(0, Math.min(100, v)); try { localStorage.setItem('painelT22P', String(P)); } catch(e){} } };
 })();
 
 function bfs(root, pred){
@@ -2601,6 +2630,7 @@ async function atualizar(){
     atualizarReais(CFG.candidata.slice(0,2)).then(renderTatiana);
     if (mqApres.matches || telaAtual===IDX_EST || !EST) atualizarEstaduais();
     if (mqApres.matches || telaAtual===IDX_MUN) atualizarMunicipio();
+    if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
     const agora = new Date().toLocaleTimeString('pt-BR');
     const novo = d.tot.hora && d.tot.hora !== ultimaHora;
     $('meta').textContent = (d.tot.hora ? `Totalização ${d.tot.hora} · ` : '') + `verificado às ${agora}` + (ultimaHora && !novo ? ' · sem dados novos' : (ultimaHora ? ' · dados novos' : ''));
@@ -2751,7 +2781,7 @@ const TELAS = [...document.querySelectorAll('.tela')];
 const IDX_MUN = TELAS.findIndex(t=>t.id==='telaMun'), IDX_EST = TELAS.findIndex(t=>t.id==='telaEst');
 let telaAtual = 0, tocando = true, fimTela = Date.now()+DUR_TELA, restante = DUR_TELA;
 const mqApres = matchMedia('(min-width: 900px)');
-const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','Município':'Município'};
+const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','2022 × 2026':'22×26','Município':'Município'};
 $('dots').innerHTML = TELAS.map((t,k)=>`<button type="button" data-tela="${k}" title="${k+1}. ${esc(t.dataset.nome)}">${esc(CURTO[t.dataset.nome]||t.dataset.nome)}</button>`).join('');
 function mostrarTela(i){
   telaAtual = (i + TELAS.length) % TELAS.length;
@@ -2760,6 +2790,7 @@ function mostrarTela(i){
   if (document.body.classList.contains('mob')) scrollTo(0,0);
   const bt = document.querySelector(`#tabbar button[data-tela="${telaAtual}"]`); if (bt && bt.scrollIntoView) try { bt.scrollIntoView({block:'nearest', inline:'nearest'}); } catch(e){}
   if (telaAtual===IDX_MUN && !MUN_DADOS) atualizarMunicipio();
+  if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
   if (TELAS[telaAtual] && TELAS[telaAtual].id==='telaEvo') renderGrafico();
   restante = DUR_TELA; fimTela = Date.now()+DUR_TELA;
 }
@@ -2820,7 +2851,7 @@ if (!ehLocal && !MODO_APP) diag('Aberto fora do servidor local: exibindo dados f
    Listas divididas em duas colunas (Câmara, Alerj, PSB) são ordenadas juntas. */
 const ORD = (()=>{
   const PARES = { feB:'feA', deB:'deA', tbFocoB:'tbFoco' };
-  const IDS = ['ttZonas','ttBairros','ttMun','mpLista','mrLista','feA','feB','feDetLista','tbFoco','tbFocoB','munZonas','munBairros','deA','deB','deDetLista'];
+  const IDS = ['cpZonas','cpBairros','cpMunis','ttZonas','ttBairros','ttMun','mpLista','mrLista','feA','feB','feDetLista','tbFoco','tbFocoB','munZonas','munBairros','deA','deB','deDetLista'];
   let est = {}; try { est = JSON.parse(localStorage.getItem('painelOrdem') || '{}'); } catch(e){}
   const salvar = () => { try { localStorage.setItem('painelOrdem', JSON.stringify(est)); } catch(e){} };
   const grupo = id => { const a = PARES[id] || id, b = Object.keys(PARES).find(k=>PARES[k]===a); return b ? [a, b] : [a]; };
@@ -3048,6 +3079,129 @@ const DET = (()=>{
   });
   return { abrirCand, abrirLoc };
 })();
+
+/* ============ COMPARATIVO 2022 × 2026 ============
+   Mesma candidatura (ou outra escolhida) em 2022, pelos dados oficiais do TSE de 2022 (os mesmos do ambiente de teste),
+   lado a lado com a apuração de 2026: zonas e bairros do município escolhido e todos os municípios do estado. */
+const COMP = (()=>{
+  const CH = 'painelComp';
+  let SEL = { mun:'60011', cargo:6, cand:{}, cand22:{} };
+  try { const v = JSON.parse(localStorage.getItem(CH)||'null'); if (v && RJB.mun[v.mun]) SEL = {...SEL, ...v, cand:v.cand||{}, cand22:v.cand22||{}}; } catch(e){}
+  const salvar = () => { try { localStorage.setItem(CH, JSON.stringify(SEL)); } catch(e){} };
+  let token = 0, D26 = null, MUNIS = {}, ultCargo = null;
+  const dados22 = nome => T22.dados(nome);
+  const dif = (a, b) => (isNaN(a) || isNaN(b)) ? '<td class="r num">—</td>' : Math.abs(a-b) < 0.05 ? '<td class="r num">0,0</td>' : `<td class="r num ${a-b >= 0 ? 'cp-sobe' : 'cp-cai'}">${a-b >= 0 ? '▲ +' : '▼ '}${(a-b).toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</td>`;
+  const pct = (v, t) => t > 0 ? 100*v/t : NaN;
+  const linha = (nome, sub, v26, t26, v22, t22, est) => { const p26 = pct(v26, t26), p22 = pct(v22, t22);
+    return `<tr><td><div class="zname">${esc(nome)}</div>${sub?`<span class="zmun">${esc(sub)}</span>`:''}</td><td class="r num">${v26==null?'—':(est?'≈ ':'')+fmt(v26)}</td><td class="r num">${fmtP(p26,1)}</td><td class="r num">${v22==null?'—':fmt(v22)}</td><td class="r num">${fmtP(p22,1)}</td>${dif(p26, p22)}</tr>`; };
+  function preencherMun(){
+    if ($('cpMun').options.length) return;
+    const lista = Object.entries(RJB.mun).map(([cd,m])=>({cd, nm:titulo(m.nm)})).sort((a,b)=>a.nm.localeCompare(b.nm,'pt-BR'));
+    $('cpMun').innerHTML = lista.map(m=>`<option value="${m.cd}"${m.cd===SEL.mun?' selected':''}>${esc(m.nm)}</option>`).join('');
+    $('cpCargo').value = String(SEL.cargo);
+  }
+  // municípios do estado em 2026 (um arquivo por município; Dep. Federal já vem das zonas do painel)
+  async function munis26(cargo){
+    if (cargo === 6 && CIDADES && CIDADES.length) return Object.fromEntries(CIDADES.map(c=>[c.mun, {votos:c.votos, validos:c.validos}]));
+    const k = cargo + '|' + GERACAO, c = MUNIS[k]; if (c && Date.now() - c.t < 240000) return c.m;
+    if (CFG.ambiente === 'demo') return {};
+    const e = await eleicaoDoCargo(cargo), m = {};
+    const tarefas = Object.keys(RJB.mun).map(mun=>async()=>{ const d = extrair(await getJSON(`${urlBase()}/${e.ano}/${e.ele}/dados/${CFG.uf}/${CFG.uf}${mun}-c${pad4(cargo)}-e${pad6(e.ele)}-u.json`, {limite:20000, recuo404:true}));
+      const votos = {}; d.cands.forEach(x=>votos[x.n]=x.votos); m[mun] = {votos, validos: baseValidos(d)}; });
+    await pool(tarefas, 8);
+    MUNIS[k] = {m, t: Date.now()}; return m;
+  }
+  async function atualizar(forcar){
+    if (!$('cpZonas')) return;
+    preencherMun();
+    const meu = ++token, mun = SEL.mun, cargo = +SEL.cargo;
+    if (forcar || !D26 || D26.mun !== mun || D26.cargo !== cargo) { ['cpZonas','cpBairros','cpMunis'].forEach(id=>$(id).innerHTML = '<tr><td colspan="6" class="empty">Carregando…</td></tr>'); }
+    try {
+      // 2026
+      const D = CFG.ambiente === 'demo' ? municipioDemo(mun, cargo) : await carregarMunicipioReal(mun, cargo);
+      if (meu !== token) return; D26 = {...D, mun, cargo};
+      // 2022 (dados oficiais do TSE, os mesmos do ambiente de teste)
+      const [B, meta] = await Promise.all([dados22(`c${cargo}.json`), dados22('meta.json')]);
+      if (meu !== token) return;
+      // candidaturas
+      const cands = [...D.d.cands].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+      let n = SEL.cand[cargo]; if (!cands.some(c=>c.n===n)) n = (cargo===6 && cands.some(c=>c.n===CFG.candidata)) ? CFG.candidata : ([...D.d.cands].sort((a,b)=>b.votos-a.votos)[0]||{}).n;
+      if (ultCargo !== cargo || $('cpCand').options.length !== cands.length) $('cpCand').innerHTML = cands.map(c=>`<option value="${esc(c.n)}">${esc(c.nome)} · ${esc(c.partido)} · ${esc(c.n)}</option>`).join('');
+      $('cpCand').value = n || '';
+      const c = D.d.cands.find(x=>x.n===n);
+      const c22s = B.cands.map((x,i)=>({i, n:x[0], nome:x[1], sg:x[2]})).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+      let n22 = SEL.cand22[cargo + '|' + n];
+      if (!c22s.some(x=>x.n===n22)) { const m = c && c22s.find(x=>semAcento(x.nome)===semAcento(c.nome)); n22 = m ? m.n : (c && c22s.some(x=>x.n===c.n) && semAcento(c22s.find(x=>x.n===c.n).nome).split(' ')[0]===semAcento(c.nome).split(' ')[0] ? c.n : ''); }
+      if (ultCargo !== cargo || $('cpCand22').options.length !== c22s.length + 1) $('cpCand22').innerHTML = '<option value="">— sem comparação —</option>' + c22s.map(x=>`<option value="${esc(x.n)}">${esc(x.nome)} · ${esc(x.sg)} · ${esc(x.n)}</option>`).join('');
+      $('cpCand22').value = n22 || ''; ultCargo = cargo;
+      const i22 = n22 ? B.cands.findIndex(x=>x[0]===n22) : -1, c22 = i22 >= 0 ? B.cands[i22] : null;
+      const v22De = k => { if (i22 < 0) return null; const l = B.mz[k]; if (!l) return 0; const e = l.find(([i])=>i===i22); return e ? e[1] : 0; };
+      const t22De = k => { const d = meta.det[cargo + '|' + k]; return d ? d[3] : NaN; };
+      // ---- zonas do município ----
+      const z26 = new Map(D.zonas.map(z=>[z.zc, z]));
+      const zs22 = Object.keys(B.mz).filter(k=>k.startsWith(mun + '|')).map(k=>k.split('|')[1]);
+      const zonas = [...new Set([...z26.keys(), ...zs22])];
+      const linhasZ = zonas.map(zc=>{ const z = z26.get(zc), x = z && z.d.cands.find(y=>y.n===n);
+        const k = mun + '|' + zc; return { zc, v26: z ? (x ? x.votos : 0) : null, t26: z ? baseValidos(z.d) : NaN, v22: v22De(k), t22: t22De(k), ap: z ? z.d.tot.pctApurado : NaN }; })
+        .sort((a,b)=>(b.v26||0)-(a.v26||0) || (b.v22||0)-(a.v22||0));
+      $('cpZonas').innerHTML = linhasZ.map(z=>linha(`Zona ${Number(z.zc)}`, isNaN(z.ap) ? '' : `apur. ${fmtP(z.ap,1)}`, z.v26, z.t26, z.v22, z.t22)).join('') || '<tr><td colspan="6" class="empty">Sem zonas.</td></tr>';
+      $('cpZMeta').textContent = `${linhasZ.length} zonas`;
+      // ---- bairros do município ----
+      const real = cargo === 6 && n && CFG.ambiente !== 'demo' ? await atualizarReais(n.slice(0,2)) : null;
+      if (meu !== token) return;
+      const b26 = bairrosDoMunicipio(mun, D.zonas.map(z=>{ const x = z.d.cands.find(y=>y.n===n); return {zc:z.zc, v: x ? x.votos : 0, t: baseValidos(z.d)}; }), n, real);
+      const M = RJB.mun[mun], b22 = new Map();
+      const soma22 = (nome, v, t) => { const k = semAcento(nome), a = b22.get(k) || {v:0, t:0}; a.v += v; a.t += t; b22.set(k, a); };
+      let fonte22 = '';
+      if (cargo === 6 && i22 >= 0) {                     // 2022: votos reais seção a seção (bairro do local de votação)
+        const b6 = await dados22('b6.json'); if (meu !== token) return;
+        for (const [zc, bs] of Object.entries((b6.mz||{})[mun] || {})) for (const [bi, vs] of Object.entries(bs)) soma22(M.b[+bi] || ('Bairro '+bi), vs[n22]||0, vs._t||0);
+        fonte22 = '2022: votos por seção (reais).';
+      } else if (i22 >= 0) {                             // outros cargos: zona repartida pelo eleitorado dos bairros
+        for (const zc of zs22) { const pesos = M.z[zc]; if (!pesos) continue; const tot = pesos.reduce((s,[,x])=>s+x,0) || 1, v = v22De(mun+'|'+zc)||0, t = t22De(mun+'|'+zc)||0;
+          for (const [bi, x] of pesos) soma22(M.b[bi], v*x/tot, t*x/tot); }
+        fonte22 = '2022: estimado pelo eleitorado de cada zona.';
+      }
+      const nomesB = new Map(b26.lista.map(b=>[semAcento(b.nome), b]));
+      for (const k of b22.keys()) if (!nomesB.has(k)) nomesB.set(k, null);
+      const linhasB = [...nomesB.entries()].map(([k, b])=>{ const x = b22.get(k);
+        return { nome: b ? b.nome : (M.b.find(nm=>semAcento(nm)===k) || k), v26: b ? b.v : 0, t26: b ? b.val : NaN, est: b && b.parcialReal < 0.995, v22: i22 >= 0 ? (x ? x.v : 0) : null, t22: x ? x.t : NaN }; })
+        .filter(b=>(b.v26 >= 0.5) || (b.v22 >= 0.5)).sort((a,b)=>b.v26-a.v26 || (b.v22||0)-(a.v22||0));
+      $('cpBairros').innerHTML = linhasB.map(b=>linha(titulo(b.nome), '', b.v26, b.t26, b.v22 == null ? null : Math.round(b.v22), b.t22, b.est)).join('') || '<tr><td colspan="6" class="empty">Sem votos nos bairros ainda.</td></tr>';
+      $('cpBMeta').textContent = `${linhasB.length} bairros`;
+      $('cpBNota').textContent = `2026: ${cargo===6 ? 'boletins de urna já lidos + estimativa do restante ("≈").' : 'estimado pelo eleitorado de cada zona.'} ${fonte22} "Dif." = % de 2026 menos % de 2022, em pontos percentuais.`;
+      // ---- municípios do estado ----
+      const m26 = await munis26(cargo); if (meu !== token) return;
+      const munsAll = Object.keys(RJB.mun);
+      const linhasM = munsAll.map(cd=>{ const a = m26[cd], k22 = Object.keys(B.mz).filter(k=>k.startsWith(cd+'|'));
+        const v22 = i22 >= 0 ? k22.reduce((s,k)=>s+(v22De(k)||0),0) : null, t22 = k22.reduce((s,k)=>s+(t22De(k)||0),0);
+        return { cd, nome: titulo(RJB.mun[cd].nm), v26: a ? (a.votos[n]||0) : null, t26: a ? a.validos : NaN, v22, t22 }; })
+        .filter(m=>(m.v26||0) > 0 || (m.v22||0) > 0).sort((a,b)=>(b.v26||0)-(a.v26||0) || (b.v22||0)-(a.v22||0));
+      $('cpMunis').innerHTML = linhasM.map(m=>linha(m.nome, '', m.v26, m.t26, m.v22, m.t22)).join('') || '<tr><td colspan="6" class="empty">Sem votos ainda.</td></tr>';
+      $('cpMMeta').textContent = `${linhasM.length} municípios com votos`;
+      // ---- resumo ----
+      const nomeMun = titulo((RJB.mun[mun]||{}).nm || mun);
+      const mun26 = c ? c.votos : 0, munT26 = baseValidos(D.d), mun22 = i22 >= 0 ? zs22.reduce((s,zc)=>s+(v22De(mun+'|'+zc)||0),0) : null, munT22 = zs22.reduce((s,zc)=>s+(t22De(mun+'|'+zc)||0),0);
+      const est26 = c ? totalEstadual(cargo, n, c.nome) : NaN, est22 = i22 >= 0 ? Object.values(B.mz).reduce((s,l)=>{ const e = l.find(([i])=>i===i22); return s + (e ? e[1] : 0); }, 0) : null;
+      const bloco = (rot, v, sub) => `<div><div class="eyebrow">${rot}</div><div class="tr-v num">${v}</div><div class="tr-s num">${sub}</div></div>`;
+      $('cpBox').innerHTML = `<div class="tr-head"><h3>${c ? esc(c.nome) + ` <span>${esc(c.n)}</span>` : 'Comparação'}</h3><span class="tr-n">${esc(CARGOS_MUN[cargo]||'')} · ${c22 ? 'em 2022: ' + esc(c22[1]) + ' · ' + esc(c22[2]) + ' · ' + esc(c22[0]) : 'sem candidatura de 2022 escolhida'}</span></div>
+        <div class="tr-body">${bloco(`${esc(nomeMun)} · 2026`, fmt(mun26), `${fmtP(pct(mun26, munT26),2)} dos válidos · ${fmtP(D.d.tot.pctApurado,1)} apurado`)}
+        ${bloco(`${esc(nomeMun)} · 2022`, mun22 == null ? '—' : fmt(mun22), mun22 == null ? '' : fmtP(pct(mun22, munT22),2) + ' dos válidos')}
+        ${bloco('Estado · 2026', isNaN(est26) ? '—' : fmt(est26), 'votação total até agora')}
+        ${bloco('Estado · 2022', est22 == null ? '—' : fmt(est22), 'resultado final de 2022')}</div>`;
+    } catch(e){
+      if (meu !== token) return;
+      diag('Comparativo: ' + e.message);
+      ['cpZonas','cpBairros','cpMunis'].forEach(id=>$(id).innerHTML = `<tr><td colspan="6" class="empty">${e.status===404 ? 'O TSE ainda não publicou este recorte.' : 'Não foi possível carregar agora; nova tentativa na próxima atualização.'}</td></tr>`);
+    }
+  }
+  $('cpMun').addEventListener('change', ()=>{ SEL.mun = $('cpMun').value; salvar(); atualizar(true); });
+  $('cpCargo').addEventListener('change', ()=>{ SEL.cargo = +$('cpCargo').value; salvar(); atualizar(true); });
+  $('cpCand').addEventListener('change', ()=>{ SEL.cand[SEL.cargo] = $('cpCand').value; salvar(); atualizar(); });
+  $('cpCand22').addEventListener('change', ()=>{ SEL.cand22[SEL.cargo + '|' + $('cpCand').value] = $('cpCand22').value; salvar(); atualizar(); });
+  return { atualizar };
+})();
+window.IDX_COMP = TELAS.findIndex(t=>t.id==='telaComp'); window.COMP = COMP;
 </script>
 
 <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
