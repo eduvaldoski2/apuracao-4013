@@ -72,6 +72,17 @@ body.sem-dados #telas{visibility:hidden}
 body.sem-dados .sem-dados-aviso{display:block}
 .top button{background:transparent;color:#fff;border-color:rgba(255,255,255,.35)}
 .top button:hover{border-color:var(--accent);color:#fff}
+.top button{padding:4px 9px;font-size:12.5px;border-radius:7px}
+.top .countdown{display:none}            /* a idade dos dados já aparece embaixo do título */
+.top{gap:10px 14px}
+.top .acoes{display:grid;gap:4px}
+.top .acoes button{width:100%}
+/* resumo da candidatura no topo */
+.hdr-cand{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:5px 12px;color:#fff;font-size:14px;line-height:1.25}
+.hdr-cand b{font-weight:800;font-size:17px;color:var(--accent)}
+.hdr-cand .hc-nome{font-weight:700}
+.hdr-cand .hc-it{white-space:nowrap}
+.hdr-cand .hc-it span{color:var(--brand-muted);font-size:13px}
 .top .chip{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:#fff}
 .top .chip.demo{background:#f68712;color:#2a1600;border-color:transparent}
 .top .chip.err{background:#ffe1d6;color:#9b1c14;border-color:transparent}
@@ -329,6 +340,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.mob .top .countdown{display:none}
   body.mob .top button{padding:4px 9px;font-size:12.5px}
   body.mob .top .spacer{display:none}
+  body.mob .hdr-cand{order:9;flex:1 1 100%;font-size:13px;padding:5px 10px;gap:2px 12px}
+  body.mob .top .acoes{display:flex;gap:6px}
+  body.mob .top .acoes button{width:auto}
+  body.mob .hdr-cand b{font-size:15px}
   body.mob .kpi.main .v{font-size:56px}
   body.mob .col-eleitos th:nth-child(4), body.mob .col-eleitos td:nth-child(4),
   body.mob .col-foco th:nth-child(4), body.mob .col-foco td:nth-child(4){display:none}
@@ -590,11 +605,12 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <span class="meta num" id="meta">—</span>
     <span class="idade num" id="idade"></span>
   </div>
+  <div class="hdr-cand" id="hdrCand" aria-live="polite"><span class="hc-it hc-nome">Tatiana Roque: <b>—</b> votos</span><span class="hc-it"><span>Posição no PSB:</span> <b>—</b></span><span class="hc-it"><span>Posição geral:</span> <b>—</b></span></div>
   <span id="chipModo" class="chip"><span class="dot"></span><span id="chipTxt">Carregando…</span></span>
   <span class="spacer"></span>
   <span class="meta countdown" id="countdown"></span>
-  <button id="btnAtualizar" type="button">Atualizar agora</button>
-  <button id="btnConfig" type="button">Configurações</button>
+  <div class="acoes"><button id="btnAtualizar" type="button">Atualizar agora</button>
+  <button id="btnConfig" type="button">Configurações</button></div>
 </header>
 <div class="progress" aria-hidden="true"><i id="barApur" style="width:0%"></i></div>
 <div class="t22bar" id="t22bar" hidden>
@@ -1815,6 +1831,7 @@ function renderCandidata(d, calc){
   } else { chip = `<span class="tr-chip sem">${esc(c.partido)} SEM CADEIRA</span>`; detalhe = `o ${esc(c.partido)} ainda não faz nenhuma cadeira nesta parcial`; }
   if (usa22(c.n)) detalhe += ` · em 2022: ${fmt(COMP22.votos)} votos (${COMP22.pos}º de ${fmt(COMP22.nc)})`;
   const pj = projDe(c);
+  if ($('hdrCand')) $('hdrCand').innerHTML = `<span class="hc-it hc-nome">${esc(titulo(c.nome))}: <b>${fmt(c.votos)}</b> votos</span><span class="hc-it"><span>Posição no ${esc(c.partido)}:</span> <b>${posPart}º</b></span><span class="hc-it"><span>Posição geral:</span> <b>${posGeral}º</b></span>`;
   box.innerHTML = `<div class="tr-head"><h3>${esc(c.nome)} <span>${esc(c.n)}</span></h3><span class="tr-n">${esc(c.partido)} · ${fem?'DEPUTADA':'DEPUTADO(A)'} FEDERAL</span></div>
     <div class="tr-body">
       <div><div class="eyebrow">Votação</div><div class="tr-v big num">${fmt(c.votos)}</div><div class="tr-s num">${fmtP(100*c.votos/calc.validos)} dos válidos</div></div>
