@@ -1575,6 +1575,20 @@ const corPartido = (() => { const m={}; let i=0; return sg => {
   return CORES_PARTIDOS[sg] || CORES_PARTIDOS[String(sg).toUpperCase()] || (m[sg] ??= PALETA[i++ % PALETA.length]);
 }; })();
 
+// Federação conta como um partido só: "PT/PCdoB/PV" (partidos da federação, o mais votado primeiro)
+const GRUPOS = new WeakMap();
+function grupoDe(d){
+  if (GRUPOS.has(d)) return GRUPOS.get(d);
+  const votosP = {}; d.cands.forEach(c=>votosP[c.partido] = (votosP[c.partido]||0) + c.votos);
+  const m = {};
+  for (const a of d.agrs || []) {
+    const ps = [...new Set(a.partidos || [])].filter(x=>x && x!=='?');
+    if (ps.length > 1) { const rot = ps.sort((x,y)=>(votosP[y]||0)-(votosP[x]||0)).join('/'); ps.forEach(x=>m[x] = rot); }
+  }
+  const f = sg => m[sg] || sg; GRUPOS.set(d, f); return f;
+}
+const corGrupo = g => corPartido(String(g).split('/').some(x=>x.toUpperCase()===CFG.partidoFoco.toUpperCase()) ? CFG.partidoFoco : String(g).split('/')[0]);
+const ehFoco = g => String(g).split('/').some(x=>x.toUpperCase()===CFG.partidoFoco.toUpperCase());
 function desenharHemiciclo(eleitos, vagas){
   const svg = $('hemi'); const rows=4, radii=[.46,.63,.8,.97], soma=radii.reduce((a,b)=>a+b,0);
   let porLinha = radii.map(r=>Math.round(vagas*r/soma)); porLinha[rows-1] += vagas - porLinha.reduce((a,b)=>a+b,0);
@@ -1584,7 +1598,7 @@ function desenharHemiciclo(eleitos, vagas){
   const ordem = Object.entries(cont).sort((a,b)=>b[1]-a[1]).flatMap(([p,n])=>Array(n).fill(p));
   const confIdx = new Set(); { let i=0; Object.entries(cont).sort((a,b)=>b[1]-a[1]).forEach(([p,n])=>{ for (let k=0;k<n;k++,i++) if (k < (contC[p]||0)) confIdx.add(i); }); }
   const temConf = Object.keys(contC).length > 0;
-  svg.innerHTML = pos.map((p,i)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.1" fill="${ordem[i]?corPartido(ordem[i]):'var(--seat-empty)'}"${ordem[i] && temConf && !confIdx.has(i) ? ' fill-opacity=".45"' : ''}><title>${esc(ordem[i] ? ordem[i]+(confIdx.has(i)?' · confirmado pelo TSE':' · parcial') : 'Vaga ainda não definida')}</title></circle>`).join('')
+  svg.innerHTML = pos.map((p,i)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5.1" fill="${ordem[i]?corGrupo(ordem[i]):'var(--seat-empty)'}"${ordem[i] && temConf && !confIdx.has(i) ? ' fill-opacity=".45"' : ''}><title>${esc(ordem[i] ? ordem[i]+(confIdx.has(i)?' · confirmado pelo TSE':' · parcial') : 'Vaga ainda não definida')}</title></circle>`).join('')
     + `<text x="100" y="97" text-anchor="middle" font-family="Albert Sans, Helvetica, Arial, sans-serif" font-weight="900" font-size="20" fill="var(--ink)">${eleitos.length}/${vagas}</text>`;
   return {cont, contC};
 }
@@ -1609,11 +1623,12 @@ function render(d, calc){
   $('kValidosPj').textContent = isNaN(validosProj) ? 'nominais + legenda' : `projeção final ≈ ${fmt(validosProj)}`;
 
   renderCandidata(d, calc);
-  const {cont, contC} = desenharHemiciclo(calc.eleitos, VAGAS);
+  const gr = grupoDe(d);
+  const {cont, contC} = desenharHemiciclo(calc.eleitos.map(e=>({...e, partido: gr(e.partido)})), VAGAS);
   $('hemiLeg').innerHTML = calc.nConf ? `<i></i>cor cheia: confirmado pelo TSE (${calc.nConf}) <i style="opacity:.4"></i>cor clara: eleito na parcial (${calc.eleitos.length-calc.nConf})` : 'Nenhuma cadeira confirmada pelo TSE ainda: todas são da parcial (cálculo do painel).';
   $('seatList').innerHTML = Object.entries(cont).sort((a,b)=>b[1]-a[1]).map(([p,n])=>{
-    const ag = d.agrs.find(a=>a.partidos.includes(p)); const fed = ag && ag.tipo!=='Partido' && ag.id!==p ? ` <span class="pt">${esc(ag.nome)}</span>` : '';
-    return `<li class="${p.toUpperCase()===foco?'foco':''}"><span class="sw" style="background:${corPartido(p)}"></span><span>${esc(p)}${fed}</span><span class="n num">${contC[p] ? `<small class="n-conf" title="confirmados pelo TSE">✓${contC[p]}</small> ` : ''}${n}</span></li>`; }).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
+    const ag = p.includes('/') ? d.agrs.find(a=>a.partidos.includes(p.split('/')[0])) : null; const fed = ag && ag.nome && !/^\d+$/.test(ag.nome) ? ` <span class="pt">${esc(ag.nome)}</span>` : '';
+    return `<li class="${ehFoco(p)?'foco':''}"><span class="sw" style="background:${corGrupo(p)}"></span><span>${esc(p)}${fed}</span><span class="n num">${contC[p] ? `<small class="n-conf" title="confirmados pelo TSE">✓${contC[p]}</small> ` : ''}${n}</span></li>`; }).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
 
   const pctV = c => 100*c.votos/calc.validos;
   renderListaPartidos('fe', d, calc, VAGAS, true);
@@ -2498,30 +2513,30 @@ function renderListaPartidos(px, d, calc, vagas, proj){
   ULT_LP[px] = [d, calc, vagas, proj];
   const pv = c => calc.validos ? 100*c.votos/calc.validos : NaN;
   $(px+'Meta').textContent = `${calc.eleitos.length} de ${vagas} vagas · ${calc.oficial ? 'todos confirmados pelo TSE' : (calc.nConf ? calc.nConf+' confirmados pelo TSE' : 'cálculo do painel · nenhum confirmado pelo TSE ainda')}`;
-  const P = {};
-  d.cands.forEach(c=>{ const k = c.partido; P[k] ??= {p:k, cands:[], eleitos:0, conf:0, votos:0}; P[k].cands.push(c); P[k].votos += c.votos; });
-  calc.eleitos.forEach(e=>{ const x = P[e.partido]; if (x) { x.eleitos++; if (e.conf) x.conf++; } });
+  const P = {}, gr = grupoDe(d);
+  d.cands.forEach(c=>{ const k = gr(c.partido); P[k] ??= {p:k, cands:[], eleitos:0, conf:0, votos:0}; P[k].cands.push(c); P[k].votos += c.votos; });
+  calc.eleitos.forEach(e=>{ const x = P[gr(e.partido)]; if (x) { x.eleitos++; if (e.conf) x.conf++; } });
   const lista = Object.values(P).sort((a,b)=>b.eleitos-a.eleitos || b.votos-a.votos);
-  const acha = k => lista.find(x=>x.p.toUpperCase()===String(k||'').toUpperCase());
+  const acha = k => { k = String(k||'').toUpperCase(); return lista.find(x=>x.p.toUpperCase()===k) || lista.find(x=>x.p.toUpperCase().split('/').includes(k)); };
   const sel = acha(PART_SEL[px]) || acha(CFG.partidoFoco) || lista[0];
   if (!sel) return;
-  $(px+'Partidos').innerHTML = lista.map(x=>`<button type="button" class="de-pchip${x.eleitos?'':' zero'}${x===sel?' sel':''}" data-p="${esc(x.p)}" style="--pc:${corPartido(x.p)}" title="${esc(x.p)}: ${x.eleitos} eleito(s)${x.conf?`, ${x.conf} confirmado(s) pelo TSE`:''} · clique para ver a lista"><i></i>${esc(x.p)} <b>${x.eleitos}</b>${x.conf?`<small>✓${x.conf}</small>`:''}</button>`).join('')
+  $(px+'Partidos').innerHTML = lista.map(x=>`<button type="button" class="de-pchip${x.eleitos?'':' zero'}${x===sel?' sel':''}" data-p="${esc(x.p)}" style="--pc:${corGrupo(x.p)}" title="${esc(x.p)}: ${x.eleitos} eleito(s)${x.conf?`, ${x.conf} confirmado(s) pelo TSE`:''} · clique para ver a lista"><i></i>${esc(x.p)} <b>${x.eleitos}</b>${x.conf?`<small>✓${x.conf}</small>`:''}</button>`).join('')
     + (lista.some(x=>!x.eleitos) ? `<button type="button" class="de-pchip mais" data-todos="1">${$(px+'Partidos').classList.contains('todos') ? '− esconder partidos sem cadeira' : `+ ${lista.filter(x=>!x.eleitos).length} partidos sem cadeira`}</button>` : '');
   const colProj = c => proj ? `<td class="r num pj">${fmt(projDe(c))}${posProj(c)}</td>` : '';
   const top = [...d.cands].sort((a,b)=>b.votos-a.votos).slice(0,100);
   const cg = px==='fe' ? 6 : 7;
-  const linha = (c,i) => `<tr data-n="${esc(c.n)}" data-cargo="${cg}" class="${c.partido===sel.p?'sel':''}${c.n===CFG.candidata&&proj?' cand':''}" style="--pc:${corPartido(c.partido)}"><td class="rk">${i}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pv(c))}</td>${colProj(c)}<td class="r">${selo(c,calc)}</td></tr>`;
+  const linha = (c,i) => `<tr data-n="${esc(c.n)}" data-cargo="${cg}" class="${gr(c.partido)===sel.p?'sel':''}${c.n===CFG.candidata&&proj?' cand':''}" style="--pc:${corPartido(c.partido)}"><td class="rk">${i}</td><td><div class="nm de-nm">${esc(c.nome)}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r num">${fmtP(pv(c))}</td>${colProj(c)}<td class="r">${selo(c,calc)}</td></tr>`;
   const nc = proj ? 6 : 5;
   $(px+'A').innerHTML = top.slice(0,50).map((c,i)=>linha(c,i+1)).join('') || `<tr><td colspan="${nc}" class="empty">Sem votos ainda.</td></tr>`;
   $(px+'B').innerHTML = top.slice(50).map((c,i)=>linha(c,51+i)).join('');
-  const ag = d.agrs.find(a=>a.partidos.includes(sel.p));
+  const ag = d.agrs.find(a=>a.partidos.includes(sel.p.split('/')[0]));
   const fed = ag && ag.tipo!=='Partido' && ag.partidos.length>1 ? ag : null;
   const votosAg = ag ? ag.votos : sel.votos;
-  $(px+'Det').style.setProperty('--pc', corPartido(sel.p));
+  $(px+'Det').style.setProperty('--pc', corGrupo(sel.p));
   $(px+'DetTit').innerHTML = `<i></i>${esc(sel.p)}`;
   $(px+'DetMeta').textContent = `${sel.eleitos} ${sel.eleitos===1?'eleito':'eleitos'}${sel.conf?` · ✓${sel.conf} TSE`:''} · ${sel.cands.length} candidaturas`;
   const nomP = sel.cands.filter(c=>!/anulad/i.test(c.dvt||'')).reduce((s,c)=>s+c.votos,0);
-  const legP = (d.legPart||{})[sel.p] || 0;
+  const legP = sel.p.split('/').reduce((s,sg)=>s + ((d.legPart||{})[sg] || 0), 0);
   const nrP = (sel.cands[0] && sel.cands[0].n || '').slice(0,2);
   $(px+'DetRes').innerHTML = `<span class="de-vt"><span>Nominais <b>${fmt(nomP)}</b></span><span>Legenda <b>${fmt(legP)}</b></span><span>Total <b>${fmt(nomP+legP)}</b> · ${fmtP(pv({votos:nomP+legP}),1)} dos válidos</span></span>`
     + (fed ? `<br>Federação <b>${esc(fed.nome)}</b> (${fed.partidos.map(esc).join(', ')}): <b>${calc.eleitos.filter(e=>e.agr===fed.id).length}</b> cadeiras · ${fmt(votosAg)} votos (${fmtP(pv({votos:votosAg}),1)}). A suplência segue a lista única da federação.` : '');
