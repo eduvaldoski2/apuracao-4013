@@ -165,6 +165,7 @@ dialog.det[open]{display:flex}
 td.p5-max{font-weight:800;color:var(--purple-ink)}
 td.p5-cand, th.p5-cand{background:rgba(246,135,18,.08)}
 #p5MunH th, #p5BaiH th{line-height:1.15;white-space:nowrap}
+.p5-tot{font-size:12px;color:var(--accent-ink);letter-spacing:0;text-transform:none}
 .p5-cols table{font-size:13px}
 .p5-cols td, .p5-cols th{padding-left:4px;padding-right:4px}
 .p5-cols td .zinfo{font-size:10.5px}
@@ -1747,7 +1748,7 @@ function renderPSB5(){
   const foco = CFG.partidoFoco.toUpperCase();
   $('p5Tit').textContent = `${foco} · os ${top5.length} mais votados por município e bairro`;
   const curto = c => { const w = titulo(c.nome).split(' '); return w[0].length <= 3 && w[1] ? w[0] + ' ' + w[1] : w[0]; };
-  const cab = rot => `<tr><th>${rot}</th>${top5.map(c=>`<th class="r${c.n===CFG.candidata?' p5-cand':''}" title="${esc(c.nome)} · ${esc(c.n)}">${esc(curto(c))}<br><small>${esc(c.n)}</small></th>`).join('')}<th class="r p5-soma">Soma</th></tr>`;
+  const cab = rot => `<tr><th>${rot}</th>${top5.map(c=>`<th class="r${c.n===CFG.candidata?' p5-cand':''}" title="${esc(c.nome)} · ${esc(c.n)}">${esc(curto(c))}<br><small>${esc(c.n)}</small><br><b class="p5-tot">${fmt(c.votos)}</b></th>`).join('')}<th class="r p5-soma">Soma</th></tr>`;
   $('p5MunH').innerHTML = cab('Município'); $('p5BaiH').innerHTML = cab('Bairro (capital)');
   const linha = (nome, vals, loc) => { const max = Math.max(...vals.map(x=>x.v)), soma = vals.reduce((s,x)=>s+x.v,0);
     return `<tr${loc?` data-loc="${esc(loc)}"`:''}><td><div class="zname">${esc(nome)}</div></td>${vals.map((x,i)=>`<td class="r num${x.v && x.v===max ? ' p5-max' : ''}${top5[i].n===CFG.candidata?' p5-cand':''}">${x.v ? (x.est?'≈ ':'') + fmt(x.v) : '—'}${x.v && x.pct ? `<div class="zinfo">${fmtP(x.pct,1)}</div>` : ''}</td>`).join('')}<td class="r num p5-soma"><b>${fmt(soma)}</b></td></tr>`; };
