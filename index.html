@@ -102,6 +102,40 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 
 .progress{height:6px;background:var(--bar);overflow:hidden;margin:0 calc(-1 * var(--gut)) 18px}
 .progress i{display:block;height:100%;background:var(--accent);transition:width .6s}
+/* sinalização de seções apuradas: faixa global, selo no topo, etiqueta por local */
+.apur-strip{position:relative;height:22px;background:#2a2150;--ac:#d9534f}
+.apur-strip i{background:var(--ac);transition:width .6s, background .6s}
+.apur-strip .as-marcas{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent calc(25% - 1px),rgba(255,255,255,.35) 0 25%,transparent 0 calc(50% - 1px),rgba(255,255,255,.35) 0 50%,transparent 0 calc(75% - 1px),rgba(255,255,255,.35) 0 75%,transparent 0)}
+.apur-strip .as-txt{position:absolute;inset:0;display:flex;align-items:center;gap:10px;padding:0 var(--gut);color:#fff;font-size:12.5px;font-weight:700;letter-spacing:.04em;text-shadow:0 1px 2px rgba(0,0,0,.45);white-space:nowrap;overflow:hidden}
+.apur-strip .as-txt b{font-family:var(--f-display);font-size:15px;font-weight:900;letter-spacing:0}
+.apur-strip .as-txt em{font-style:normal;font-weight:600;opacity:.9}
+.apur-strip.fim{--ac:#1a7f37}
+.apur-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:700;font-size:13px;white-space:nowrap;--ac:#d9534f;--p:0}
+.apur-pill .ring{width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--ac) calc(var(--p) * 1%), rgba(255,255,255,.18) 0);display:grid;place-items:center}
+.apur-pill .ring::after{content:"";width:18px;height:18px;border-radius:50%;background:var(--brand)}
+.apur-pill b{font-family:var(--f-display);font-size:18px;font-weight:900;color:#fff}
+.apur-pill small{font-size:11px;font-weight:600;color:var(--brand-muted)}
+.apur-tag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--muted);white-space:nowrap;margin-top:2px;--ac:#d9534f}
+.apur-tag .apb{display:inline-block;width:34px;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.apur-tag .apb i{display:block;height:100%;background:var(--ac)}
+.apur-tag.fim{color:#1a7f37}
+td .apur-tag{display:flex}
+.det-apur{margin-top:8px}
+.det-apur .apur-tag{font-size:13px;gap:8px;color:var(--ink)}
+.det-apur .apur-tag .apb{width:140px;height:8px;border-radius:4px}
+body.mob .apur-strip{height:18px}
+body.mob .apur-strip .as-txt{font-size:10.5px;gap:6px}
+body.mob .apur-strip .as-txt b{font-size:12.5px}
+body.mob .apur-strip .as-txt .as-sec{display:none}
+body.mob .apur-pill{padding:3px 9px 3px 4px;font-size:11px}
+body.mob .apur-pill .ring{width:22px;height:22px}
+body.mob .apur-pill .ring::after{width:14px;height:14px}
+body.mob .apur-pill b{font-size:14px}
+body.mob .apur-pill small{display:none}
+body.mob td .apur-tag{font-size:9.5px;gap:3px}
+body.mob td .apur-tag .apb{width:20px;height:4px}
+body.mob td .apur-tag .apw{display:none}
+body.mob td .apur-tag{white-space:normal}
 
 /* grade */
 .grid{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
@@ -160,6 +194,9 @@ dialog.det[open]{display:flex}
 .det-corpo tr.sep td{border-top:2px dashed var(--line)}
 .det-msg{color:var(--muted);margin:8px 0}
 .det-nota{color:var(--muted);font-size:12px;margin-top:6px}
+.det-acoes{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.det-link{border:1px solid var(--line);background:var(--panel);color:var(--purple-ink);border-radius:8px;padding:6px 12px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.det-link:hover{border-color:var(--purple-ink)}
 @media (min-width:900px){ .p5-cols{grid-template-columns:repeat(2,minmax(0,1fr))!important} }
 td.p5-max{font-weight:800;color:var(--purple-ink)}
 td.p5-cand, th.p5-cand{background:rgba(246,135,18,.08)}
@@ -649,13 +686,14 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
     <span class="idade num" id="idade"></span>
   </div>
   <div class="hdr-cand" id="hdrCand" aria-live="polite"><span class="hc-it hc-nome">Tatiana Roque: <b>—</b> votos</span><span class="hc-it"><span>Posição no PSB:</span> <b>—</b></span><span class="hc-it"><span>Posição geral:</span> <b>—</b></span></div>
+  <span class="apur-pill" id="apurPill" title="Seções apuradas no estado"><span class="ring"></span><span><b>—</b> <small>apurado</small></span></span>
   <span id="chipModo" class="chip"><span class="dot"></span><span id="chipTxt">Carregando…</span></span>
   <span class="spacer"></span>
   <span class="meta countdown" id="countdown"></span>
   <div class="acoes"><button id="btnAtualizar" type="button">Atualizar agora</button>
   <button id="btnConfig" type="button">Configurações</button></div>
 </header>
-<div class="progress" aria-hidden="true"><i id="barApur" style="width:0%"></i></div>
+<div class="progress apur-strip" id="apurStrip" role="progressbar" aria-label="Seções apuradas no estado" aria-valuemin="0" aria-valuemax="100"><i id="barApur" style="width:0%"></i><span class="as-marcas"></span><span class="as-txt" id="apurTxt">SEÇÕES APURADAS <b>—</b></span></div>
 <div class="t22bar" id="t22bar" hidden>
   <b>AMBIENTE DE TESTE</b><span class="t22-txt">Eleição 2022 · dados oficiais do TSE · apuração simulada</span>
   <label>Seções apuradas <input type="range" id="t22p" min="0" max="100" step="1" value="100"> <output id="t22v" class="num">100%</output></label>
@@ -952,7 +990,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 </nav>
 
 <dialog id="dlgDet" class="det" aria-labelledby="detTit">
-  <div class="det-head"><div><h2 id="detTit"></h2><div class="det-sub" id="detSub"></div></div><button type="button" class="det-x" id="detX" aria-label="Fechar">✕</button></div>
+  <div class="det-head"><div><h2 id="detTit"></h2><div class="det-sub" id="detSub"></div><div class="det-apur" id="detApur"></div></div><button type="button" class="det-x" id="detX" aria-label="Fechar">✕</button></div>
   <div class="det-corpo" id="detCorpo"></div>
 </dialog>
 <dialog id="dlg">
@@ -1041,6 +1079,14 @@ if (AMB_FIXO) CFG.ambiente = AMB_FIXO;
 const $ = id => document.getElementById(id);
 const fmt = n => (n==null||isNaN(n)) ? '—' : Math.round(n).toLocaleString('pt-BR');
 const fmtP = (n,d=2) => (n==null||isNaN(n)) ? '—' : n.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+// cor do andamento da apuração: vermelho (início) → âmbar → verde-claro → verde (100%)
+const corApur = p => isNaN(p) ? '#9a93b0' : p >= 99.95 ? '#1a7f37' : p >= 75 ? '#3aa860' : p >= 40 ? '#e0a100' : '#d9534f';
+const fmtApur = p => p >= 99.95 ? '100%' : fmtP(p, 1);
+function apurTag(p, est, rotulo){
+  if (p == null || isNaN(p)) return '';
+  p = Math.max(0, Math.min(100, p));
+  return `<span class="apur-tag${p>=99.95?' fim':''}" style="--ac:${corApur(p)}" title="${est?'≈ ':''}${fmtP(p,1)} das seções apuradas ${rotulo||'neste local'}${est?' (estimado pelas zonas do bairro)':''}"><span class="apb"><i style="width:${p.toFixed(1)}%"></i></span>${est?'≈ ':''}${fmtApur(p)}<span class="apw"> apurado</span></span>`;
+}
 const num = v => { if (v==null) return NaN; if (typeof v==='number') return v; return parseFloat(String(v).replace(/\./g,'').replace(',','.')); };
 const pctNum = v => { if (v==null) return NaN; if (typeof v==='number') return v; return parseFloat(String(v).replace(',','.')); };
 const pick = (o, keys) => { for (const k of keys) if (o && o[k]!=null && o[k]!=='') return o[k]; };
@@ -1706,11 +1752,39 @@ function desenharHemiciclo(eleitos, vagas){
   return {cont, contC};
 }
 
+function sinalApur(t){
+  const p = t && !isNaN(t.pctApurado) ? Math.max(0, Math.min(100, t.pctApurado)) : NaN, cor = corApur(p);
+  $('barApur').style.width = (isNaN(p) ? 0 : p) + '%';
+  const st = $('apurStrip'); st.style.setProperty('--ac', cor); st.classList.toggle('fim', p >= 99.95); st.setAttribute('aria-valuenow', isNaN(p) ? 0 : p.toFixed(1));
+  // TSE: "ts" = total de seções, "st" = seções totalizadas (apuradas)
+  const sA = t ? Math.min(t.secoes, t.secoesTot) : NaN, sT = t ? Math.max(t.secoes, t.secoesTot) : NaN, temSec = sT > 0 && !isNaN(sA);
+  const sec = temSec ? `<em class="as-sec">${fmt(sA)} de ${fmt(sT)} seções</em>` : '';
+  $('apurTxt').innerHTML = isNaN(p) ? 'SEÇÕES APURADAS <b>—</b> <em>aguardando o TSE</em>' : `SEÇÕES APURADAS <b>${fmtApur(p)}</b>${sec}${p >= 99.95 ? '<em>· apuração encerrada</em>' : ''}`;
+  const pl = $('apurPill'); pl.style.setProperty('--ac', cor); pl.style.setProperty('--p', isNaN(p) ? 0 : p.toFixed(1));
+  pl.querySelector('b').textContent = isNaN(p) ? '—' : fmtApur(p);
+  pl.title = isNaN(p) ? 'Seções apuradas no estado' : `${fmtP(p,2)} das seções do estado apuradas` + (temSec ? ` (${fmt(sA)} de ${fmt(sT)} seções)` : '');
+}
+// % apurado de um município (pelas zonas lidas) e de um bairro (média das zonas do bairro, pesada pelo eleitorado)
+function apurMun(cd){ cd = String(cd||'').padStart(5,'0'); const x = (CIDADES||[]).find(o=>o.mun===cd); return x ? x.pctApurado : NaN; }
+function apurBairro(mun, nome){
+  mun = String(mun||'').padStart(5,'0'); const M = RJB.mun[mun]; if (!M) return NaN;
+  const k = semAcento(nome), idx = new Set(M.b.map((x,i)=>semAcento(x)===k ? i : -1).filter(i=>i>=0));
+  return apurBairroIdx(mun, idx);
+}
+function apurBairroIdx(mun, idx){
+  const M = RJB.mun[mun]; if (!M || !idx || !idx.size) return NaN;
+  const pz = {};
+  if (MUN_DADOS && MUN_DADOS.mun === mun) MUN_DADOS.zonas.forEach(z=>{ if (!isNaN(z.d.tot.pctApurado)) pz[z.zc] = z.d.tot.pctApurado; });
+  (ZONAS||[]).forEach(z=>{ if (z.zona && pz[z.zona] === undefined && !isNaN(z.pctApurado)) pz[z.zona] = z.pctApurado; });
+  let ap = 0, peso = 0;
+  for (const zc in M.z) { const p = pz[zc]; if (p === undefined) continue; for (const [b, n] of M.z[zc]) if (idx.has(b)) { ap += n*p; peso += n; } }
+  return peso ? ap/peso : apurMun(mun);
+}
 function render(d, calc){
   document.body.classList.remove('sem-dados');
   const t = d.tot, foco = CFG.partidoFoco.toUpperCase();
   PCT_EST = t.pctApurado; calcularRanking(d.cands);
-  $('barApur').style.width = (t.pctApurado||0)+'%';
+  sinalApur(t);
   $('kPct').innerHTML = isNaN(t.pctApurado)?'—':fmtP(t.pctApurado).replace('%','<small>%</small>');
   $('kVotos').textContent = fmt(t.comparecimento);
   $('kComp').textContent = isNaN(t.pctComparecimento)?'comparecimento':`comparecimento ${fmtP(t.pctComparecimento)} do eleitorado`;
@@ -1789,7 +1863,8 @@ function renderPSB5(){
   const cab = rot => `<tr><th>${rot}</th>${top5.map(c=>`<th class="r${c.n===CFG.candidata?' p5-cand':''}" title="${esc(c.nome)} · ${esc(c.n)}">${esc(curto(c))}<br><small>${esc(c.n)}</small><br><b class="p5-tot">${fmt(c.votos)}</b></th>`).join('')}<th class="r p5-soma">Soma</th></tr>`;
   $('p5MunH').innerHTML = cab('Município'); $('p5BaiH').innerHTML = cab('Bairro (capital)');
   const linha = (nome, vals, loc) => { const max = Math.max(...vals.map(x=>x.v)), soma = vals.reduce((s,x)=>s+x.v,0);
-    return `<tr${loc?` data-loc="${esc(loc)}"`:''}><td><div class="zname">${esc(nome)}</div></td>${vals.map((x,i)=>`<td class="r num${x.v && x.v===max ? ' p5-max' : ''}${top5[i].n===CFG.candidata?' p5-cand':''}">${x.v ? (x.est?'≈ ':'') + fmt(x.v) : '—'}${x.v && x.pct ? `<div class="zinfo">${fmtP(x.pct,1)}</div>` : ''}</td>`).join('')}<td class="r num p5-soma"><b>${fmt(soma)}</b></td></tr>`; };
+    const ap = !loc ? NaN : loc.startsWith('m:') ? apurMun(loc.slice(2)) : loc.startsWith('b:') ? apurBairro('60011', loc.split(':').slice(2).join(':')) : NaN;
+    return `<tr${loc?` data-loc="${esc(loc)}"`:''}><td><div class="zname">${esc(nome)}</div>${apurTag(ap, loc && loc.startsWith('b:'))}</td>${vals.map((x,i)=>`<td class="r num${x.v && x.v===max ? ' p5-max' : ''}${top5[i].n===CFG.candidata?' p5-cand':''}">${x.v ? (x.est?'≈ ':'') + fmt(x.v) : '—'}${x.v && x.pct ? `<div class="zinfo">${fmtP(x.pct,1)}</div>` : ''}</td>`).join('')}<td class="r num p5-soma"><b>${fmt(soma)}</b></td></tr>`; };
   if (!CIDADES || !ZONAS) { $('p5Mun').innerHTML = $('p5Bai').innerHTML = `<tr><td colspan="${top5.length+2}" class="empty">Carregando dados por zona…</td></tr>`; return; }
   const muns = CIDADES.map(z=>({nome:z.rotulo, mun:z.mun, vals: top5.map(c=>({v:z.votos[c.n]||0, pct: z.validos ? 100*(z.votos[c.n]||0)/z.validos : NaN}))}))
     .filter(m=>m.vals.some(x=>x.v>0)).sort((a,b)=>b.vals.reduce((s,x)=>s+x.v,0) - a.vals.reduce((s,x)=>s+x.v,0));
@@ -1815,13 +1890,13 @@ function renderCards(){
         const top = todas.slice(0, lim), max = top[0]?.v || 1;
         if (!top.length) return `<p class="empty">Sem votos por ${tipo} ainda.</p>`;
         return `<div class="tbl-wrap"><table><thead><tr><th>${rotuloCol}</th><th class="r">Votos</th><th class="r" title="Percentual dos votos válidos">${rotuloPct}</th><th class="r pj" title="Votação projetada e, entre parênteses, a posição do candidato no local">Proj.</th></tr></thead><tbody>${
-          top.map((z,k)=>`<tr><td><div class="zname">${k+1}. ${esc(z.rotulo)} ${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}</div><div class="zinfo num">Comp. ${fmtP(z.pctComp,1)} · Apur. ${fmtP(z.pctApurado,1)} · ${fmtP(c.votos?100*z.v/c.votos:NaN,1)} do total dele</div><div class="zbar"><i style="width:${(100*z.v/max).toFixed(1)}%"></i></div></td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td><td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?`<div class="rkp" title="Posição do candidato neste local pela projeção">(${posNaZona(z,c.n)}º)</div>`:''}</td></tr>`).join('')
+          top.map((z,k)=>`<tr><td><div class="zname">${k+1}. ${esc(z.rotulo)} ${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}</div><div class="zinfo num">Comp. ${fmtP(z.pctComp,1)} · ${fmtP(c.votos?100*z.v/c.votos:NaN,1)} do total dele</div>${apurTag(z.pctApurado)}<div class="zbar"><i style="width:${(100*z.v/max).toFixed(1)}%"></i></div></td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td><td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?`<div class="rkp" title="Posição do candidato neste local pela projeção">(${posNaZona(z,c.n)}º)</div>`:''}</td></tr>`).join('')
         }</tbody></table></div>
         <div class="more">${todas.length>lim?`<button type="button" data-${attr}="${esc(c.n)}">+5 ${tipo==='zona'?'zonas':'cidades'}</button>`:''}${lim>5?`<button type="button" data-${attr}-menos="${esc(c.n)}">Voltar a 5</button>`:''}<span class="zinfo" style="align-self:center">${Math.min(lim,todas.length)} de ${todas.length} com votos · (nº) = posição no local</span></div>`;
       };
       const temZonas = ESTADO.modoZona!=='municipio';
       const bs = bairrosCap(c.n).slice(0, 5);
-      const tabB = bs.length ? `<div class="tbl-wrap"><table><thead><tr><th>Bairro (capital)</th><th class="r">Votos</th><th class="r">% bairro</th><th class="r">% do total</th></tr></thead><tbody>${bs.map((b,k)=>`<tr data-loc="b:60011:${esc(b.nome)}"><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${c.votos?fmtP(100*b.v/c.votos,1):'—'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">Sem votos nos bairros da capital ainda.</p>';
+      const tabB = bs.length ? `<div class="tbl-wrap"><table><thead><tr><th>Bairro (capital)</th><th class="r">Votos</th><th class="r">% bairro</th><th class="r">% do total</th></tr></thead><tbody>${bs.map((b,k)=>`<tr data-loc="b:60011:${esc(b.nome)}"><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div>${apurTag(apurBairro('60011', b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${c.votos?fmtP(100*b.v/c.votos,1):'—'}</td></tr>`).join('')}</tbody></table></div>` : '<p class="empty">Sem votos nos bairros da capital ainda.</p>';
       corpo = `<div class="corpo"><div class="sec-t">Ranking de cidades</div>${tabela(CIDADES||[], 'cidade', LIMITE_C[c.n]||5, 'maisc', 'Cidade', '% cid.')}
         <div class="sec-t">Bairros da capital</div>${tabB}
         ${temZonas ? `<div class="sec-t">Zonas eleitorais</div>${tabela(ZONAS,'zona',LIMITE[c.n]||5,'mais','Zona','% zona')}` : ''}</div>`;
@@ -1838,7 +1913,7 @@ function renderCards(){
       const taxa = PROJ ? PROJ.taxa[c.n]||0 : 0;
       const lista = CIDADES.map(z=>Object.assign(Object.create(z),{v:z.votos[c.n]||0, p:projZona(z,c.n,taxa)})).filter(z=>z.v>0).sort((a,b)=>b.v-a.v).slice(0,10);
       corpo = lista.length ? `<div class="tbl-wrap"><table><thead><tr><th>Cidade</th><th class="r">Votos</th><th class="r pj">Proj.</th></tr></thead><tbody>${
-        lista.map((z,k)=>`<tr><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div><div class="zinfo num" title="% dos válidos da cidade · % apurado da cidade">${z.validos?fmtP(100*z.v/z.validos,1):'—'} · apur. ${fmtP(z.pctApurado,0)}</div></td><td class="r num">${fmt(z.v)}</td><td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?`<div class="rkp">(${posNaZona(z,c.n)}º)</div>`:''}</td></tr>`).join('')
+        lista.map((z,k)=>`<tr><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div><div class="zinfo num" title="% dos válidos da cidade · % apurado da cidade">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</div>${apurTag(z.pctApurado)}</td><td class="r num">${fmt(z.v)}</td><td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?`<div class="rkp">(${posNaZona(z,c.n)}º)</div>`:''}</td></tr>`).join('')
       }</tbody></table></div>` : '<p class="empty">Sem votos ainda.</p>';
     }
     return `<div class="cid-col ${c.n===CFG.candidata?'cand':''}"><div class="eyebrow">${i+1}º · ${esc(c.partido)} · ${esc(c.n)}</div><h3>${esc(c.nome)}</h3><div class="tot num"><b>${fmt(c.votos)}</b> votos · proj. <b style="color:var(--accent-ink)">${fmt(projDe(c))}</b></div>${corpo}</div>`;
@@ -2082,7 +2157,7 @@ function tabelaBairros(ids, comb, ctx){
   const tot = ctx.totDela > 0 ? ctx.totDela : bs.reduce((s,b)=>s+b.v,0);
   const pctReal = comb.total ? 100*comb.real/comb.total : 0;
   if (pctH) $(pctH).textContent = '% bairro';
-  $(tb).innerHTML = bs.map((b,k)=>`<tr data-loc="b:${esc(ctx.mun||'')}:${esc(b.nome)}" data-cargo="${ctx.cargo||6}" data-parcial="${b.parcialReal>0.995?1:0}"><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}${(()=>{ const k = semAcento(b.nome), R = ctx.posReal && b.parcialReal >= 0.5 ? ctx.posReal.get(k) : null, E = ctx.pos && ctx.pos.get(k);
+  $(tb).innerHTML = bs.map((b,k)=>`<tr data-loc="b:${esc(ctx.mun||'')}:${esc(b.nome)}" data-cargo="${ctx.cargo||6}" data-parcial="${b.parcialReal>0.995?1:0}"><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div>${apurTag(apurBairro(ctx.mun||'60011', b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}${(()=>{ const k = semAcento(b.nome), R = ctx.posReal && b.parcialReal >= 0.5 ? ctx.posReal.get(k) : null, E = ctx.pos && ctx.pos.get(k);
       if (R) return ` <span class="rkp" title="Posição entre ${R.n} candidaturas com votos no bairro, contada nos boletins de urna já lidos">(${R.pos}º)</span>`;
       return E ? ` <span class="rkp" title="Posição estimada pelo eleitorado da zona (boletins do bairro ainda não lidos)">(≈${E.pos}º)</span>` : ''; })()}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td>${ctx.c22 ? cel22((ctx.c22[semAcento(b.nome)]||null), b.pct) : ''}</tr>`).join('')
     || `<tr><td colspan="${ctx.c22?5:4}" class="empty">${ctx.vazio || 'Sem votos ainda.'}</td></tr>`;
@@ -2119,7 +2194,7 @@ function renderTatiana(){
   if (!ZONAS) { ['ttZonas','ttBairros','ttMun'].forEach(id=>$(id).innerHTML = vazio('Carregando dados por zona…')); return; }
   const taxa = PROJ ? PROJ.taxa[c.n]||0 : 0;
   const lista = itens => itens.map(z=>Object.assign(Object.create(z), {v:z.votos[c.n]||0, p:projZona(z,c.n,taxa)})).filter(z=>z.v>0).sort((a,b)=>b.v-a.v);
-  const linha = (z,k,par22,tot) => `<tr data-loc="${z.mun ? 'm:'+esc(z.mun) : 'z:'+esc(z.rotulo)}"><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div>${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td>${tot !== undefined ? `<td class="r num">${tot ? fmtP(100*z.v/tot,1) : '—'}</td>` : ''}<td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?` <span class="rkp">(${posNaZona(z,c.n)}º)</span>`:''}</td>${com22 ? cel22(par22, z.validos ? 100*z.v/z.validos : NaN) : ''}</tr>`;
+  const linha = (z,k,par22,tot) => `<tr data-loc="${z.mun ? 'm:'+esc(z.mun) : 'z:'+esc(z.rotulo)}"><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div>${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}${apurTag(z.pctApurado)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td>${tot !== undefined ? `<td class="r num">${tot ? fmtP(100*z.v/tot,1) : '—'}</td>` : ''}<td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?` <span class="rkp">(${posNaZona(z,c.n)}º)</span>`:''}</td>${com22 ? cel22(par22, z.validos ? 100*z.v/z.validos : NaN) : ''}</tr>`;
   const zs = lista(ZONAS), ms = lista(CIDADES||[]);
   $('ttZonas').innerHTML = zs.map((z,k)=>linha(z,k, z.zona ? COMP22_Z[z.zona] : null)).join('') || vazio('Sem votos por zona ainda.');
   $('ttZMeta').textContent = zs.length ? `${zs.length} zonas com votos` : '';
@@ -2353,7 +2428,7 @@ function renderMapa(comb, c){
   document.querySelectorAll('#mpModo button, #mrModo button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.m === MAPA_MODO));
   $('mpTit').textContent = c ? `${titulo(c.nome)} ${c.n} · bairros do Rio` : 'Bairros do Rio';
   const top = MAPA_RIO.p.map(([nm],i)=>({nm, i, a:porPol[i]})).filter(x=>x.a && x.a.v >= 0.5).sort((x,y)=>val(y.a)-val(x.a));
-  $('mpLista').innerHTML = top.map((x,k)=>`<tr data-loc="p:${x.i}"><td><div class="zname">${k+1}. ${esc(x.nm)}</div></td><td class="r num">${x.a.est?'≈ ':''}${fmt(x.a.v)}</td><td class="r num">${fmtP(x.a.pct,1)}</td><td class="r num">${(()=>{ const f = infoBairro(x.i)||{}; return f.pos ? (f.real ? '' : '≈') + f.pos + 'º' : '—'; })()}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem votos na capital ainda.</td></tr>';
+  $('mpLista').innerHTML = top.map((x,k)=>`<tr data-loc="p:${x.i}"><td><div class="zname">${k+1}. ${esc(x.nm)}</div>${apurTag((infoBairro(x.i)||{}).apur, true)}</td><td class="r num">${x.a.est?'≈ ':''}${fmt(x.a.v)}</td><td class="r num">${fmtP(x.a.pct,1)}</td><td class="r num">${(()=>{ const f = infoBairro(x.i)||{}; return f.pos ? (f.real ? '' : '≈') + f.pos + 'º' : '—'; })()}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem votos na capital ainda.</td></tr>';
   $('mpMeta').textContent = top.length ? `${top.length} bairros com votos` : '';
   $('mpNota').textContent = 'Limites dos bairros: Prefeitura do Rio (data.rio). Votos pelo bairro do local de votação (TSE); "≈" = parte ainda estimada pelo eleitorado da zona.' + (semMapa.length ? ` Sem correspondência no mapa oficial: ${[...new Set(semMapa)].map(titulo).join(', ')}.` : '');
 }
@@ -2393,7 +2468,7 @@ function renderMapaRJ(c){
   $('mrLeg').innerHTML = vals.length ? `<span class="mp-leg-t">${MAPA_MODO==='v' ? 'Votos no município' : '% dos votos válidos do município'}</span>` + rampa.map((cor,i)=>`<span class="mp-sw"><i style="background:${cor}"></i>${f(faixas[i])}–${f(faixas[i+1])}</span>`).join('') + `<span class="mp-sw"><i style="background:var(--seat-empty)"></i>sem votos</span>` : '';
   $('mrTit').textContent = c ? `${titulo(c.nome)} ${c.n} · municípios do RJ` : 'Municípios do RJ';
   const top = MAPA_RJ.p.map(([cd, nm], i)=>({cd, nm, r: MAPA_RJ_ULT[i]})).filter(x=>x.r && x.r.v > 0).sort((a,b)=>val(b.r)-val(a.r));
-  $('mrLista').innerHTML = top.map((x,k)=>`<tr data-loc="m:${esc(String(x.cd).padStart(5,'0'))}"><td><div class="zname">${k+1}. ${esc(x.nm)}</div><span class="zmun">apur. ${fmtP(x.r.apur,1)}</span></td><td class="r num">${fmt(x.r.v)}</td><td class="r num">${fmtP(x.r.pct,2)}</td><td class="r num">${x.r.pos}º</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem votos ainda.</td></tr>';
+  $('mrLista').innerHTML = top.map((x,k)=>`<tr data-loc="m:${esc(String(x.cd).padStart(5,'0'))}"><td><div class="zname">${k+1}. ${esc(x.nm)}</div>${apurTag(x.r.apur)}</td><td class="r num">${fmt(x.r.v)}</td><td class="r num">${fmtP(x.r.pct,2)}</td><td class="r num">${x.r.pos}º</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem votos ainda.</td></tr>';
   $('mrMeta').textContent = top.length ? `${top.length} de 92 municípios com votos` : '';
 }
 
@@ -2526,7 +2601,7 @@ function renderMunicipio(){
   const totEst = totalEstadual(D.cargo, n, c.nome), temEst = totEst > 0;
   const totZ = temEst ? totEst : zs.reduce((s,z)=>s+(z.v||0),0), dela = !temEst ? '% no mun.' : (n==='4013' ? '% dela' : '% do total');
   if ($('munZDelaH')) $('munZDelaH').textContent = dela; if ($('munBDelaH')) $('munBDelaH').textContent = dela;
-  $('munZonas').innerHTML = zs.map((z,k)=>`<tr data-loc="mz:${esc(z.zc)}"><td><div class="zname">${k+1}. Zona ${Number(z.zc)}</div><span class="zmun">apur. ${fmtP(z.ap,1)}</span></td><td class="r num">${fmt(z.v)}</td><td class="r num">${fmtP(z.pct,1)}</td><td class="r num">${totZ ? fmtP(100*(z.v||0)/totZ,1) : '—'}</td><td class="r num">${z.pos?`<span class="mu-pos">${z.pos}º</span> <span class="zmun" style="display:inline">de ${z.n}</span>`:'—'}</td>${c22 ? cel22(COMP22.z[D.mun+'|'+z.zc], z.pct) : ''}</tr>`).join('') || vazio('Sem zonas neste município.');
+  $('munZonas').innerHTML = zs.map((z,k)=>`<tr data-loc="mz:${esc(z.zc)}"><td><div class="zname">${k+1}. Zona ${Number(z.zc)}</div>${apurTag(z.ap)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${fmtP(z.pct,1)}</td><td class="r num">${totZ ? fmtP(100*(z.v||0)/totZ,1) : '—'}</td><td class="r num">${z.pos?`<span class="mu-pos">${z.pos}º</span> <span class="zmun" style="display:inline">de ${z.n}</span>`:'—'}</td>${c22 ? cel22(COMP22.z[D.mun+'|'+z.zc], z.pct) : ''}</tr>`).join('') || vazio('Sem zonas neste município.');
   $('munZMeta').textContent = `${zs.filter(z=>z.v>0).length} de ${zs.length} zonas com votos`;
   const podeReal = D.cargo===6, real = podeReal ? REAIS[n.slice(0,2)] : null;
   tabelaBairros({tb:'munBairros', meta:'munBMeta', nota:'munBNota', pctH:'munBPctH'},
@@ -2724,7 +2799,7 @@ function abrirPartido(agr, cg){
   const res = `<p class="det-res">Votos <b>${fmt(x.a.votos)}</b> (${pv(x.a.votos)}) · nominais <b>${fmt(x.a.votos-leg)}</b> · legenda <b>${fmt(leg)}</b> · cadeiras <b>${cad}</b> · eleitos na parcial <b>${x.el}</b>${x.conf?` (✓${x.conf} TSE)`:''}${x.abaixo80?' · abaixo de 80% do QE':''}</p>`;
   DET.abrir(`<i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${corGrupo(x.rot)};margin-right:8px"></i>${esc(x.rot)}`,
     `${cg===7?'Deputados estaduais':'Deputados federais'} · ${cands.length} candidaturas${fed && x.a.nome && !/^\d+$/.test(x.a.nome) ? ' · '+x.a.nome : ''}`,
-    res + `<table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Situação</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="empty">Sem candidaturas.</td></tr>'}</tbody></table><p class="det-nota">${LEGENDA_SELO}. Clique numa candidatura para ver onde ela foi mais votada.</p>`);
+    res + `<table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Situação</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="empty">Sem candidaturas.</td></tr>'}</tbody></table><p class="det-nota">${LEGENDA_SELO}. Clique numa candidatura para ver onde ela foi mais votada.</p>`, false, { p: d.tot && !isNaN(d.tot.pctApurado) ? d.tot.pctApurado : PCT_EST, rot: 'no estado' });
 }
 ['ptFe','ptDe'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('tr[data-agr]'); if (tr) abrirPartido(tr.dataset.agr, +tr.dataset.cargo); }));
 ['fe','de'].forEach(px=>$(px+'Partidos').addEventListener('click', e=>{
@@ -2884,7 +2959,7 @@ function redefinirDados(){
   const nomes = {oficial:'Oficial · TSE', simulado:'Simulado · TSE', '2022':'Teste · eleição 2022', demo:'Demonstração'};
   $('semDados').textContent = `Ambiente ${nomes[CFG.ambiente]||CFG.ambiente}: aguardando os primeiros dados do TSE. Os números do ambiente anterior foram retirados da tela.`;
   document.body.classList.add('sem-dados');
-  $('barApur').style.width = '0%'; TK_IDX = -1;
+  sinalApur({}); TK_IDX = -1;
   $('tkCat').innerHTML = '<b>Aguardando o TSE</b><span class="tk-parc"></span>'; $('tkTrack').innerHTML = ''; $('tkTrack').style.animation = 'none';
   TK_CONF = null; TK_DADOS = null; EST = null; MUN_DADOS = null; ALERTA_ANT = null; MAJ_ANT = null; MAJ = null; delete MUN_SEL.cand[6];
   ESTADO = {ele:null, municipios:null, modoZona:null}; COBERTURA = null; ZONAS = null; CIDADES = null; PROJ = null; ultZonas = 0; ultimaHora = null;
@@ -3087,8 +3162,9 @@ const DET = (()=>{
   const candsDe = cargo => cargo===7 ? (EST ? EST.d.cands : []) : (ULTIMO ? ULTIMO.d.cands : []);
   const info = (cargo, n) => candsDe(cargo).find(c=>c.n===n);
   const dlg = $('dlgDet');
-  function abrir(tit, sub, corpo, duas){
-    $('detTit').innerHTML = tit; $('detSub').textContent = sub; $('detCorpo').innerHTML = corpo; $('detCorpo').classList.toggle('duas', !!duas);
+  function abrir(tit, sub, corpo, duas, apur){
+    $('detTit').innerHTML = tit; $('detSub').textContent = sub;
+    $('detApur').innerHTML = apur && !isNaN(apur.p) ? apurTag(apur.p, apur.est, apur.rot) : ''; $('detCorpo').innerHTML = corpo; $('detCorpo').classList.toggle('duas', !!duas);
     // no projetor a página é ampliada (zoom): a altura máxima do quadro acompanha a escala
     const z = parseFloat(document.documentElement.style.zoom) || 1;
     dlg.style.maxHeight = Math.floor(innerHeight * 0.9 / z) + 'px'; dlg.style.width = `min(980px, ${Math.floor(innerWidth / z) - 24}px)`;
@@ -3144,16 +3220,17 @@ const DET = (()=>{
     const titC = `${esc(titulo(c.nome))}<span>${esc(n)}</span>`;
     const ord = [...candsDe(cargo)].sort((a,b)=>b.votos-a.votos), pos = ord.findIndex(x=>x.n===n)+1;
     const sub = `${c.partido} · ${CARGO_NOME[cargo]} · ${fmt(tot)} votos · ${pos}º de ${ord.length}`;
-    abrir(titC, sub, '<p class="det-msg">Carregando os votos por zona…</p>');
+    const AP = { p: cargo===7 ? (EST && EST.d.tot ? EST.d.tot.pctApurado : NaN) : PCT_EST, rot: 'no estado' };
+    abrir(titC, sub, '<p class="det-msg">Carregando os votos por zona…</p>', false, AP);
     let Z = null, C = null;
     if (cargo===6) { Z = ZONAS; C = CIDADES; }
     else { try { const r = await zonasCargo7(); if (r) { Z = r.zonas; C = r.cidades; } } catch(e){} }
     if (meu !== seq || !dlg.open) return;
     if (!Z || !Z.length) { $('detCorpo').innerHTML = '<p class="det-msg">Os votos por zona deste cargo ainda não estão disponíveis.</p>'; return; }
     const top = (itens, max) => itens.map(x=>({x, v:x.votos[n]||0})).filter(o=>o.v>0).sort((a,b)=>b.v-a.v).slice(0, max);
-    const linhaLoc = (o,k,loc,nome,sub2) => `<tr data-loc="${esc(loc)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(nome)}</div>${sub2?`<span class="zmun">${esc(sub2)}</span>`:''}</td><td class="r num">${fmt(o.v)}</td><td class="r num">${o.x.validos?fmtP(100*o.v/o.x.validos,1):'—'}</td><td class="r num">${tot?fmtP(100*o.v/tot,1):'—'}</td></tr>`;
+    const linhaLoc = (o,k,loc,nome,sub2) => `<tr data-loc="${esc(loc)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(nome)}</div>${sub2?`<span class="zmun">${esc(sub2)}</span>`:''}${apurTag(!isNaN(o.x.pctApurado) ? o.x.pctApurado : (loc.startsWith('m:') ? apurMun(loc.slice(2)) : ((ZONAS||[]).find(z=>z.rotulo===o.x.rotulo)||{}).pctApurado))}</td><td class="r num">${fmt(o.v)}</td><td class="r num">${o.x.validos?fmtP(100*o.v/o.x.validos,1):'—'}</td><td class="r num">${tot?fmtP(100*o.v/tot,1):'—'}</td></tr>`;
     const cab = (local) => ['#', local, 'Votos', '% local', '% do total'];
-    const muns = top(C||[], 20).map((o,k)=>linhaLoc(o,k,'m:'+o.x.mun, o.x.rotulo)).join('');
+    const muns = top(C||[], 20).map((o,k)=>linhaLoc(o,k,'m:'+o.x.mun, o.x.rotulo).replace('<tr ', `<tr data-cand="${esc(n)}" title="Ver os bairros onde ${esc(titulo(c.nome))} foi mais votada(o) neste município" `)).join('');
     const zs = top(Z, 20).map((o,k)=>linhaLoc(o,k,'z:'+o.x.rotulo, o.x.rotulo, o.x.sub)).join('');
     // bairros do Rio: boletins de urna (só Dep. Federal) + estimativa pelo eleitorado da zona
     let real = null; if (cargo===6 && CFG.ambiente!=='demo') { try { real = await atualizarReais(n.slice(0,2)); } catch(e){} }
@@ -3161,7 +3238,7 @@ const DET = (()=>{
     const capZ = Z.filter(z=>z.munRio).map(z=>({zc:z.zona, v:z.votos[n]||0, t:z.validos||0}));
     const comb = bairrosDoMunicipio('60011', capZ, n, real);
     const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v).slice(0, 20);
-    const linhasB = bs.map((b,k)=>`<tr data-loc="b:60011:${esc(b.nome)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div></td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td></tr>`).join('');
+    const linhasB = bs.map((b,k)=>`<tr data-loc="b:60011:${esc(b.nome)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro('60011', b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td></tr>`).join('');
     $('detCorpo').classList.add('duas');
     $('detCorpo').innerHTML = `<section><h3>Municípios</h3>${tabela(cab('Município'), muns)}</section>`
       + `<section><h3>Zonas eleitorais</h3>${tabela(cab('Zona'), zs)}</section>`
@@ -3180,33 +3257,39 @@ const DET = (()=>{
   }
   async function abrirLoc(loc, cargo, parcial){
     const meu = ++seq, i = loc.indexOf(':'), tipo = loc.slice(0, i), resto = loc.slice(i+1);
-    let tit = '', sub = '', votos = null, total = 0, nomes = null, nota = '', cg = cargo || 6;
+    let tit = '', sub = '', votos = null, total = 0, nomes = null, nota = '', cg = cargo || 6, AP = null;
+    const abrirL = (a, b, c, dd) => abrir(a, b, c, dd, AP);
     if (tipo === 'z' || tipo === 'm') {
       let fonte = tipo === 'z' ? ZONAS : CIDADES;
-      if (cg === 7) { abrir(esc(resto), CARGO_NOME[7], '<p class="det-msg">Carregando…</p>'); try { const r = await zonasCargo7(); fonte = r ? (tipo==='z' ? r.zonas : r.cidades) : null; } catch(e){ fonte = null; } if (meu !== seq) return; }
+      if (cg === 7) { abrirL(esc(resto), CARGO_NOME[7], '<p class="det-msg">Carregando…</p>'); try { const r = await zonasCargo7(); fonte = r ? (tipo==='z' ? r.zonas : r.cidades) : null; } catch(e){ fonte = null; } if (meu !== seq) return; }
       const x = (fonte||[]).find(o => tipo==='z' ? o.rotulo===resto : o.mun===resto);
       tit = esc(x ? x.rotulo : (tipo==='m' ? titulo((RJB.mun[resto]||{}).nm || resto) : resto));
-      sub = (x && x.sub ? x.sub + ' · ' : '') + CARGO_NOME[cg] + (x && !isNaN(x.pctApurado) ? ` · ${fmtP(x.pctApurado,1)} apurado` : '');
+      sub = (x && x.sub ? x.sub + ' · ' : '') + CARGO_NOME[cg];
+      { let pa = x ? x.pctApurado : NaN;     // seções são as mesmas para todos os cargos: completa pelo dado do Dep. Federal
+        if (isNaN(pa)) { const y = (tipo==='z' ? ZONAS : CIDADES || []).find(o => tipo==='z' ? o.rotulo===resto : o.mun===resto); if (y) pa = y.pctApurado; }
+        AP = { p: pa, rot: tipo==='z' ? 'nesta zona' : 'neste município' }; }
       if (x) { votos = x.votos; total = x.validos || Object.values(votos).reduce((s,v)=>s+v,0); }
     } else if (tipo === 'mz') {
       const D = MUN_DADOS, z = D && D.zonas.find(o=>o.zc===resto);
       cg = D ? D.cargo : cg;
       tit = `Zona ${Number(resto)}`; sub = `${titulo((RJB.mun[D && D.mun]||{}).nm||'')} · ${CARGOS_MUN[cg] ? titulo(CARGOS_MUN[cg]) : ''}`;
       if (z) { votos = {}; nomes = {}; z.d.cands.forEach(c=>{ votos[c.n] = c.votos; nomes[c.n] = c; }); total = baseValidos(z.d); }
+      AP = { p: z ? (isNaN(z.d.tot.pctApurado) ? D.d.tot.pctApurado : z.d.tot.pctApurado) : NaN, rot:'nesta zona' };
     } else if (tipo === 'b' || tipo === 'p') {
       let mun, idx;
       if (tipo === 'p') { infoBairro(+resto); mun = '60011'; idx = new Set(POL_BAIRROS && POL_BAIRROS[+resto] || []); tit = esc(MAPA_RIO.p[+resto][0]); }
       else { const j = resto.indexOf(':'); mun = resto.slice(0, j); const nome = resto.slice(j+1), M = RJB.mun[mun];
         idx = new Set((M ? M.b : []).map((x,k)=>semAcento(x)===semAcento(nome) ? k : -1).filter(k=>k>=0)); tit = esc(titulo(nome)); }
       const nomeMun = titulo((RJB.mun[mun]||{}).nm || '');
+      AP = { p: apurBairroIdx(mun, idx), est: true, rot: 'neste bairro' };
       // votos de todos os candidatos nas zonas do município (para a estimativa)
       let zv = null;
       if (MUN_DADOS && MUN_DADOS.mun === mun && MUN_DADOS.cargo === cg) { zv = MUN_DADOS.zonas.map(z=>({zc:z.zc, votos:Object.fromEntries(z.d.cands.map(c=>[c.n, c.votos]))})); nomes = {}; MUN_DADOS.zonas.forEach(z=>z.d.cands.forEach(c=>nomes[c.n] = c)); }
-      else if (mun === '60011') { let Z = ZONAS; if (cg === 7) { abrir(tit, nomeMun, '<p class="det-msg">Carregando…</p>'); try { const r = await zonasCargo7(); Z = r ? r.zonas : null; } catch(e){ Z = null; } if (meu !== seq) return; }
+      else if (mun === '60011') { let Z = ZONAS; if (cg === 7) { abrirL(tit, nomeMun, '<p class="det-msg">Carregando…</p>'); try { const r = await zonasCargo7(); Z = r ? r.zonas : null; } catch(e){ Z = null; } if (meu !== seq) return; }
         zv = (Z||[]).filter(z=>z.munRio).map(z=>({zc:z.zona, votos:z.votos})); }
       sub = `Bairro · ${nomeMun} · ${CARGO_NOME[cg] || titulo(CARGOS_MUN[cg]||'')}`;
       if (cg === 6) {                                    // boletins de urna: votos reais de todos os candidatos no bairro
-        abrir(tit, sub, '<p class="det-msg">Carregando os boletins de urna…</p>');
+        abrirL(tit, sub, '<p class="det-msg">Carregando os boletins de urna…</p>');
         const T = await carregarTop(); if (meu !== seq) return;
         const P = T && T.mz && T.mz[mun];
         if (P) { const v = {}; let t = 0; for (const k of idx) { const e = P[k]; if (!e) continue; t += e.t; for (const [nn, vv] of e.c) v[nn] = (v[nn]||0) + vv; }
@@ -3215,7 +3298,7 @@ const DET = (()=>{
       if (!votos && zv) { votos = estimarBairro(mun, idx, zv); total = Object.values(votos).reduce((s,v)=>s+v,0); nota = 'Estimativa: votos de cada zona repartidos pelo eleitorado do bairro (boletins de urna ainda não lidos para este bairro).'; }
     }
     if (meu !== seq) return;
-    if (!votos) { abrir(tit, sub, '<p class="det-msg">Sem dados deste local ainda.</p>'); return; }
+    if (!votos) { abrirL(tit, sub, '<p class="det-msg">Sem dados deste local ainda.</p>'); return; }
     const nm = k => (nomes && nomes[k]) || info(cg, k);
     const ord = Object.entries(votos).filter(([,v])=>v >= 0.5).sort((a,b)=>b[1]-a[1]);
     const linha = ([k, v], r, extra) => { const c = nm(k); const clic = (cg===6 || cg===7) && info(cg, k);
@@ -3223,12 +3306,52 @@ const DET = (()=>{
     let linhas = ord.slice(0, 25).map((e,r)=>linha(e, r+1)).join('');
     const im = ord.findIndex(([k])=>k===CFG.candidata);
     if (im >= 25) linhas += linha(ord[im], im+1, true);
-    abrir(tit, sub + (ord.length ? (nota.startsWith('Votos reais') ? ` · ${fmt(total)} votos nominais` : ` · ${ord.length} candidaturas com votos`) : ''),
+    abrirL(tit, sub + (ord.length ? (nota.startsWith('Votos reais') ? ` · ${fmt(total)} votos nominais` : ` · ${ord.length} candidaturas com votos`) : ''),
       `<section><h3>Mais votados</h3>${tabela(['#','Candidatura','Votos','% local'], linhas)}<p class="det-nota">${nota ? nota + ' ' : ''}Clique numa candidatura para ver onde ela foi mais votada.</p></section>`);
   }
+  /* ---- candidatura dentro de um município: bairros (e zonas) onde foi mais votada ---- */
+  const MUNC = new Map();
+  async function dadosMun(mun, cargo){
+    const k = mun+'|'+cargo, c = MUNC.get(k);
+    if (c && c.g === GERACAO && Date.now()-c.t < 120000) return c.D;
+    let D;
+    if (MUN_DADOS && MUN_DADOS.mun === mun && MUN_DADOS.cargo === cargo) D = MUN_DADOS;
+    else if (CFG.ambiente === 'demo') D = municipioDemo(mun, cargo);
+    else D = await carregarMunicipioReal(mun, cargo);
+    MUNC.set(k, {t:Date.now(), g:GERACAO, D}); return D;
+  }
+  async function abrirCandMun(n, cargo, mun){
+    const c = info(cargo, n); if (!c) return abrirLoc('m:'+mun, cargo);
+    const meu = ++seq, nomeMun = titulo((RJB.mun[mun]||{}).nm || mun), totC = c.votos || 0;
+    const tit = `${esc(titulo(c.nome))}<span>${esc(n)}</span>`;
+    let AP = { p: apurMun(mun), rot: 'neste município' };
+    abrir(tit, `${nomeMun} · ${CARGO_NOME[cargo]}`, '<p class="det-msg">Carregando os bairros…</p>', false, AP);
+    let D = null; try { D = await dadosMun(mun, cargo); } catch(e){}
+    if (meu !== seq || !dlg.open) return;
+    const voltarBtn = `<p class="det-acoes"><button type="button" class="det-link" data-loc="m:${esc(mun)}" data-cargo="${cargo}">Ver os mais votados de ${esc(nomeMun)} →</button> <button type="button" class="det-link" data-n="${esc(n)}" data-cargo="${cargo}">← Voltar a ${esc(titulo(c.nome))}</button></p>`;
+    if (!D) { $('detCorpo').innerHTML = '<p class="det-msg">O TSE ainda não publicou os dados deste município.</p>' + voltarBtn; return; }
+    let real = null; if (cargo === 6 && CFG.ambiente !== 'demo') { try { real = await atualizarReais(n.slice(0,2)); } catch(e){} }
+    if (meu !== seq || !dlg.open) return;
+    if (!isNaN(D.d.tot.pctApurado)) AP = { p: D.d.tot.pctApurado, rot: 'neste município' };
+    const zs = D.zonas.map(z=>{ const x = z.d.cands.find(y=>y.n===n); return { zc:z.zc, v: x ? x.votos : 0, t: baseValidos(z.d), ap: z.d.tot.pctApurado }; });
+    const xm = D.d.cands.find(y=>y.n===n), vMun = xm ? xm.votos : zs.reduce((s2,z)=>s2+z.v, 0), valMun = baseValidos(D.d);
+    const comb = bairrosDoMunicipio(mun, zs.map(z=>({zc:z.zc, v:z.v, t:z.t})), n, real);
+    const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
+    const linhasB = bs.slice(0, 40).map((b,k)=>`<tr data-loc="b:${esc(mun)}:${esc(b.nome)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro(mun, b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${vMun?fmtP(100*b.v/vMun,1):'—'}</td></tr>`).join('');
+    const zo = zs.filter(z=>z.v > 0).sort((a,b)=>b.v-a.v);
+    const linhasZ = zo.map((z,k)=>`<tr${cargo===6 ? ` data-loc="z:Zona ${Number(z.zc)}" data-cargo="6"` : ''}><td class="rk">${k+1}</td><td><div class="zname">Zona ${Number(z.zc)}</div>${apurTag(z.ap)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.t?fmtP(100*z.v/z.t,1):'—'}</td><td class="r num">${vMun?fmtP(100*z.v/vMun,1):'—'}</td></tr>`).join('');
+    const pReal = comb.total ? 100*comb.real/comb.total : 0;
+    const nota = cargo === 6 && pReal > 0 ? `${fmtP(pReal,0)} dos votos nos bairros vêm dos boletins de urna já lidos; o restante ("≈") é estimado pelo eleitorado de cada zona.` : 'Votos por bairro estimados pelo eleitorado de cada zona ("≈").';
+    abrir(tit, `${nomeMun} · ${fmt(vMun)} votos${valMun ? ' · ' + fmtP(100*vMun/valMun,2) + ' dos válidos do município' : ''}${totC ? ' · ' + fmtP(100*vMun/totC,1) + ' da votação total' : ''}`,
+      `<section><h3>Bairros mais votados</h3>${tabela(['#','Bairro','Votos','% bairro','% no município'], linhasB, 'Sem votos nos bairros ainda.')}<p class="det-nota">${nota}</p></section>`
+      + `<section><h3>Zonas eleitorais</h3>${tabela(['#','Zona','Votos','% zona','% no município'], linhasZ)}</section>` + voltarBtn, true, AP);
+  }
   document.addEventListener('click', e=>{
+    const bt = e.target.closest('button.det-link');
+    if (bt) { const cg = +bt.dataset.cargo || 6; if (bt.dataset.n) abrirCand(bt.dataset.n, cg); else abrirLoc(bt.dataset.loc, cg); return; }
     const tr = e.target.closest('tbody tr[data-n], tbody tr[data-loc]'); if (!tr || e.target.closest('a,button,select,input')) return;
     const cargo = tr.dataset.cargo ? +tr.dataset.cargo : null;
+    if (tr.dataset.cand && tr.dataset.loc && tr.dataset.loc.startsWith('m:')) return abrirCandMun(tr.dataset.cand, cargo || 6, tr.dataset.loc.slice(2));
     if (tr.dataset.n) abrirCand(tr.dataset.n, cargo || 6);
     else abrirLoc(tr.dataset.loc, cargo, tr.dataset.parcial === '0');
   });
@@ -3247,8 +3370,8 @@ const COMP = (()=>{
   const dados22 = nome => T22.dados(nome);
   const dif = (a, b) => (isNaN(a) || isNaN(b)) ? '<td class="r num">—</td>' : Math.abs(a-b) < 0.05 ? '<td class="r num">0,0</td>' : `<td class="r num ${a-b >= 0 ? 'cp-sobe' : 'cp-cai'}">${a-b >= 0 ? '▲ +' : '▼ '}${(a-b).toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</td>`;
   const pct = (v, t) => t > 0 ? 100*v/t : NaN;
-  const linha = (nome, sub, v26, t26, v22, t22, est) => { const p26 = pct(v26, t26), p22 = pct(v22, t22);
-    return `<tr><td><div class="zname">${esc(nome)}</div>${sub?`<span class="zmun">${esc(sub)}</span>`:''}</td><td class="r num">${v26==null?'—':(est?'≈ ':'')+fmt(v26)}</td><td class="r num">${fmtP(p26,1)}</td><td class="r num">${v22==null?'—':fmt(v22)}</td><td class="r num">${fmtP(p22,1)}</td>${dif(p26, p22)}</tr>`; };
+  const linha = (nome, sub, v26, t26, v22, t22, est, ap) => { const p26 = pct(v26, t26), p22 = pct(v22, t22);
+    return `<tr><td><div class="zname">${esc(nome)}</div>${sub?`<span class="zmun">${esc(sub)}</span>`:''}${ap && !isNaN(ap.p) ? apurTag(ap.p, ap.est) : ''}</td><td class="r num">${v26==null?'—':(est?'≈ ':'')+fmt(v26)}</td><td class="r num">${fmtP(p26,1)}</td><td class="r num">${v22==null?'—':fmt(v22)}</td><td class="r num">${fmtP(p22,1)}</td>${dif(p26, p22)}</tr>`; };
   function preencherMun(){
     if ($('cpMun').options.length) return;
     const lista = Object.entries(RJB.mun).map(([cd,m])=>({cd, nm:titulo(m.nm)})).sort((a,b)=>a.nm.localeCompare(b.nm,'pt-BR'));
@@ -3299,7 +3422,7 @@ const COMP = (()=>{
       const linhasZ = zonas.map(zc=>{ const z = z26.get(zc), x = z && z.d.cands.find(y=>y.n===n);
         const k = mun + '|' + zc; return { zc, v26: z ? (x ? x.votos : 0) : null, t26: z ? baseValidos(z.d) : NaN, v22: v22De(k), t22: t22De(k), ap: z ? z.d.tot.pctApurado : NaN }; })
         .sort((a,b)=>(b.v26||0)-(a.v26||0) || (b.v22||0)-(a.v22||0));
-      $('cpZonas').innerHTML = linhasZ.map(z=>linha(`Zona ${Number(z.zc)}`, isNaN(z.ap) ? '' : `apur. ${fmtP(z.ap,1)}`, z.v26, z.t26, z.v22, z.t22)).join('') || '<tr><td colspan="6" class="empty">Sem zonas.</td></tr>';
+      $('cpZonas').innerHTML = linhasZ.map(z=>linha(`Zona ${Number(z.zc)}`, '', z.v26, z.t26, z.v22, z.t22, false, {p:z.ap})).join('') || '<tr><td colspan="6" class="empty">Sem zonas.</td></tr>';
       $('cpZMeta').textContent = `${linhasZ.length} zonas`;
       // ---- bairros do município ----
       const real = cargo === 6 && n && CFG.ambiente !== 'demo' ? await atualizarReais(n.slice(0,2)) : null;
@@ -3322,7 +3445,7 @@ const COMP = (()=>{
       const linhasB = [...nomesB.entries()].map(([k, b])=>{ const x = b22.get(k);
         return { nome: b ? b.nome : (M.b.find(nm=>semAcento(nm)===k) || k), v26: b ? b.v : 0, t26: b ? b.val : NaN, est: b && b.parcialReal < 0.995, v22: i22 >= 0 ? (x ? x.v : 0) : null, t22: x ? x.t : NaN }; })
         .filter(b=>(b.v26 >= 0.5) || (b.v22 >= 0.5)).sort((a,b)=>b.v26-a.v26 || (b.v22||0)-(a.v22||0));
-      $('cpBairros').innerHTML = linhasB.map(b=>linha(titulo(b.nome), '', b.v26, b.t26, b.v22 == null ? null : Math.round(b.v22), b.t22, b.est)).join('') || '<tr><td colspan="6" class="empty">Sem votos nos bairros ainda.</td></tr>';
+      $('cpBairros').innerHTML = linhasB.map(b=>linha(titulo(b.nome), '', b.v26, b.t26, b.v22 == null ? null : Math.round(b.v22), b.t22, b.est, {p:apurBairro(SEL.mun, b.nome), est:true})).join('') || '<tr><td colspan="6" class="empty">Sem votos nos bairros ainda.</td></tr>';
       $('cpBMeta').textContent = `${linhasB.length} bairros`;
       $('cpBNota').textContent = `2026: ${cargo===6 ? 'boletins de urna já lidos + estimativa do restante ("≈").' : 'estimado pelo eleitorado de cada zona.'} ${fonte22} "Dif." = % de 2026 menos % de 2022, em pontos percentuais.`;
       // ---- municípios do estado ----
@@ -3332,7 +3455,7 @@ const COMP = (()=>{
         const v22 = i22 >= 0 ? k22.reduce((s,k)=>s+(v22De(k)||0),0) : null, t22 = k22.reduce((s,k)=>s+(t22De(k)||0),0);
         return { cd, nome: titulo(RJB.mun[cd].nm), v26: a ? (a.votos[n]||0) : null, t26: a ? a.validos : NaN, v22, t22 }; })
         .filter(m=>(m.v26||0) > 0 || (m.v22||0) > 0).sort((a,b)=>(b.v26||0)-(a.v26||0) || (b.v22||0)-(a.v22||0));
-      $('cpMunis').innerHTML = linhasM.map(m=>linha(m.nome, '', m.v26, m.t26, m.v22, m.t22)).join('') || '<tr><td colspan="6" class="empty">Sem votos ainda.</td></tr>';
+      $('cpMunis').innerHTML = linhasM.map(m=>linha(m.nome, '', m.v26, m.t26, m.v22, m.t22, false, {p:apurMun(m.cd)})).join('') || '<tr><td colspan="6" class="empty">Sem votos ainda.</td></tr>';
       $('cpMMeta').textContent = `${linhasM.length} municípios com votos`;
       // ---- resumo ----
       const nomeMun = titulo((RJB.mun[mun]||{}).nm || mun);
