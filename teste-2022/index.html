@@ -244,6 +244,12 @@ body.mob .p5-cols td, body.mob .p5-cols th{padding-left:2px;padding-right:2px}
 .rg-chips{display:flex;flex-wrap:wrap;gap:3px 6px}
 .rg-d{font-size:9.5px;font-weight:700;white-space:nowrap}
 .rg-d.up,.rg-dv.up{color:#1a7f37}.rg-d.dn,.rg-dv.dn{color:#b42318}.rg-d.eq,.rg-dv.eq{color:var(--muted)}
+.rg-pt{display:block;font-size:9.5px;font-weight:600;color:var(--muted)}
+.rg-pcs{display:flex;flex-wrap:wrap;gap:0 7px;font-size:9.5px;font-weight:700;color:var(--muted)}
+.rg-det-g{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:800px){ .rg-det-g{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)} }
+.rg-det-g .rg-card{cursor:default}
+.rg-det-g .rg-card b{font-size:14px}
 .rg-dv{display:block;font-size:9.5px;font-weight:700;white-space:nowrap}
 .rg-cols table{font-size:12.5px}
 body.mob .rg-cols table{font-size:11px}
@@ -270,7 +276,12 @@ body.apres #rgCapG{grid-template-columns:repeat(8,minmax(0,1fr))}
 body.apres #rgEstG{grid-template-columns:repeat(10,minmax(0,1fr))}
 body.apres .rg-cols{display:flex;flex-direction:column;gap:10px}
 body.apres .rg-cols .tt-col{flex:1;min-height:0}
-body.apres .rg-card svg{max-height:64px}
+body.apres .rg-card svg{max-height:46px}
+body.apres #telaReg .cards-head{display:none}
+body.apres #telaReg .rg-card{gap:1px}
+body.apres #telaReg .rg-chips{line-height:1.15}
+body.apres .rg-pcs{font-size:8.5px;gap:0 5px}
+body.apres #rgEstG .rg-pcs span:nth-child(1){display:none}
 body.apres .rg-cols .tt-col:first-child{flex:1.22}
 body.apres .rg-cols .tt-col:last-child{flex:.88}
 body.apres #rgEstG .rg-card svg{max-height:50px}
@@ -1178,7 +1189,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
           <div class="tbl-wrap scroll"><table><thead><tr><th>Região</th><th class="r">2018</th><th class="r">2022</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody id="rgEst"><tr><td colspan="5" class="empty">Carregando…</td></tr></tbody></table></div>
         </div>
       </div>
-      <p class="legend-proj rg-nota">2018 e 2022: Deputada Federal · 2024: Vereadora (capital) · 2026: apuração em andamento. Regiões da capital e votos de 2018 e 2024 por bairro: planilha da campanha (Votação TR 2024-22-18). Gráficos: escala própria em cada região; ponto vazado = 2024 (vereadora); tracejado = 2026 ainda em apuração. Regiões do estado: regiões de governo do RJ, com a Metropolitana dividida em Capital, Baixada Fluminense e Leste Metropolitano.</p>
+      <p class="legend-proj rg-nota">2018 e 2022: Deputada Federal · 2024: Vereadora (capital) · 2026: apuração em andamento. Regiões da capital e votos de 2018 e 2024 por bairro: planilha da campanha (Votação TR 2024-22-18). Percentuais = parte da votação total dela naquele ano. Gráficos: escala própria em cada região; ponto vazado = 2024 (vereadora); tracejado = 2026 ainda em apuração. Regiões do estado: regiões de governo do RJ, com a Metropolitana dividida em Capital, Baixada Fluminense e Leste Metropolitano.</p>
     </div>
   </section>
 </div>
@@ -4268,7 +4279,8 @@ const EVOL = (()=>{
     // ---- municípios ----
     const cds = [...new Set([...Object.keys(B22.mun), ...cid.keys()])].filter(cd=>RJB.mun[cd]);
     const L = cds.map(cd=>({cd, nome: titulo(RJB.mun[cd].nm), a: B22.mun[cd]||0, b: v26(cd)})).filter(m=>m.a > 0 || m.b > 0).sort((x,y)=>(y.b||0)-(x.b||0) || y.a-x.a);
-    $('hmMun').innerHTML = L.map(m=>`<tr data-hm="${m.cd}" class="${m.cd===SEL.mun?'sel':''}"><td><div class="zname">${esc(m.nome)}</div>${apurTag(apurMun(m.cd))}</td><td class="r num">${fmt(m.a)}</td><td class="r num">${m.b == null ? '—' : fmt(m.b) + setaVar(m.b, m.a, '2022')}</td>${varTd(m.a, m.b)}</tr>`).join('') || '<tr><td colspan="5" class="empty">Sem votos.</td></tr>';
+    const tA = L.reduce((s2,m)=>s2+m.a,0), tB = L.reduce((s2,m)=>s2+(m.b||0),0);
+    $('hmMun').innerHTML = L.map(m=>`<tr data-hm="${m.cd}" class="${m.cd===SEL.mun?'sel':''}"><td><div class="zname">${esc(m.nome)}</div>${apurTag(apurMun(m.cd))}</td><td class="r num">${fmt(m.a)}${tA ? `<span class="rg-pt">${fmtP(100*m.a/tA,1)}</span>` : ''}</td><td class="r num">${m.b == null ? '—' : fmt(m.b) + setaVar(m.b, m.a, '2022') + (tB ? `<span class="rg-pt">${fmtP(100*m.b/tB,1)}</span>` : '')}</td>${varTd(m.a, m.b)}</tr>`).join('') || '<tr><td colspan="5" class="empty">Sem votos.</td></tr>';
     grafico($('hmMunG'), L.slice().sort((x,y)=>Math.max(y.a,y.b||0)-Math.max(x.a,x.b||0)).slice(0, document.body.classList.contains('apres') ? 8 : 10).map(m=>({rot:m.nome, cd:m.cd, v:{22:m.a, 26:m.b||0}})), [22, 26]);
     // ---- bairros da cidade escolhida ----
     await bairrosDe(SEL.mun, meu);
@@ -4285,10 +4297,11 @@ const EVOL = (()=>{
       return { nome: titulo((z||x||y).nome), v:{22: x ? x.v : 0, 24: y ? y.v : 0, 26: z ? z.v : 0}, est:{24: !(y && y.real), 26: z ? z.est : false} }; })
       .filter(b=>anos.some(a=>b.v[a] >= 0.5)).sort((p,q)=>q.v[26]-p.v[26] || q.v[22]-p.v[22]);
     $('hmBMeta').textContent = `${L.length} bairros · ${anos.map(a=>ANOS[a].rot).join(' × ')}`;
-    $('hmBai').innerHTML = L.map(b=>`<tr data-loc="b:${mun}:${esc(b.nome)}" data-cargo="6"><td><div class="zname">${esc(b.nome)}</div>${apurTag(apurBairro(mun, b.nome), true)}</td>${anos.map((a,k)=>`<td class="r num">${a===24 && b.v[a] && b.est[24] ? '≈ ' : ''}${a===26 && b.est[26] && b.v[a] ? '≈ ' : ''}${fmt(Math.round(b.v[a]))}${k ? setaVar(Math.round(b.v[a]), Math.round(b.v[anos[k-1]]), ANOS[anos[k-1]].rot) : ''}</td>`).join('')}${varTd(Math.round(b.v[22]), Math.round(b.v[26]))}</tr>`).join('')
+    const TB = {}; anos.forEach(a=>TB[a] = L.reduce((s2,b)=>s2+(b.v[a]||0),0));
+    $('hmBai').innerHTML = L.map(b=>`<tr data-loc="b:${mun}:${esc(b.nome)}" data-cargo="6"><td><div class="zname">${esc(b.nome)}</div>${apurTag(apurBairro(mun, b.nome), true)}</td>${anos.map((a,k)=>`<td class="r num">${a===24 && b.v[a] && b.est[24] ? '≈ ' : ''}${a===26 && b.est[26] && b.v[a] ? '≈ ' : ''}${fmt(Math.round(b.v[a]))}${TB[a] ? `<span class="rg-pt">${fmtP(100*b.v[a]/TB[a],1)}</span>` : ''}${k ? setaVar(Math.round(b.v[a]), Math.round(b.v[anos[k-1]]), ANOS[anos[k-1]].rot) : ''}</td>`).join('')}${varTd(Math.round(b.v[22]), Math.round(b.v[26]))}</tr>`).join('')
       || `<tr><td colspan="${anos.length+3}" class="empty">Sem votos nos bairros de ${esc(nomeMun)}.</td></tr>`;
     grafico($('hmBaiG'), L.slice(0, document.body.classList.contains('apres') ? 7 : 12).map(b=>({rot:b.nome, v:{22:Math.round(b.v[22]), 24:Math.round(b.v[24]), 26:Math.round(b.v[26])}, est:b.est})), anos);
-    $('hmNota').textContent = `2022: votos reais por seção, somados no bairro do local de votação. ${cap ? '2024 (vereadora, nº 40123): votos por bairro da planilha da campanha. ' : ''}2026: boletins de urna já lidos + estimativa do restante ("≈"), apuração em andamento. Clique num bairro para ver os mais votados ali.`;
+    $('hmNota').textContent = `2022: votos reais por seção, somados no bairro do local de votação. ${cap ? '2024 (vereadora, nº 40123): votos por bairro da planilha da campanha. ' : ''}2026: boletins de urna já lidos + estimativa do restante ("≈"), apuração em andamento. Embaixo de cada número: % da votação dela na cidade naquele ano. Clique num bairro para ver os mais votados ali.`;
   }
   ['hmMun','hmMunG'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-hm]'); if (!tr) return;
     SEL.mun = tr.dataset.hm; salvar(); document.querySelectorAll('#hmMun tr').forEach(t=>t.classList.toggle('sel', t.dataset.hm===SEL.mun));
@@ -4304,7 +4317,9 @@ const REG = (()=>{
   const munCd = new Map(Object.entries(RJB.mun).map(([cd, m])=>[semAcento(m.nm), cd]));
   const regMun = {}; Object.entries(D.est).forEach(([r, ms])=>ms.forEach(m=>{ const cd = munCd.get(semAcento(m)); if (cd) regMun[cd] = r; }));
   const m18 = {}; Object.entries(D.m18).forEach(([nm, v])=>{ const cd = munCd.get(semAcento(nm)); if (cd) m18[cd] = v; });
-  let CAPR = null, ESTR = null, seq = 0;
+  let CAPR = null, ESTR = null, seq = 0, TOTC = {}, TOTE = {};
+  const somaAnos = L => ({18:L.reduce((s,x)=>s+(x.v18||0),0), 22:L.reduce((s,x)=>s+(x.v22||0),0), 24:L.reduce((s,x)=>s+(x.v24||0),0), 26:L.reduce((s,x)=>s+(x.v26||0),0)});
+  const pt = (v, tot, rot) => tot > 0 && v != null ? `<span class="rg-pt" title="% ${rot||'do total do ano'}">${fmtP(100*v/tot,1)}</span>` : '';
   // variação em relação à eleição anterior, embaixo do número
   const sinal = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(Math.round(n)));
   const dvar = (b, a) => { if (!(a > 0) || b == null) return ''; const d = b - a, p = 100*d/a, c = Math.abs(p) < 0.5 ? 'eq' : (p > 0 ? 'up' : 'dn');
@@ -4325,11 +4340,11 @@ const REG = (()=>{
     for (const b of bairrosCap(n)) { const k = semAcento(b.nome), x = capIdx.get(k), r = x ? R[x.reg] : outros; r.v26 += b.v; cap26 += b.v;
       const e = r.bairros.get(k) || {nome:b.nome, v18:0, v22:0, v24:0, v26:0}; e.v26 += b.v; e.est = b.parcialReal < 0.995; r.bairros.set(k, e); }
     if (outros.v26 >= 0.5) R.push(outros);
-    R.sort((a,b)=>b.v26-a.v26 || b.v22-a.v22); CAPR = R;
-    $('rgCap').innerHTML = R.map(r=>`<tr data-rg="c${r.i}"><td><div class="zname">${esc(r.nome)}</div><span class="zmun">${r.bairros.size} bairros</span></td><td class="r num">${fmt(r.v18)}</td><td class="r num">${fmt(r.v22)}${dvar(r.v22, r.v18)}</td><td class="r num">${fmt(r.v24)}${dvar(r.v24, r.v22)}</td><td class="r num">${ZONAS ? '≈ ' + fmt(Math.round(r.v26)) + dvar(Math.round(r.v26), r.v24) : '—'}</td>${varTd(r.v22, ZONAS ? r.v26 : null)}</tr>`).join('');
+    R.sort((a,b)=>b.v26-a.v26 || b.v22-a.v22); CAPR = R; TOTC = somaAnos(R);
+    $('rgCap').innerHTML = R.map(r=>`<tr data-rg="c${r.i}"><td><div class="zname">${esc(r.nome)}</div><span class="zmun">${r.bairros.size} bairros</span></td><td class="r num">${fmt(r.v18)}${pt(r.v18, TOTC[18])}</td><td class="r num">${fmt(r.v22)}${pt(r.v22, TOTC[22])}${dvar(r.v22, r.v18)}</td><td class="r num">${fmt(r.v24)}${pt(r.v24, TOTC[24])}${dvar(r.v24, r.v22)}</td><td class="r num">${ZONAS ? '≈ ' + fmt(Math.round(r.v26)) + pt(r.v26, TOTC[26]) + dvar(Math.round(r.v26), r.v24) : '—'}</td>${varTd(r.v22, ZONAS ? r.v26 : null)}</tr>`).join('');
     const t = k => R.reduce((s,r)=>s+r[k], 0);
     $('rgCapMeta').textContent = `${D.capRegs.length} regiões · 2026: ${fmt(Math.round(cap26))} votos · ${fmtP(apurMun(CAP),1)} apurado`;
-    multiplos($('rgCapG'), R.filter(r=>r.i>=0).map(r=>({id:r.i, rot:r.nome, v:{18:r.v18, 22:r.v22, 24:r.v24, 26:r.v26}})), [18, 22, 24, 26], 'c');
+    multiplos($('rgCapG'), R.filter(r=>r.i>=0).map(r=>({id:r.i, rot:r.nome, v:{18:r.v18, 22:r.v22, 24:r.v24, 26:r.v26}, tot:TOTC})), [18, 22, 24, 26], 'c');
     // ---- estado: soma dos municípios por região ----
     const cid = CIDADES ? new Map(CIDADES.map(c=>[c.mun, c])) : new Map();
     const E = Object.keys(D.est).map(nome=>({nome, v18:0, v22:0, v26:0, muns:[]}));
@@ -4337,10 +4352,10 @@ const REG = (()=>{
     for (const cd of Object.keys(RJB.mun)) { const e = porNome.get(regMun[cd]); if (!e) continue;
       const c = cid.get(cd), v26 = c ? (c.votos[n]||0) : 0, v22 = B ? (B.mun[cd]||0) : 0, v18 = m18[cd]||0;
       e.v18 += v18; e.v22 += v22; e.v26 += v26; e.muns.push({cd, nome:titulo(RJB.mun[cd].nm), v18, v22, v26}); }
-    E.sort((a,b)=>b.v26-a.v26 || b.v22-a.v22); ESTR = E;
-    $('rgEst').innerHTML = E.map((e,i)=>`<tr data-rg="e${i}"><td><div class="zname">${esc(e.nome)}</div><span class="zmun">${e.muns.length} município${e.muns.length===1?'':'s'}</span></td><td class="r num">${fmt(e.v18)}</td><td class="r num">${fmt(e.v22)}${dvar(e.v22, e.v18)}</td><td class="r num">${CIDADES ? fmt(e.v26) + dvar(e.v26, e.v22) : '—'}</td>${varTd(e.v22, CIDADES ? e.v26 : null)}</tr>`).join('');
+    E.sort((a,b)=>b.v26-a.v26 || b.v22-a.v22); ESTR = E; TOTE = somaAnos(E);
+    $('rgEst').innerHTML = E.map((e,i)=>`<tr data-rg="e${i}"><td><div class="zname">${esc(e.nome)}</div><span class="zmun">${e.muns.length} município${e.muns.length===1?'':'s'}</span></td><td class="r num">${fmt(e.v18)}${pt(e.v18, TOTE[18])}</td><td class="r num">${fmt(e.v22)}${pt(e.v22, TOTE[22])}${dvar(e.v22, e.v18)}</td><td class="r num">${CIDADES ? fmt(e.v26) + pt(e.v26, TOTE[26]) + dvar(e.v26, e.v22) : '—'}</td>${varTd(e.v22, CIDADES ? e.v26 : null)}</tr>`).join('');
     $('rgEstMeta').textContent = `${E.length} regiões · 2026: ${fmt(E.reduce((s,e)=>s+e.v26,0))} votos · ${fmtP(PCT_EST,1)} apurado`;
-    multiplos($('rgEstG'), E.map((e,i)=>({id:i, rot:e.nome, v:{18:e.v18, 22:e.v22, 26:e.v26}})), [18, 22, 26], 'e');
+    multiplos($('rgEstG'), E.map((e,i)=>({id:i, rot:e.nome, v:{18:e.v18, 22:e.v22, 26:e.v26}, tot:TOTE})), [18, 22, 26], 'e');
   }
   // trajetória de cada região: um mini gráfico de linha por região (escala própria), com votos e variação entre eleições
   const ROT = {18:'2018', 22:'2022', 24:'2024', 26:'2026'};
@@ -4366,21 +4381,32 @@ const REG = (()=>{
           + `<text x="${x.toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="${k===0 ? 'start' : (k===anos.length-1 ? 'end' : 'middle')}" font-size="9" font-weight="700" fill="var(--ink)">${fmt(vs[k])}</text>`
           + `<text x="${x.toFixed(1)}" y="${H-3}" text-anchor="${k===0 ? 'start' : (k===anos.length-1 ? 'end' : 'middle')}" font-size="8" fill="var(--muted)">${ROT[a]}</text></g>`; });
       const chips = anos.slice(1).map((a,k)=>chip(vs[k], vs[k+1], anos[k], a)).join('') + (anos.includes(24) ? chip(vs[anos.indexOf(22)], vs[anos.indexOf(26)], 22, 26) : '');
-      return `<button type="button" class="rg-card" data-rg="${prefixo}${it.id}" title="Ver ${esc(it.rot)}"><b>${esc(it.rot)}</b><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Trajetória de ${esc(it.rot)}">${g}</svg><span class="rg-chips">${chips}</span></button>`;
+      const pcs = it.tot ? `<span class="rg-pcs" title="% da votação total do ano">${anos.map((a,k)=>`<span>${String(a)}: ${it.tot[a] ? fmtP(100*vs[k]/it.tot[a],1) : '—'}</span>`).join('')}</span>` : '';
+      return `<${prefixo === 'x' ? 'div' : 'button type="button"'} class="rg-card" data-rg="${prefixo}${it.id}" title="Ver ${esc(it.rot)}"><b>${esc(it.rot)}</b>${pcs}<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Trajetória de ${esc(it.rot)}">${g}</svg><span class="rg-chips">${chips}</span></${prefixo === 'x' ? 'div' : 'button'}>`;
     }).join('');
+  }
+  // gráficos no topo do quadro da região: trajetória da região e os 10 maiores (bairros ou municípios) por ano
+  function graficosRegiao(item, anos, top, rotTop){
+    const a = document.createElement('div'); multiplos(a, [item], anos, 'x');
+    const b = document.createElement('div'); EVOL.grafico(b, top, anos);
+    return `<section class="rg-det-g"><div class="rg-det-traj"><h3>Trajetória da região</h3>${a.innerHTML}</div><div class="rg-det-bar"><h3>Os ${top.length} maiores ${rotTop} · votos por ano</h3>${b.innerHTML}</div></section>`;
   }
   function abrirRegiao(id){
     const tipo = id[0], k = +id.slice(1);
     if (tipo === 'c') { const r = CAPR && CAPR.find(x=>x.i===k); if (!r) return;
       const L = [...r.bairros.values()].filter(b=>b.v18||b.v22||b.v24||b.v26 >= 0.5).sort((a,b)=>b.v26-a.v26 || b.v22-a.v22);
-      const linhas = L.map((b,j)=>`<tr data-loc="b:${CAP}:${esc(b.nome)}" data-cargo="6"><td class="rk">${j+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro(CAP, b.nome), true)}</td><td class="r num">${fmt(b.v18)}</td><td class="r num">${fmt(b.v22)}${setaVar(b.v22, b.v18, '2018')}</td><td class="r num">${fmt(b.v24)}${setaVar(b.v24, b.v22, '2022')}</td><td class="r num">${b.v26 >= 0.5 ? (b.est ? '≈ ' : '') + fmt(Math.round(b.v26)) : '0'}${setaVar(Math.round(b.v26), b.v24, '2024')}</td>${varTd(b.v22, Math.round(b.v26))}</tr>`).join('');
+      const T = somaAnos(L);
+      const linhas = L.map((b,j)=>`<tr data-loc="b:${CAP}:${esc(b.nome)}" data-cargo="6"><td class="rk">${j+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro(CAP, b.nome), true)}</td><td class="r num">${fmt(b.v18)}${pt(b.v18, T[18], 'da região')}</td><td class="r num">${fmt(b.v22)}${setaVar(b.v22, b.v18, '2018')}${pt(b.v22, T[22], 'da região')}</td><td class="r num">${fmt(b.v24)}${setaVar(b.v24, b.v22, '2022')}${pt(b.v24, T[24], 'da região')}</td><td class="r num">${b.v26 >= 0.5 ? (b.est ? '≈ ' : '') + fmt(Math.round(b.v26)) : '0'}${setaVar(Math.round(b.v26), b.v24, '2024')}${pt(b.v26, T[26], 'da região')}</td>${varTd(b.v22, Math.round(b.v26))}</tr>`).join('');
+      const graf = graficosRegiao({id:'', rot:r.nome, v:{18:r.v18, 22:r.v22, 24:r.v24, 26:r.v26}, tot:TOTC}, [18,22,24,26], L.slice(0,10).map(b=>({rot:titulo(b.nome), v:{18:b.v18, 22:b.v22, 24:b.v24, 26:Math.round(b.v26)}})), 'bairros');
       DET.abrir(esc(r.nome), `Capital · ${L.length} bairros · 2018: ${fmt(r.v18)} · 2022: ${fmt(r.v22)} · 2024: ${fmt(r.v24)} · 2026: ${fmt(Math.round(r.v26))}`,
-        `<table><thead><tr><th>#</th><th>Bairro</th><th class="r">2018</th><th class="r">2022</th><th class="r">2024</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody>${linhas}</tbody></table><p class="det-nota">2018, 2022 e 2024: planilha da campanha. 2026: boletins de urna já lidos + estimativa ("≈"). Clique num bairro para ver os mais votados ali.</p>`, false, {p: apurMun(CAP), rot:'na capital'});
+        graf + `<table><thead><tr><th>#</th><th>Bairro</th><th class="r">2018</th><th class="r">2022</th><th class="r">2024</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody>${linhas}</tbody></table><p class="det-nota">Em cada ano: votos e % da votação da região. 2018, 2022 e 2024: planilha da campanha. 2026: boletins de urna já lidos + estimativa ("≈"). Clique num bairro para ver os mais votados ali.</p>`, false, {p: apurMun(CAP), rot:'na capital'});
     } else { const e = ESTR && ESTR[k]; if (!e) return;
       const L = [...e.muns].filter(m=>m.v18||m.v22||m.v26).sort((a,b)=>b.v26-a.v26 || b.v22-a.v22);
-      const linhas = L.map((m,j)=>`<tr data-loc="m:${m.cd}" data-cargo="6"><td class="rk">${j+1}</td><td><div class="zname">${esc(m.nome)}</div>${apurTag(apurMun(m.cd))}</td><td class="r num">${fmt(m.v18)}</td><td class="r num">${fmt(m.v22)}${setaVar(m.v22, m.v18, '2018')}</td><td class="r num">${fmt(m.v26)}${setaVar(m.v26, m.v22, '2022')}</td>${varTd(m.v22, m.v26)}</tr>`).join('');
+      const T = somaAnos(L);
+      const linhas = L.map((m,j)=>`<tr data-loc="m:${m.cd}" data-cargo="6"><td class="rk">${j+1}</td><td><div class="zname">${esc(m.nome)}</div>${apurTag(apurMun(m.cd))}</td><td class="r num">${fmt(m.v18)}${pt(m.v18, T[18], 'da região')}</td><td class="r num">${fmt(m.v22)}${setaVar(m.v22, m.v18, '2018')}${pt(m.v22, T[22], 'da região')}</td><td class="r num">${fmt(m.v26)}${setaVar(m.v26, m.v22, '2022')}${pt(m.v26, T[26], 'da região')}</td>${varTd(m.v22, m.v26)}</tr>`).join('');
+      const graf = graficosRegiao({id:'', rot:e.nome, v:{18:e.v18, 22:e.v22, 26:e.v26}, tot:TOTE}, [18,22,26], L.slice(0,10).map(m=>({rot:m.nome, v:{18:m.v18, 22:m.v22, 26:m.v26}})), 'municípios');
       DET.abrir(esc(e.nome), `Estado · ${e.muns.length} municípios · 2018: ${fmt(e.v18)} · 2022: ${fmt(e.v22)} · 2026: ${fmt(e.v26)}`,
-        `<table><thead><tr><th>#</th><th>Município</th><th class="r">2018</th><th class="r">2022</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody>${linhas}</tbody></table><p class="det-nota">Clique num município para ver os mais votados ali.</p>`, false, {p: PCT_EST, rot:'no estado'});
+        graf + `<table><thead><tr><th>#</th><th>Município</th><th class="r">2018</th><th class="r">2022</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody>${linhas}</tbody></table><p class="det-nota">Em cada ano: votos e % da votação da região. Clique num município para ver os mais votados ali.</p>`, false, {p: PCT_EST, rot:'no estado'});
     }
   }
   ['rgCap','rgEst','rgCapG','rgEstG'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-rg]'); if (tr) abrirRegiao(tr.dataset.rg); }));
