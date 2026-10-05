@@ -220,6 +220,20 @@ body.mob .p5-cols td, body.mob .p5-cols th{padding-left:2px;padding-right:2px}
 .hm-leg{display:flex;gap:14px;font-size:12px;font-weight:700;color:var(--muted);margin:0 0 4px}
 .hm-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 #hmMun tr{cursor:pointer}
+.rg-mult{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin:4px 0 12px}
+.rg-card{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:8px 8px 6px;font:inherit;color:var(--ink);cursor:pointer}
+.rg-card:hover{border-color:var(--y22)}
+.rg-card b{font-size:13px;font-weight:800}
+.rg-card svg{width:100%;height:auto;display:block}
+.rg-chips{display:flex;flex-wrap:wrap;gap:3px 6px}
+.rg-d{font-size:10.5px;font-weight:800;white-space:nowrap}
+.rg-d.up,.rg-dv.up{color:#1a7f37}.rg-d.dn,.rg-dv.dn{color:#b42318}.rg-d.eq,.rg-dv.eq{color:var(--muted)}
+.rg-dv{display:block;font-size:10.5px;font-weight:800}
+body.apres .rg-mult{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0}
+body.apres .rg-cols .tt-col:last-child .rg-mult{grid-template-columns:repeat(5,minmax(0,1fr))}
+body.apres .rg-card{padding:4px 6px}
+body.apres .rg-card b{font-size:12px}
+body.apres .rg-d{font-size:9.5px}
 .sv{font-size:9px;margin-left:3px;vertical-align:1px}
 .sv.up{color:#1a7f37}
 .sv.dn{color:#b42318}
@@ -231,10 +245,7 @@ body.mob .hm-graf{display:none}
 body.apres .hm-graf{flex:1;min-height:0;display:flex;flex-direction:column}
 body.apres .hm-graf svg{flex:1;min-height:0;height:100%;width:100%}
 body.apres .hm-cols:not(.rg-cols) .tt-col > .tbl-wrap{display:none}
-body.apres .rg-cols .hm-graf{display:none}
-body.apres .rg-cols table{font-size:18px}
-body.apres .rg-cols td{padding-top:7px;padding-bottom:7px}
-body.apres .rg-cols .sv{font-size:12px}
+body.apres .rg-cols .tt-col > .tbl-wrap{display:none}
 body.apres .rg-nota{display:none}
 body.apres .hm-cols .tt-col{overflow:hidden}
 body.apres .hm-cols .legend-proj{display:none}
@@ -1091,20 +1102,20 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
   <section class="tela" id="telaReg" data-nome="Regiões">
     <div class="tt-wrap">
-      <div class="cards-head"><h2>Votação por região</h2><span class="meta">clique numa região para ver os bairros ou municípios dela</span></div>
+      <div class="cards-head"><h2>Votação por região</h2><span class="meta">trajetória de cada região de uma eleição para outra · clique numa região para ver os bairros ou municípios dela</span></div>
       <div class="tt-cols hm-cols rg-cols">
         <div class="box tt-col">
           <div class="box-head"><h2>Capital · regiões</h2><span class="eyebrow" id="rgCapMeta"></span></div>
-          <div class="hm-graf" id="rgCapG"></div>
+          <div class="rg-mult" id="rgCapG"></div>
           <div class="tbl-wrap scroll"><table><thead><tr><th>Região</th><th class="r">2018</th><th class="r">2022</th><th class="r">2024</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody id="rgCap"><tr><td colspan="6" class="empty">Carregando…</td></tr></tbody></table></div>
         </div>
         <div class="box tt-col">
           <div class="box-head"><h2>Estado · regiões</h2><span class="eyebrow" id="rgEstMeta"></span></div>
-          <div class="hm-graf" id="rgEstG"></div>
+          <div class="rg-mult" id="rgEstG"></div>
           <div class="tbl-wrap scroll"><table><thead><tr><th>Região</th><th class="r">2018</th><th class="r">2022</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody id="rgEst"><tr><td colspan="5" class="empty">Carregando…</td></tr></tbody></table></div>
         </div>
       </div>
-      <p class="legend-proj rg-nota">2018 e 2022: Deputada Federal · 2024: Vereadora (capital) · 2026: apuração em andamento. Regiões da capital e votos de 2018 e 2024 por bairro: planilha da campanha (Votação TR 2024-22-18). Regiões do estado: regiões de governo do RJ, com a Metropolitana dividida em Capital, Baixada Fluminense e Leste Metropolitano.</p>
+      <p class="legend-proj rg-nota">2018 e 2022: Deputada Federal · 2024: Vereadora (capital) · 2026: apuração em andamento. Regiões da capital e votos de 2018 e 2024 por bairro: planilha da campanha (Votação TR 2024-22-18). Gráficos: escala própria em cada região; ponto vazado = 2024 (vereadora); tracejado = 2026 ainda em apuração. Regiões do estado: regiões de governo do RJ, com a Metropolitana dividida em Capital, Baixada Fluminense e Leste Metropolitano.</p>
     </div>
   </section>
 </div>
@@ -3951,6 +3962,9 @@ const REG = (()=>{
   const regMun = {}; Object.entries(D.est).forEach(([r, ms])=>ms.forEach(m=>{ const cd = munCd.get(semAcento(m)); if (cd) regMun[cd] = r; }));
   const m18 = {}; Object.entries(D.m18).forEach(([nm, v])=>{ const cd = munCd.get(semAcento(nm)); if (cd) m18[cd] = v; });
   let CAPR = null, ESTR = null, seq = 0;
+  // variação em relação à eleição anterior, embaixo do número
+  const dvar = (b, a) => { if (!(a > 0) || b == null) return ''; const p = 100*(b-a)/a, c = Math.abs(p) < 0.5 ? 'eq' : (p > 0 ? 'up' : 'dn');
+    return `<span class="rg-dv ${c}">${c==='eq' ? '▬ 0' : (p > 0 ? '▲ +' : '▼ ') + p.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</span>`; };
   const varTd = (a, b) => { if (!(a > 0) || b == null) return '<td class="r num">—</td>'; const p = 100*(b-a)/a;
     if (Math.abs(p) < 0.5) return '<td class="r num" style="color:var(--muted)">▬ 0%</td>';
     return `<td class="r num ${p >= 0 ? 'cp-sobe' : 'cp-cai'}">${p >= 0 ? '▲ +' : '▼ '}${p.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</td>`; };
@@ -3968,10 +3982,10 @@ const REG = (()=>{
       const e = r.bairros.get(k) || {nome:b.nome, v18:0, v22:0, v24:0, v26:0}; e.v26 += b.v; e.est = b.parcialReal < 0.995; r.bairros.set(k, e); }
     if (outros.v26 >= 0.5) R.push(outros);
     R.sort((a,b)=>b.v26-a.v26 || b.v22-a.v22); CAPR = R;
-    $('rgCap').innerHTML = R.map(r=>`<tr data-rg="c${r.i}"><td><div class="zname">${esc(r.nome)}</div><span class="zmun">${r.bairros.size} bairros</span></td><td class="r num">${fmt(r.v18)}</td><td class="r num">${fmt(r.v22)}${setaVar(r.v22, r.v18, '2018')}</td><td class="r num">${fmt(r.v24)}${setaVar(r.v24, r.v22, '2022')}</td><td class="r num">${ZONAS ? '≈ ' + fmt(Math.round(r.v26)) + setaVar(Math.round(r.v26), r.v24, '2024') : '—'}</td>${varTd(r.v22, ZONAS ? r.v26 : null)}</tr>`).join('');
+    $('rgCap').innerHTML = R.map(r=>`<tr data-rg="c${r.i}"><td><div class="zname">${esc(r.nome)}</div><span class="zmun">${r.bairros.size} bairros</span></td><td class="r num">${fmt(r.v18)}</td><td class="r num">${fmt(r.v22)}${dvar(r.v22, r.v18)}</td><td class="r num">${fmt(r.v24)}${dvar(r.v24, r.v22)}</td><td class="r num">${ZONAS ? '≈ ' + fmt(Math.round(r.v26)) + dvar(Math.round(r.v26), r.v24) : '—'}</td>${varTd(r.v22, ZONAS ? r.v26 : null)}</tr>`).join('');
     const t = k => R.reduce((s,r)=>s+r[k], 0);
     $('rgCapMeta').textContent = `${D.capRegs.length} regiões · 2026: ${fmt(Math.round(cap26))} votos · ${fmtP(apurMun(CAP),1)} apurado`;
-    EVOL.grafico($('rgCapG'), R.filter(r=>r.i>=0).map(r=>({rot:r.nome, v:{18:r.v18, 22:r.v22, 24:r.v24, 26:Math.round(r.v26)}, est:{26:true}})), [18, 22, 24, 26]);
+    multiplos($('rgCapG'), R.filter(r=>r.i>=0).map(r=>({id:r.i, rot:r.nome, v:{18:r.v18, 22:r.v22, 24:r.v24, 26:r.v26}})), [18, 22, 24, 26], 'c');
     // ---- estado: soma dos municípios por região ----
     const cid = CIDADES ? new Map(CIDADES.map(c=>[c.mun, c])) : new Map();
     const E = Object.keys(D.est).map(nome=>({nome, v18:0, v22:0, v26:0, muns:[]}));
@@ -3980,9 +3994,36 @@ const REG = (()=>{
       const c = cid.get(cd), v26 = c ? (c.votos[n]||0) : 0, v22 = B ? (B.mun[cd]||0) : 0, v18 = m18[cd]||0;
       e.v18 += v18; e.v22 += v22; e.v26 += v26; e.muns.push({cd, nome:titulo(RJB.mun[cd].nm), v18, v22, v26}); }
     E.sort((a,b)=>b.v26-a.v26 || b.v22-a.v22); ESTR = E;
-    $('rgEst').innerHTML = E.map((e,i)=>`<tr data-rg="e${i}"><td><div class="zname">${esc(e.nome)}</div><span class="zmun">${e.muns.length} município${e.muns.length===1?'':'s'}</span></td><td class="r num">${fmt(e.v18)}</td><td class="r num">${fmt(e.v22)}${setaVar(e.v22, e.v18, '2018')}</td><td class="r num">${CIDADES ? fmt(e.v26) + setaVar(e.v26, e.v22, '2022') : '—'}</td>${varTd(e.v22, CIDADES ? e.v26 : null)}</tr>`).join('');
+    $('rgEst').innerHTML = E.map((e,i)=>`<tr data-rg="e${i}"><td><div class="zname">${esc(e.nome)}</div><span class="zmun">${e.muns.length} município${e.muns.length===1?'':'s'}</span></td><td class="r num">${fmt(e.v18)}</td><td class="r num">${fmt(e.v22)}${dvar(e.v22, e.v18)}</td><td class="r num">${CIDADES ? fmt(e.v26) + dvar(e.v26, e.v22) : '—'}</td>${varTd(e.v22, CIDADES ? e.v26 : null)}</tr>`).join('');
     $('rgEstMeta').textContent = `${E.length} regiões · 2026: ${fmt(E.reduce((s,e)=>s+e.v26,0))} votos · ${fmtP(PCT_EST,1)} apurado`;
-    EVOL.grafico($('rgEstG'), E.map(e=>({rot:e.nome, v:{18:e.v18, 22:e.v22, 26:e.v26}})), [18, 22, 26]);
+    multiplos($('rgEstG'), E.map((e,i)=>({id:i, rot:e.nome, v:{18:e.v18, 22:e.v22, 26:e.v26}})), [18, 22, 26], 'e');
+  }
+  // trajetória de cada região: um mini gráfico de linha por região (escala própria), com votos e variação entre eleições
+  const ROT = {18:'2018', 22:'2022', 24:'2024', 26:'2026'};
+  const dPct = (a, b) => a > 0 ? 100*(b-a)/a : NaN;
+  const chip = (a, b, de, para) => { const p = dPct(a, b); if (isNaN(p)) return '';
+    const c = Math.abs(p) < 0.5 ? 'eq' : (p > 0 ? 'up' : 'dn');
+    return `<span class="rg-d ${c}" title="${ROT[de]} → ${ROT[para]}">${String(de)}→${String(para)} ${c==='eq' ? '▬ 0' : (p > 0 ? '▲ +' : '▼ ') + p.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</span>`; };
+  function multiplos(el, itens, anos, prefixo){
+    if (!el) return;
+    const W = 220, H = 92, pl = 14, pr = 14, pt = 18, pb = 16;
+    const xs = anos.map(a=>2000+a), x0 = Math.min(...xs), x1 = Math.max(...xs);
+    const X = a => pl + (W-pl-pr) * ((2000+a) - x0) / (x1 - x0);
+    const parcial = PCT_EST < 99.95;
+    el.innerHTML = itens.map(it=>{
+      const vs = anos.map(a=>Math.round(it.v[a]||0)), max = Math.max(1, ...vs);
+      const Y = v => pt + (H-pt-pb) * (1 - v/max);
+      const pts = anos.map((a,k)=>[X(a), Y(vs[k])]);
+      const seg = (k, dash) => `<line x1="${pts[k][0].toFixed(1)}" y1="${pts[k][1].toFixed(1)}" x2="${pts[k+1][0].toFixed(1)}" y2="${pts[k+1][1].toFixed(1)}" stroke="var(--y22)" stroke-width="2" stroke-linecap="round"${dash ? ' stroke-dasharray="4 3"' : ''}/>`;
+      let g = `<line x1="${pl}" y1="${H-pb}" x2="${W-pr}" y2="${H-pb}" stroke="var(--line)" stroke-width="1"/>`;
+      for (let k=0; k<pts.length-1; k++) g += seg(k, parcial && anos[k+1]===26);
+      anos.forEach((a,k)=>{ const [x,y] = pts[k], cor = a===26 ? 'var(--y26)' : 'var(--y22)', oco = a===24;
+        g += `<g><title>${it.rot} · ${ROT[a]}: ${fmt(vs[k])} votos${a===24 ? ' (vereadora)' : ''}${a===26 && parcial ? ' (parcial)' : ''}</title><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${oco ? 'var(--panel)' : cor}" stroke="${cor}" stroke-width="2"/>`
+          + `<text x="${x.toFixed(1)}" y="${(y-7).toFixed(1)}" text-anchor="${k===0 ? 'start' : (k===anos.length-1 ? 'end' : 'middle')}" font-size="10" font-weight="700" fill="var(--ink)">${fmt(vs[k])}</text>`
+          + `<text x="${x.toFixed(1)}" y="${H-3}" text-anchor="${k===0 ? 'start' : (k===anos.length-1 ? 'end' : 'middle')}" font-size="9" fill="var(--muted)">${ROT[a]}</text></g>`; });
+      const chips = anos.slice(1).map((a,k)=>chip(vs[k], vs[k+1], anos[k], a)).join('') + (anos.includes(24) ? chip(vs[anos.indexOf(22)], vs[anos.indexOf(26)], 22, 26) : '');
+      return `<button type="button" class="rg-card" data-rg="${prefixo}${it.id}" title="Ver ${esc(it.rot)}"><b>${esc(it.rot)}</b><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Trajetória de ${esc(it.rot)}">${g}</svg><span class="rg-chips">${chips}</span></button>`;
+    }).join('');
   }
   function abrirRegiao(id){
     const tipo = id[0], k = +id.slice(1);
@@ -3998,7 +4039,7 @@ const REG = (()=>{
         `<table><thead><tr><th>#</th><th>Município</th><th class="r">2018</th><th class="r">2022</th><th class="r">2026</th><th class="r">Var. 22→26</th></tr></thead><tbody>${linhas}</tbody></table><p class="det-nota">Clique num município para ver os mais votados ali.</p>`, false, {p: PCT_EST, rot:'no estado'});
     }
   }
-  ['rgCap','rgEst'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('tr[data-rg]'); if (tr) abrirRegiao(tr.dataset.rg); }));
+  ['rgCap','rgEst','rgCapG','rgEstG'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-rg]'); if (tr) abrirRegiao(tr.dataset.rg); }));
   return { atualizar };
 })();
 window.IDX_REG = TELAS.findIndex(t=>t.id==='telaReg'); window.REG = REG;
