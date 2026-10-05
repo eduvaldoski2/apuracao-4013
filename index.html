@@ -4760,6 +4760,7 @@ const IA = (()=>{
 
 
 
+
 /* ==== CONS INÍCIO ==== */
 /* ============ CONSULTA DE RESULTADOS 2018–2026 ============
    Dados históricos: TSE, dados abertos (votação por seção + eleitorado por local de votação), já somados por bairro e zona
@@ -5094,7 +5095,9 @@ const CUI = (()=>{
   // por ano, a candidatura principal (se a pessoa disputou dois cargos no mesmo ano, fica a mais votada)
   const porAno = L => { const m = new Map(); for (const x of L) { const o = m.get(x.ano); if (!o || x.v > o.v) m.set(x.ano, x); } return m; };
   // total de válidos da disputa da candidatura (estado ou município)
-  function validosDisputa(D){ const x = D.x; if (C.MUNIC(x.c)) return D.valMun.get(x.ue) || 0; let t = 0; for (const v of D.valMun.values()) t += v; return t; }
+  function validosDisputa(D){ const x = D.x; if (C.MUNIC(x.c)) return D.valMun.get(x.ue) || 0; let t = 0; for (const v of D.valMun.values()) t += v;
+    if (!t && x.ano === 2026) { const d = (x.c === 6 ? ULTIMO : EST) && (x.c === 6 ? ULTIMO : EST).d; if (d) { t = d.cands.reduce((s,c)=>s+(c.votos||0),0); for (const v of Object.values(d.legPart||{})) t += v; } }
+    return t; }
 
   /* ================= TELA: CANDIDATURA ================= */
   let seqF = 0, VISTA_F = 'regEst';
