@@ -3131,7 +3131,7 @@ function abrirPartido(agr, cg){
     res + `<table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Situação</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="empty">Sem candidaturas.</td></tr>'}</tbody></table><p class="det-nota">${LEGENDA_SELO}. Clique numa candidatura para ver onde ela foi mais votada.</p>`, false, { p: d.tot && !isNaN(d.tot.pctApurado) ? d.tot.pctApurado : PCT_EST, rot: 'no estado' });
 }
 function trocarEscPT(){ PT_ESC = $('ptEsc').value; try { localStorage.setItem('painelPtEsc', PT_ESC); } catch(e){} renderPartidos();
-  if (PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) CONG.atualizar().then(renderPartidos); carregarEst7(); } }
+  if (PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); } }
 $('ptEsc').addEventListener('change', trocarEscPT);
 ['ptFe','ptDe','ptFeSeats','ptDeSeats'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-agr]'); if (tr) abrirPartido(tr.dataset.agr, +tr.dataset.cargo); }));
 ['fe','de'].forEach(px=>$(px+'Partidos').addEventListener('click', e=>{
@@ -3194,9 +3194,10 @@ async function atualizar(){
     if (mqApres.matches || telaAtual===IDX_MUN) atualizarMunicipio();
     if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
     if (telaAtual === window.IDX_CONG && window.CONG) CONG.atualizar();
-    if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) CONG.atualizar().then(renderPartidos); carregarEst7(); }
+    if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); }
     if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
     if (telaAtual === window.IDX_REG && window.REG) REG.atualizar();
+    if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && window.CONG) { Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); }
     const agora = new Date().toLocaleTimeString('pt-BR');
     const novo = d.tot.hora && d.tot.hora !== ultimaHora;
     $('meta').textContent = (d.tot.hora ? `Totalização ${d.tot.hora} · ` : '') + `verificado às ${agora}` + (ultimaHora && !novo ? ' · sem dados novos' : (ultimaHora ? ' · dados novos' : ''));
@@ -3358,9 +3359,10 @@ function mostrarTela(i){
   if (telaAtual===IDX_MUN && !MUN_DADOS) atualizarMunicipio();
   if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
   if (telaAtual === window.IDX_CONG && window.CONG) CONG.atualizar();
-  if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) CONG.atualizar().then(renderPartidos); carregarEst7(); }
+  if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); }
   if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
   if (telaAtual === window.IDX_REG && window.REG) REG.atualizar();
+  if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && window.CONG) { Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); }
   if (TELAS[telaAtual] && TELAS[telaAtual].id==='telaEvo') renderGrafico();
   restante = DUR_TELA; fimTela = Date.now()+DUR_TELA;
 }
