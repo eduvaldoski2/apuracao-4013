@@ -213,6 +213,16 @@ body.mob .det-head{flex-wrap:wrap}
 .det-corpo tr.sep td{border-top:2px dashed var(--line)}
 .det-msg{color:var(--muted);margin:8px 0}
 .det-nota{color:var(--muted);font-size:12px;margin-top:6px}
+.det-tabs{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 2px}
+.det-tabs button{border:1px solid var(--line);background:var(--panel);color:var(--purple-ink);border-radius:999px;padding:5px 14px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+.det-tabs button.on{background:var(--purple-ink);color:#fff;border-color:var(--purple-ink)}
+@media (max-width:600px){ .det-tabs{gap:4px} .det-tabs button{padding:4px 10px;font-size:12px} }
+.det-corpo section.oculta{display:none!important}
+tbody tr[data-rgc]{cursor:pointer}
+tbody tr[data-rgc]:hover td{background:var(--hover, rgba(64,52,131,.07))}
+.rgbar{height:5px;border-radius:3px;background:rgba(127,127,127,.15);margin:3px 0 1px;max-width:180px}
+.rgbar i{display:block;height:100%;border-radius:3px;background:var(--y26,#e8770a)}
+.zreg{display:block;font-size:11px;color:var(--purple-ink);opacity:.8}
 .det-acoes{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .det-link{border:1px solid var(--line);background:var(--panel);color:var(--purple-ink);border-radius:8px;padding:6px 12px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
 .det-link:hover{border-color:var(--purple-ink)}
@@ -2424,7 +2434,7 @@ function tabelaBairros(ids, comb, ctx){
   const tot = ctx.totDela > 0 ? ctx.totDela : bs.reduce((s,b)=>s+b.v,0);
   const pctReal = comb.total ? 100*comb.real/comb.total : 0;
   if (pctH) $(pctH).textContent = '% bairro';
-  $(tb).innerHTML = bs.map((b,k)=>`<tr data-loc="b:${esc(ctx.mun||'')}:${esc(b.nome)}" data-cargo="${ctx.cargo||6}" data-parcial="${b.parcialReal>0.995?1:0}"><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div>${apurTag(apurBairro(ctx.mun||'60011', b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}${(()=>{ const k = semAcento(b.nome), R = ctx.posReal && b.parcialReal >= 0.5 ? ctx.posReal.get(k) : null, E = ctx.pos && ctx.pos.get(k);
+  $(tb).innerHTML = bs.map((b,k)=>`<tr data-loc="b:${esc(ctx.mun||'')}:${esc(b.nome)}" data-cargo="${ctx.cargo||6}" data-parcial="${b.parcialReal>0.995?1:0}"><td><div class="zname">${k+1}. ${esc(titulo(b.nome))}</div>${(ctx.mun||'60011')==='60011' ? tagReg(regiaoBairro(b.nome)) : ''}${apurTag(apurBairro(ctx.mun||'60011', b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}${(()=>{ const k = semAcento(b.nome), R = ctx.posReal && b.parcialReal >= 0.5 ? ctx.posReal.get(k) : null, E = ctx.pos && ctx.pos.get(k);
       if (R) return ` <span class="rkp" title="Posição entre ${R.n} candidaturas com votos no bairro, contada nos boletins de urna já lidos">(${R.pos}º)</span>`;
       return E ? ` <span class="rkp" title="Posição estimada pelo eleitorado da zona (boletins do bairro ainda não lidos)">(≈${E.pos}º)</span>` : ''; })()}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td>${ctx.c22 ? cel22((ctx.c22[semAcento(b.nome)]||null), b.pct) : ''}</tr>`).join('')
     || `<tr><td colspan="${ctx.c22?5:4}" class="empty">${ctx.vazio || 'Sem votos ainda.'}</td></tr>`;
@@ -2461,7 +2471,7 @@ function renderTatiana(){
   if (!ZONAS) { ['ttZonas','ttBairros','ttMun'].forEach(id=>$(id).innerHTML = vazio('Carregando dados por zona…')); return; }
   const taxa = PROJ ? PROJ.taxa[c.n]||0 : 0;
   const lista = itens => itens.map(z=>Object.assign(Object.create(z), {v:z.votos[c.n]||0, p:projZona(z,c.n,taxa)})).filter(z=>z.v>0).sort((a,b)=>b.v-a.v);
-  const linha = (z,k,par22,tot) => `<tr data-loc="${z.mun ? 'm:'+esc(z.mun) : 'z:'+esc(z.rotulo)}"><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div>${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}${apurTag(z.pctApurado)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td>${tot !== undefined ? `<td class="r num">${tot ? fmtP(100*z.v/tot,1) : '—'}</td>` : ''}<td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?` <span class="rkp">(${posNaZona(z,c.n)}º)</span>`:''}</td>${com22 ? cel22(par22, z.validos ? 100*z.v/z.validos : NaN) : ''}</tr>`;
+  const linha = (z,k,par22,tot) => `<tr data-loc="${z.mun ? 'm:'+esc(z.mun) : 'z:'+esc(z.rotulo)}"><td><div class="zname">${k+1}. ${esc(z.rotulo)}</div>${z.sub?`<span class="zmun">${esc(z.sub)}</span>`:''}${z.mun ? tagReg(regiaoMun(z.mun)) : ''}${apurTag(z.pctApurado)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.validos?fmtP(100*z.v/z.validos,1):'—'}</td>${tot !== undefined ? `<td class="r num">${tot ? fmtP(100*z.v/tot,1) : '—'}</td>` : ''}<td class="r num pj">${fmt(Math.max(z.v,z.p))}${PROJ?` <span class="rkp">(${posNaZona(z,c.n)}º)</span>`:''}</td>${com22 ? cel22(par22, z.validos ? 100*z.v/z.validos : NaN) : ''}</tr>`;
   const zs = lista(ZONAS), ms = lista(CIDADES||[]);
   $('ttZonas').innerHTML = zs.map((z,k)=>linha(z,k, z.zona ? COMP22_Z[z.zona] : null)).join('') || vazio('Sem votos por zona ainda.');
   $('ttZMeta').textContent = zs.length ? `${zs.length} zonas com votos` : '';
@@ -3675,21 +3685,61 @@ const DET = (()=>{
     if (meu !== seq || !dlg.open) return;
     if (!Z || !Z.length) { $('detCorpo').innerHTML = '<p class="det-msg">Os votos por zona deste cargo ainda não estão disponíveis.</p>'; return; }
     const top = (itens, max) => itens.map(x=>({x, v:x.votos[n]||0})).filter(o=>o.v>0).sort((a,b)=>b.v-a.v).slice(0, max);
-    const linhaLoc = (o,k,loc,nome,sub2) => `<tr data-loc="${esc(loc)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(nome)}</div>${sub2?`<span class="zmun">${esc(sub2)}</span>`:''}${apurTag(!isNaN(o.x.pctApurado) ? o.x.pctApurado : (loc.startsWith('m:') ? apurMun(loc.slice(2)) : ((ZONAS||[]).find(z=>z.rotulo===o.x.rotulo)||{}).pctApurado))}</td><td class="r num">${fmt(o.v)}</td><td class="r num">${o.x.validos?fmtP(100*o.v/o.x.validos,1):'—'}</td><td class="r num">${tot?fmtP(100*o.v/tot,1):'—'}</td></tr>`;
+    const linhaLoc = (o,k,loc,nome,sub2,reg) => `<tr data-loc="${esc(loc)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(nome)}</div>${sub2?`<span class="zmun">${esc(sub2)}</span>`:''}${tagReg(reg)}${apurTag(!isNaN(o.x.pctApurado) ? o.x.pctApurado : (loc.startsWith('m:') ? apurMun(loc.slice(2)) : ((ZONAS||[]).find(z=>z.rotulo===o.x.rotulo)||{}).pctApurado))}</td><td class="r num">${fmt(o.v)}</td><td class="r num">${o.x.validos?fmtP(100*o.v/o.x.validos,1):'—'}</td><td class="r num">${tot?fmtP(100*o.v/tot,1):'—'}</td></tr>`;
     const cab = (local) => ['#', local, 'Votos', '% local', '% do total'];
-    const muns = top(C||[], 20).map((o,k)=>linhaLoc(o,k,'m:'+o.x.mun, o.x.rotulo).replace('<tr ', `<tr data-cand="${esc(n)}" title="Ver os bairros onde ${esc(titulo(c.nome))} foi mais votada(o) neste município" `)).join('');
-    const zs = top(Z, 20).map((o,k)=>linhaLoc(o,k,'z:'+o.x.rotulo, o.x.rotulo, o.x.sub)).join('');
+    const muns = top(C||[], 60).map((o,k)=>linhaLoc(o,k,'m:'+o.x.mun, o.x.rotulo, '', regiaoMun(o.x.mun)).replace('<tr ', `<tr data-cand="${esc(n)}" title="Ver os bairros onde ${esc(titulo(c.nome))} foi mais votada(o) neste município" `)).join('');
+    const zs = top(Z, 40).map((o,k)=>linhaLoc(o,k,'z:'+o.x.rotulo, o.x.rotulo, o.x.sub)).join('');
     // bairros do Rio: boletins de urna (só Dep. Federal) + estimativa pelo eleitorado da zona
     let real = null; if (cargo===6 && CFG.ambiente!=='demo') { try { real = await atualizarReais(n.slice(0,2)); } catch(e){} }
     if (meu !== seq || !dlg.open) return;
     const capZ = Z.filter(z=>z.munRio).map(z=>({zc:z.zona, v:z.votos[n]||0, t:z.validos||0}));
     const comb = bairrosDoMunicipio('60011', capZ, n, real);
-    const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v).slice(0, 20);
-    const linhasB = bs.map((b,k)=>`<tr data-loc="b:60011:${esc(b.nome)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro('60011', b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td></tr>`).join('');
+    const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v).slice(0, 60);
+    const linhasB = bs.map((b,k)=>`<tr data-loc="b:60011:${esc(b.nome)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${tagReg(regiaoBairro(b.nome))}${apurTag(apurBairro('60011', b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${tot?fmtP(100*b.v/tot,1):'—'}</td></tr>`).join('');
+    // ---- regiões: estado (soma dos municípios) e capital (soma dos bairros) ----
+    const agrupa = (lista, regDe, outros) => { const m = new Map();
+      for (const x of lista) { const r = regDe(x) || outros, e = m.get(r) || {nome:r, v:0, val:0, itens:[], est:false}; e.v += x.v; e.val += x.val; if (x.v >= 0.5) e.itens.push(x); if (x.est) e.est = true; m.set(r, e); }
+      return [...m.values()].filter(e=>e.v >= 0.5 || e.nome !== outros).sort((a,b)=>b.v-a.v); };
+    const RE = agrupa((C||[]).map(x=>({cd:x.mun, nome:x.rotulo, v:x.votos[n]||0, val:x.validos||0})), x=>regiaoMun(x.cd), 'Outros municípios');
+    const RC = agrupa(comb.lista.map(b=>({nome:b.nome, v:b.v, val:b.val, est:b.parcialReal < 0.995 && b.v >= 0.5})), x=>regiaoBairro(x.nome), 'Outros bairros');
+    CREG.set(n+'|'+cargo, {RE, RC, tot, titC, AP, nome:titulo(c.nome)});
+    const linhasReg = (R, tipo, unid) => { const mx = Math.max(1, ...R.map(r=>r.v));
+      return R.map((r,k)=>`<tr data-rgc="${tipo}:${esc(r.nome)}" data-cand="${esc(n)}" data-cargo="${cargo}" title="Ver ${tipo==='e'?'os municípios':'os bairros'} desta região"><td class="rk">${k+1}</td><td><div class="zname">${esc(r.nome)}</div><span class="zmun">${r.itens.length} ${unid}${r.itens.length===1?'':'s'} com votos</span><div class="rgbar"><i style="width:${(100*r.v/mx).toFixed(1)}%"></i></div></td><td class="r num">${r.est?'≈ ':''}${fmt(Math.round(r.v))}</td><td class="r num">${r.val?fmtP(100*r.v/r.val,1):'—'}</td><td class="r num">${tot?fmtP(100*r.v/tot,1):'—'}</td></tr>`).join(''); };
+    const totCap = RC.reduce((s2,r)=>s2+r.v,0);
+    const V = VISTA_C, sec = (v, cls, html) => `<section class="${cls}${V!==v?' oculta':''}" data-v="${v}">${html}</section>`;
+    const abas = `<div class="det-tabs" role="tablist">${[['reg','Regiões'],['mun','Municípios'],['bai','Bairros'],['zon','Zonas']].map(([k,r])=>`<button type="button" role="tab" data-vista="${k}" class="${k===V?'on':''}">${r}</button>`).join('')}</div>`;
+    const notaB = cargo===6 ? 'Bairros pelos boletins de urna já lidos; "≈" = parte estimada pelo eleitorado da zona.' : 'Bairros estimados pelo eleitorado de cada zona (os boletins de urna são lidos só para Deputado Federal).';
+    const notaG = '"% local" = dos votos válidos do local; "% do total" = da votação total da candidatura.';
     $('detCorpo').classList.add('duas');
-    $('detCorpo').innerHTML = `<section><h3>Municípios</h3>${tabela(cab('Município'), muns)}</section>`
-      + `<section><h3>Zonas eleitorais</h3>${tabela(cab('Zona'), zs)}</section>`
-      + `<section class="larga"><h3>Bairros do Rio</h3>${tabela(cab('Bairro'), linhasB, 'Sem votos na capital ainda.')}<p class="det-nota">${cargo===6 ? 'Bairros pelos boletins de urna já lidos; "≈" = parte estimada pelo eleitorado da zona.' : 'Bairros estimados pelo eleitorado de cada zona (os boletins de urna são lidos só para Deputado Federal).'} "% local" = dos votos válidos do local; "% do total" = da votação total da candidatura. Clique numa linha para ver os mais votados ali.</p></section>`;
+    $('detCorpo').innerHTML = abas
+      + sec('reg', '', `<h3>Regiões do estado</h3>${tabela(cab('Região'), linhasReg(RE, 'e', 'município'))}<p class="det-nota">10 regiões do estado (a capital é uma delas). Clique numa região para ver seus municípios.</p>`)
+      + sec('reg', '', `<h3>Regiões da capital</h3>${tabela(cab('Região'), linhasReg(RC, 'c', 'bairro'), 'Sem votos na capital ainda.')}<p class="det-nota">${totCap ? fmt(Math.round(totCap)) + ' votos na capital. ' : ''}8 regiões da cidade do Rio. Clique numa região para ver seus bairros. ${notaB}</p>`)
+      + sec('mun', 'larga', `<h3>Municípios</h3>${tabela(cab('Município'), muns)}<p class="det-nota">${notaG} Clique num município para ver os bairros onde a candidatura foi mais votada.</p>`)
+      + sec('bai', 'larga', `<h3>Bairros do Rio</h3>${tabela(cab('Bairro'), linhasB, 'Sem votos na capital ainda.')}<p class="det-nota">${notaB} ${notaG} Clique numa linha para ver os mais votados ali.</p>`)
+      + sec('zon', 'larga', `<h3>Zonas eleitorais</h3>${tabela(cab('Zona'), zs)}<p class="det-nota">${notaG}</p>`);
+  }
+  // abas do detalhe da candidatura (a escolha fica lembrada)
+  const CREG = new Map();
+  let VISTA_C = 'mun'; try { VISTA_C = localStorage.getItem('vistaCand') || 'mun'; } catch(e){}
+  $('detCorpo').addEventListener('click', ev=>{
+    const b = ev.target.closest('.det-tabs button[data-vista]');
+    if (b) { VISTA_C = b.dataset.vista; try { localStorage.setItem('vistaCand', VISTA_C); } catch(e){}
+      $('detCorpo').querySelectorAll('.det-tabs button').forEach(x=>x.classList.toggle('on', x===b));
+      $('detCorpo').querySelectorAll('section[data-v]').forEach(x=>x.classList.toggle('oculta', x.dataset.v !== VISTA_C)); return; }
+    const tr = ev.target.closest('tbody tr[data-rgc]'); if (!tr) return;
+    abrirCandReg(tr.dataset.cand, +tr.dataset.cargo || 6, tr.dataset.rgc);
+  });
+  // candidatura dentro de uma região: municípios (estado) ou bairros (capital)
+  function abrirCandReg(n, cargo, rgc){
+    const G = CREG.get(n+'|'+cargo); if (!G) return abrirCand(n, cargo);
+    const tipo = rgc.slice(0,1), nome = rgc.slice(2), R = (tipo==='e' ? G.RE : G.RC).find(r=>r.nome===nome); if (!R) return;
+    const its = [...R.itens].sort((a,b)=>b.v-a.v);
+    const linhas = its.map((x,k)=>{ const loc = tipo==='e' ? 'm:'+x.cd : 'b:60011:'+x.nome;
+      return `<tr data-loc="${esc(loc)}" data-cargo="${cargo}"${tipo==='e' ? ` data-cand="${esc(n)}"` : ''}><td class="rk">${k+1}</td><td><div class="zname">${esc(tipo==='e' ? x.nome : titulo(x.nome))}</div>${tipo==='e' ? apurTag(apurMun(x.cd)) : apurTag(apurBairro('60011', x.nome), true)}</td><td class="r num">${x.est?'≈ ':''}${fmt(Math.round(x.v))}</td><td class="r num">${x.val?fmtP(100*x.v/x.val,1):'—'}</td><td class="r num">${R.v?fmtP(100*x.v/R.v,1):'—'}</td><td class="r num">${G.tot?fmtP(100*x.v/G.tot,1):'—'}</td></tr>`; }).join('');
+    const ond = tipo==='e' ? 'Região do estado' : 'Região da capital';
+    abrir(G.titC, `${nome} · ${ond} · ${R.est?'≈ ':''}${fmt(Math.round(R.v))} votos${R.val ? ' · ' + fmtP(100*R.v/R.val,2) + ' dos válidos' : ''}${G.tot ? ' · ' + fmtP(100*R.v/G.tot,1) + ' da votação total' : ''}`,
+      `<section class="larga"><h3>${tipo==='e' ? 'Municípios' : 'Bairros'} de ${esc(nome)}</h3>${tabela(['#', tipo==='e'?'Município':'Bairro', 'Votos', '% local', '% na região', '% do total'], linhas)}<p class="det-nota">Clique numa linha para ${tipo==='e' ? 'ver os bairros onde a candidatura foi mais votada no município' : 'ver os mais votados no bairro'}.</p></section>`
+      + `<p class="det-acoes"><button type="button" class="det-link" data-n="${esc(n)}" data-cargo="${cargo}">← Voltar a ${esc(G.nome)}</button></p>`, true, G.AP);
   }
 
   /* ---- local: candidaturas mais votadas ---- */
@@ -3711,7 +3761,7 @@ const DET = (()=>{
       if (cg === 7) { abrirL(esc(resto), CARGO_NOME[7], '<p class="det-msg">Carregando…</p>'); try { const r = await zonasCargo7(); fonte = r ? (tipo==='z' ? r.zonas : r.cidades) : null; } catch(e){ fonte = null; } if (meu !== seq) return; }
       const x = (fonte||[]).find(o => tipo==='z' ? o.rotulo===resto : o.mun===resto);
       tit = esc(x ? x.rotulo : (tipo==='m' ? titulo((RJB.mun[resto]||{}).nm || resto) : resto));
-      sub = (x && x.sub ? x.sub + ' · ' : '') + CARGO_NOME[cg];
+      sub = (x && x.sub ? x.sub + ' · ' : '') + (tipo==='m' && regiaoMun(resto) ? 'Região ' + regiaoMun(resto) + ' · ' : '') + CARGO_NOME[cg];
       { let pa = x ? x.pctApurado : NaN;     // seções são as mesmas para todos os cargos: completa pelo dado do Dep. Federal
         if (isNaN(pa)) { const y = (tipo==='z' ? ZONAS : CIDADES || []).find(o => tipo==='z' ? o.rotulo===resto : o.mun===resto); if (y) pa = y.pctApurado; }
         AP = { p: pa, rot: tipo==='z' ? 'nesta zona' : 'neste município' }; }
@@ -3734,7 +3784,7 @@ const DET = (()=>{
       if (MUN_DADOS && MUN_DADOS.mun === mun && MUN_DADOS.cargo === cg) { zv = MUN_DADOS.zonas.map(z=>({zc:z.zc, votos:Object.fromEntries(z.d.cands.map(c=>[c.n, c.votos]))})); nomes = {}; MUN_DADOS.zonas.forEach(z=>z.d.cands.forEach(c=>nomes[c.n] = c)); }
       else if (mun === '60011') { let Z = ZONAS; if (cg === 7) { abrirL(tit, nomeMun, '<p class="det-msg">Carregando…</p>'); try { const r = await zonasCargo7(); Z = r ? r.zonas : null; } catch(e){ Z = null; } if (meu !== seq) return; }
         zv = (Z||[]).filter(z=>z.munRio).map(z=>({zc:z.zona, votos:z.votos})); }
-      sub = `Bairro · ${nomeMun} · ${CARGO_NOME[cg] || titulo(CARGOS_MUN[cg]||'')}`;
+      sub = `Bairro · ${nomeMun}${mun==='60011' && regiaoBairro(tit.replace(/&[^;]+;/g,'')) ? ' (' + regiaoBairro(tit.replace(/&[^;]+;/g,'')) + ')' : ''} · ${CARGO_NOME[cg] || titulo(CARGOS_MUN[cg]||'')}`;
       if (cg === 6) {                                    // boletins de urna: votos reais de todos os candidatos no bairro
         abrirL(tit, sub, '<p class="det-msg">Carregando os boletins de urna…</p>');
         const T = await carregarTop(); if (meu !== seq) return;
@@ -3784,13 +3834,19 @@ const DET = (()=>{
     const xm = D.d.cands.find(y=>y.n===n), vMun = xm ? xm.votos : zs.reduce((s2,z)=>s2+z.v, 0), valMun = baseValidos(D.d);
     const comb = bairrosDoMunicipio(mun, zs.map(z=>({zc:z.zc, v:z.v, t:z.t})), n, real);
     const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
-    const linhasB = bs.slice(0, 40).map((b,k)=>`<tr data-loc="b:${esc(mun)}:${esc(b.nome)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro(mun, b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${vMun?fmtP(100*b.v/vMun,1):'—'}</td></tr>`).join('');
+    const linhasB = bs.slice(0, 40).map((b,k)=>`<tr data-loc="b:${esc(mun)}:${esc(b.nome)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${mun==='60011' ? tagReg(regiaoBairro(b.nome)) : ''}${apurTag(apurBairro(mun, b.nome), true)}</td><td class="r num">${b.parcialReal>0.995?'':'≈ '}${fmt(b.v)}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${vMun?fmtP(100*b.v/vMun,1):'—'}</td></tr>`).join('');
+    let secReg = '';
+    if (mun === '60011') { const m = new Map();
+      for (const b of comb.lista) { const r = regiaoBairro(b.nome) || 'Outros bairros', e = m.get(r) || {nome:r, v:0, val:0, nb:0, est:false}; e.v += b.v; e.val += b.val; if (b.v >= 0.5) { e.nb++; if (b.parcialReal < 0.995) e.est = true; } m.set(r, e); }
+      const R = [...m.values()].filter(e=>e.v >= 0.5).sort((a,b)=>b.v-a.v), mx = Math.max(1, ...R.map(r=>r.v));
+      const linhasR = R.map((r,k)=>`<tr data-rgc="c:${esc(r.nome)}" data-cand="${esc(n)}" data-cargo="${cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(r.nome)}</div><span class="zmun">${r.nb} bairro${r.nb===1?'':'s'} com votos</span><div class="rgbar"><i style="width:${(100*r.v/mx).toFixed(1)}%"></i></div></td><td class="r num">${r.est?'≈ ':''}${fmt(Math.round(r.v))}</td><td class="r num">${r.val?fmtP(100*r.v/r.val,1):'—'}</td><td class="r num">${vMun?fmtP(100*r.v/vMun,1):'—'}</td></tr>`).join('');
+      secReg = `<section class="larga"><h3>Regiões da capital</h3>${tabela(['#','Região','Votos','% região','% no município'], linhasR, 'Sem votos ainda.')}<p class="det-nota">Clique numa região para ver seus bairros.</p></section>`; }
     const zo = zs.filter(z=>z.v > 0).sort((a,b)=>b.v-a.v);
     const linhasZ = zo.map((z,k)=>`<tr${cargo===6 ? ` data-loc="z:Zona ${Number(z.zc)}" data-cargo="6"` : ''}><td class="rk">${k+1}</td><td><div class="zname">Zona ${Number(z.zc)}</div>${apurTag(z.ap)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.t?fmtP(100*z.v/z.t,1):'—'}</td><td class="r num">${vMun?fmtP(100*z.v/vMun,1):'—'}</td></tr>`).join('');
     const pReal = comb.total ? 100*comb.real/comb.total : 0;
     const nota = cargo === 6 && pReal > 0 ? `${fmtP(pReal,0)} dos votos nos bairros vêm dos boletins de urna já lidos; o restante ("≈") é estimado pelo eleitorado de cada zona.` : 'Votos por bairro estimados pelo eleitorado de cada zona ("≈").';
-    abrir(tit, `${nomeMun} · ${fmt(vMun)} votos${valMun ? ' · ' + fmtP(100*vMun/valMun,2) + ' dos válidos do município' : ''}${totC ? ' · ' + fmtP(100*vMun/totC,1) + ' da votação total' : ''}`,
-      `<section><h3>Bairros mais votados</h3>${tabela(['#','Bairro','Votos','% bairro','% no município'], linhasB, 'Sem votos nos bairros ainda.')}<p class="det-nota">${nota}</p></section>`
+    abrir(tit, `${nomeMun}${regiaoMun(mun) && mun!=='60011' ? ' (' + regiaoMun(mun) + ')' : ''} · ${fmt(vMun)} votos${valMun ? ' · ' + fmtP(100*vMun/valMun,2) + ' dos válidos do município' : ''}${totC ? ' · ' + fmtP(100*vMun/totC,1) + ' da votação total' : ''}`,
+      secReg + `<section><h3>Bairros mais votados</h3>${tabela(['#','Bairro','Votos','% bairro','% no município'], linhasB, 'Sem votos nos bairros ainda.')}<p class="det-nota">${nota}</p></section>`
       + `<section><h3>Zonas eleitorais</h3>${tabela(['#','Zona','Votos','% zona','% no município'], linhasZ)}</section>` + voltarBtn, true, AP);
   }
   document.addEventListener('click', e=>{
@@ -4336,6 +4392,16 @@ const EVOL = (()=>{
 window.IDX_HIST = TELAS.findIndex(t=>t.id==='telaHist'); window.EVOL = EVOL;
 const REG_DADOS = {"capRegs":["Zona Sul","Barra e Jacarepaguá","Grande Tijuca","Zona Norte","Zona Oeste","Grande Meier","Centro","Ilha do Governador"],"cap":{"ABOLIÇÃO":[3,null,null,5],"ACARI":[3,3,8,5],"ÁGUA SANTA":[5,10,16,6],"ALTO DA BOA VISTA":[2,4,14,16],"ANCHIETA":[3,33,66,20],"ANDARAÍ":[2,111,173,186],"ANIL":[1,43,112,46],"AUGUSTO VASCONCELOS":[4,3,21,4],"BANCÁRIOS":[7,17,39,9],"BANGU":[4,100,169,128],"BARRA DA TIJUCA":[1,372,805,876],"BARRA DE GUARATIBA":[4,5,6,2],"BARROS FILHO":[3,2,5,null],"BENFICA":[6,24,55,37],"BENTO RIBEIRO":[3,28,48,35],"BONSUCESSO":[3,59,188,127],"BOTAFOGO":[0,675,1140,1022],"BRÁS DE PINA":[3,39,75,34],"CACHAMBI":[5,81,117,87],"CACUIA":[7,17,33,20],"CAJU":[6,11,24,3],"CAMORIM":[1,19,58,32],"CAMPINHO":[3,33,41,9],"CAMPO DOS AFONSOS":[4,null,null,1],"CAMPO GRANDE":[4,256,474,191],"CASCADURA":[3,57,82,47],"CATETE":[0,194,329,255],"CATIRI":[4,1,2,null],"CATUMBI":[6,null,null,29],"CAVALCANTI":[3,7,23,46],"CENTRO":[6,77,173,98],"CIDADE DE DEUS":[1,26,45,19],"CIDADE NOVA":[6,5,5,15],"COCOTÁ":[7,25,81,37],"COELHO NETO":[3,18,25,16],"COLÉGIO":[3,11,26,13],"COPACABANA":[0,813,1490,1318],"CORDOVIL":[3,29,38,11],"COSME VELHO":[0,122,221,196],"COSMOS":[4,17,44,12],"COSTA BARROS":[3,6,16,3],"CURICICA":[1,72,168,121],"DEL CASTILHO":[3,42,87,37],"DENDE":[7,4,9,9],"DEODORO":[4,10,20,6],"ENCANTADO":[5,31,37,23],"ENGENHEIRO LEAL":[3,1,8,null],"ENGENHO DA RAINHA":[3,24,40,47],"ENGENHO DE DENTRO":[5,79,128,93],"ENGENHO NOVO":[5,71,85,59],"ESTÁCIO":[6,7,24,16],"FLAMENGO":[0,340,525,458],"FREGUESIA (ILHA DO GOVERNADOR)":[7,32,68,30],"FREGUESIA JPA":[1,189,334,251],"FUNDÃO":[7,5,25,10],"GALEÃO":[7,54,111,20],"GAMBOA":[6,6,4,null],"GARDENIA AZUL":[1,11,30,7],"GÁVEA":[0,373,536,619],"GLÓRIA":[0,82,99,20],"GRAJAÚ":[2,181,244,239],"GUADALUPE":[3,34,65,20],"GUARABU":[3,31,32,3],"GUARATIBA":[4,17,96,24],"HIGIENÓPOLIS":[3,44,89,36],"HONÓRIO GURGEL":[3,11,32,14],"HUMAITA":[0,270,419,334],"ILHA DE GUARATIBA":[4,11,18,7],"INHAUMA":[3,39,77,45],"INHOAÍBA":[4,16,44,25],"IPANEMA":[0,346,611,641],"IRAJÁ":[3,86,184,100],"ITANHANGÁ":[1,44,73,65],"JACARÉ":[5,8,36,40],"JACAREPAGUÁ":[1,null,null,7],"JARDIM AMÉRICA":[3,26,41,28],"JARDIM BANGU":[4,10,28,10],"JARDIM BOTÂNICO":[0,260,390,486],"JARDIM GUANABARA":[7,122,208,186],"JARDIM SULACAP":[4,40,55,32],"LAGOA":[0,281,472,415],"LAPA":[6,16,36,20],"LARANJEIRAS":[0,623,957,915],"LEBLON":[0,456,778,876],"LEME":[0,87,166,129],"LINS DE VASCONCELOS":[5,26,41,23],"MADUREIRA":[3,45,62,47],"MAGALHÃES BASTOS":[4,16,58,33],"MANGUEIRA":[6,8,9,5],"MANGUINHOS":[3,0,2,1],"MARACANÃ":[2,128,189,173],"MARECHAL HERMES":[3,60,80,49],"MARIA DA GRAÇA":[3,24,37,12],"MEIER":[5,194,280,207],"MONERÓ":[7,24,33,37],"NOVA SEPETIBA":[4,0,2,1],"OLARIA":[3,99,139,95],"OSWALDO CRUZ":[3,39,59,23],"PACIENCIA":[4,37,91,18],"PADRE MIGUEL":[4,44,72,95],"PAQUETÁ":[6,5,4,6],"PARADA DE LUCAS":[3,12,19,13],"PARQUE ANCHIETA":[3,3,5,2],"PARQUE COLÚMBIA":[3,5,22,10],"PAVUNA":[3,32,89,48],"PECHINCHA":[1,79,106,99],"PEDRA DE GUARATIBA":[4,17,78,75],"PENHA":[3,75,166,76],"PENHA CIRCULAR":[3,52,122,44],"PIEDADE":[5,70,105,79],"PILARES":[5,37,57,39],"PITANGUEIRAS":[7,4,3,null],"PORTUGUESA":[7,50,73,62],"PRAÇA DA BANDEIRA":[2,12,35,null],"PRAÇA SECA":[1,83,117,68],"QUINTINO BOCAIUVA":[3,43,46,23],"RAMOS":[3,61,176,103],"REALENGO":[4,80,199,256],"RECREIO":[1,132,325,311],"RIACHUELO":[5,29,32,20],"RIBEIRA":[3,11,30,15],"RICARDO DE ALBUQUERQUE":[3,15,33,13],"RIO COMPRIDO":[6,74,159,89],"RIO DAS PEDRAS":[1,28,171,48],"ROCHA":[5,16,35,30],"ROCHA MIRANDA":[3,26,70,21],"ROCINHA":[0,0,4,1],"SAMPAIO":[5,4,14,null],"SANTA CRUZ":[4,46,190,87],"SANTA TERESA":[6,145,98,118],"SANTÍSSIMO":[4,24,77,18],"SANTO CRISTO":[6,2,15,9],"SÃO CONRADO":[0,70,207,140],"SÃO CRISTÓVÃO":[6,77,120,62],"SÃO FRANCISCO XAVIER":[5,7,14,13],"SÃO JORGE":[4,0,2,null],"SAUDE":[6,4,11,17],"SENADOR CAMARÁ":[4,25,89,25],"SENADOR VASCONCELOS":[4,6,12,6],"SEPETIBA":[4,13,37,67],"TANQUE":[1,37,108,53],"TAQUARA":[1,152,318,202],"TAUÁ":[7,12,20,30],"TIJUCA":[2,800,1093,1215],"TODOS OS SANTOS":[5,80,92,88],"TOMÁS COELHO":[3,7,15,10],"TRIAGEM":[6,7,17,9],"TUBIACANGA":[7,0,2,1],"TURIAÇÚ":[3,9,17,8],"URCA":[0,116,167,145],"VARGEM GRANDE":[1,13,27,22],"VARGEM PEQUENA":[1,21,22,19],"VAZ LOBO":[3,44,67,41],"VICENTE DE CARVALHO":[3,8,27,28],"VIDIGAL":[0,7,24,14],"VIGÁRIO GERAL":[3,12,21,10],"VILA DA PENHA":[3,93,134,89],"VILA ISABEL":[2,225,302,285],"VILA KENNEDY":[4,11,47,16],"VILA KOSMOS":[3,35,63,19],"VILA MILITAR":[4,4,4,3],"VILA VALQUEIRE":[1,50,117,69],"VISTA ALEGRE":[3,18,43,25],"ZUMBI":[7,18,27,22],"BAIRRO DE FÁTIMA":[6,43,92,63],"BARRA OLÍMPICA":[1,null,null,null],"JARDIM CARIOCA":[7,null,null,null],"VASCO DA GAMA":[6,null,null,null]},"est":{"Capital":["RIO DE JANEIRO"],"Baixada Fluminense":["BELFORD ROXO","DUQUE DE CAXIAS","GUAPIMIRIM","ITAGUAÍ","JAPERI","MAGÉ","MESQUITA","NILÓPOLIS","NOVA IGUAÇU","PARACAMBI","QUEIMADOS","SÃO JOÃO DE MERITI","SEROPÉDICA"],"Leste Metropolitano":["NITERÓI","SÃO GONÇALO","ITABORAÍ","MARICÁ","TANGUÁ","RIO BONITO","CACHOEIRAS DE MACACU"],"Serrana":["PETRÓPOLIS","TERESÓPOLIS","NOVA FRIBURGO","BOM JARDIM","CANTAGALO","CARMO","CORDEIRO","DUAS BARRAS","MACUCO","SANTA MARIA MADALENA","SÃO JOSÉ DO VALE DO RIO PRETO","SÃO SEBASTIÃO DO ALTO","SUMIDOURO","TRAJANO DE MORAES"],"Baixadas Litorâneas":["CABO FRIO","ARARUAMA","ARMAÇÃO DOS BÚZIOS","ARRAIAL DO CABO","CASIMIRO DE ABREU","IGUABA GRANDE","RIO DAS OSTRAS","SÃO PEDRO DA ALDEIA","SAQUAREMA","SILVA JARDIM"],"Médio Paraíba":["VOLTA REDONDA","BARRA MANSA","RESENDE","BARRA DO PIRAÍ","ITATIAIA","PINHEIRAL","PIRAÍ","PORTO REAL","QUATIS","RIO CLARO","RIO DAS FLORES","VALENÇA"],"Centro-Sul":["TRÊS RIOS","VASSOURAS","AREAL","COMENDADOR LEVY GASPARIAN","ENGENHEIRO PAULO DE FRONTIN","MENDES","MIGUEL PEREIRA","PARAÍBA DO SUL","PATY DO ALFERES","SAPUCAIA"],"Costa Verde":["ANGRA DOS REIS","MANGARATIBA","PARATY"],"Norte Fluminense":["CAMPOS DOS GOYTACAZES","MACAÉ","CARAPEBUS","CARDOSO MOREIRA","CONCEIÇÃO DE MACABU","QUISSAMÃ","SÃO FIDÉLIS","SÃO FRANCISCO DE ITABAPOANA","SÃO JOÃO DA BARRA"],"Noroeste Fluminense":["ITAPERUNA","APERIBÉ","BOM JESUS DO ITABAPOANA","CAMBUCI","ITALVA","ITAOCARA","LAJE DO MURIAÉ","MIRACEMA","NATIVIDADE","PORCIÚNCULA","SANTO ANTÔNIO DE PÁDUA","SÃO JOSÉ DE UBÁ","VARRE-SAI"]},"m18":{"NITERÓI":562,"DUQUE DE CAXIAS":309,"SÃO GONÇALO":293,"NOVA IGUAÇU":254,"PETRÓPOLIS":252,"SÃO JOÃO DE MERITI":201,"VOLTA REDONDA":106,"MACAÉ":126,"CAMPOS DOS GOYTACAZES":185,"BELFORD ROXO":124,"TERESÓPOLIS":104,"RIO DAS OSTRAS":45,"NOVA FRIBURGO":108,"CABO FRIO":76,"MAGÉ":50,"MARICÁ":51,"ITABORAÍ":57,"BARRA MANSA":38,"MESQUITA":68,"QUEIMADOS":38,"NILÓPOLIS":93,"ANGRA DOS REIS":28,"RESENDE":46,"ARARUAMA":23,"TRÊS RIOS":18,"SÃO PEDRO DA ALDEIA":54,"ITAGUAÍ":14,"ARMAÇÃO DOS BÚZIOS":16,"VALENÇA":35,"MIGUEL PEREIRA":18,"SAQUAREMA":23,"SEROPÉDICA":33,"BARRA DO PIRAÍ":19,"CASIMIRO DE ABREU":14,"ITAPERUNA":28,"JAPERI":12,"RIO BONITO":10,"ITATIAIA":6,"PARATY":16,"BOM JESUS DO ITABAPOANA":14,"PARACAMBI":19,"MANGARATIBA":17,"GUAPIMIRIM":7,"VASSOURAS":5,"SANTO ANTÔNIO DE PÁDUA":24,"SÃO FIDÉLIS":15,"CACHOEIRAS DE MACACU":17,"ARRAIAL DO CABO":11,"PIRAÍ":11,"PATY DO ALFERES":10,"PARAÍBA DO SUL":19,"MENDES":3,"SÃO JOÃO DA BARRA":10,"BOM JARDIM":8,"TANGUÁ":1,"SILVA JARDIM":24,"QUISSAMÃ":10,"RIO CLARO":3,"SÃO FRANCISCO DE ITABAPOANA":12,"PORTO REAL":2,"IGUABA GRANDE":14,"PINHEIRAL":3,"CORDEIRO":6,"CONCEIÇÃO DE MACABU":6,"SÃO JOSÉ DO VALE DO RIO PRETO":1,"CAMBUCI":2,"QUATIS":4,"NATIVIDADE":0,"ITALVA":5,"ENGENHEIRO PAULO DE FRONTIN":6,"CARMO":0,"MIRACEMA":4,"CARAPEBUS":5,"SAPUCAIA":3,"APERIBÉ":4,"PORCIÚNCULA":8,"AREAL":0,"RIO DAS FLORES":5,"VARRE-SAI":2,"COMENDADOR LEVY GASPARIAN":2,"SANTA MARIA MADALENA":7,"CANTAGALO":3,"CARDOSO MOREIRA":2,"DUAS BARRAS":2,"ITAOCARA":4,"SUMIDOURO":6,"SÃO SEBASTIÃO DO ALTO":0,"LAJE DO MURIAÉ":1,"SÃO JOSÉ DE UBÁ":1,"MACUCO":1,"RIO DE JANEIRO":11885,"TRAJANO DE MORAES":0},"tot18":15787};
 /* ============ REGIÕES: capital (regiões da planilha da campanha) e estado (regiões de governo) ============ */
+/* divisão regional: região de cada município do estado e de cada bairro da capital */
+let RGX_ = null;
+function rgx(){ if (RGX_) return RGX_; const mun = {}, bai = new Map();
+  const munCd = new Map(Object.entries(RJB.mun).map(([cd, m])=>[semAcento(m.nm), cd]));
+  Object.entries(REG_DADOS.est).forEach(([r, ms])=>ms.forEach(m=>{ const cd = munCd.get(semAcento(m)); if (cd) mun[cd] = r; }));
+  Object.entries(REG_DADOS.cap).forEach(([nm, x])=>bai.set(semAcento(nm), REG_DADOS.capRegs[x[0]]));
+  return RGX_ = {mun, bai}; }
+function regiaoMun(cd){ try { return rgx().mun[cd] || ''; } catch(e){ return ''; } }
+function regiaoBairro(nm){ try { return rgx().bai.get(semAcento(nm)) || ''; } catch(e){ return ''; } }
+const tagReg = r => r ? `<span class="zreg">${esc(r)}</span>` : '';
 const REG = (()=>{
   const CAP = '60011', D = REG_DADOS;
   const capIdx = new Map(Object.entries(D.cap).map(([nm, x])=>[semAcento(nm), {nome:nm, reg:x[0], v18:x[1]||0, v22:x[2]||0, v24:x[3]||0}]));
