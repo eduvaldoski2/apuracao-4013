@@ -243,8 +243,20 @@ body.mob .rg-cols td.r{white-space:normal}
 .cg-uf-det summary span{color:var(--muted);font-weight:600;margin-left:6px;font-size:12px}
 .cg-uf-det table{margin-bottom:8px}
 tr.cg-sep td{border-top:2px solid var(--line);padding:0}
-body.apres .rg-mult{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0}
-body.apres .rg-cols .tt-col:last-child .rg-mult{grid-template-columns:repeat(5,minmax(0,1fr))}
+/* Regiões em duas linhas: capital em cima, estado embaixo, cada uma com todas as regiões lado a lado */
+.hm-cols.rg-cols{grid-template-columns:minmax(0,1fr)!important}
+@media (min-width:1100px){ #rgCapG{grid-template-columns:repeat(8,minmax(0,1fr))} #rgEstG{grid-template-columns:repeat(10,minmax(0,1fr))} }
+body.apres .rg-mult{gap:6px;margin:0}
+body.apres #rgCapG{grid-template-columns:repeat(8,minmax(0,1fr))}
+body.apres #rgEstG{grid-template-columns:repeat(10,minmax(0,1fr))}
+body.apres .rg-cols{display:flex;flex-direction:column;gap:10px}
+body.apres .rg-cols .tt-col{flex:1;min-height:0}
+body.apres .rg-card svg{max-height:64px}
+body.apres .rg-cols .tt-col:first-child{flex:1.22}
+body.apres .rg-cols .tt-col:last-child{flex:.88}
+body.apres #rgEstG .rg-card svg{max-height:50px}
+body.apres .rg-chips{gap:0 6px;line-height:1.25}
+body.apres .rg-cols .box-head{margin-bottom:4px}
 body.apres .rg-card{padding:4px 6px}
 body.apres .rg-card b{font-size:11px}
 body.apres .rg-d{font-size:8.5px}
@@ -3419,6 +3431,37 @@ const DET = (()=>{
     if (!dlg.open) { voltar = tocando; if (tocando) setTocando(false); dlg.showModal(); }
     $('detCorpo').scrollTop = 0;
   }
+  // setinhas para ordenar as tabelas do quadro de detalhe (a escolha vale para tabelas iguais, mesmo depois de atualizar)
+  const DORD = {};
+  const chaveT = t => [...t.querySelectorAll('thead th')].map(th=>th.textContent.replace(/[⇅▲▼]/g,'').trim()).join('|');
+  const ehTxt = th => /^(estado|munic|bairro|zona|candidatura|regi|partido|local)/i.test(th.textContent.replace(/[⇅▲▼]/g,'').trim());
+  const numDe = td => { const m = (td ? td.textContent : '').replace(/\s+/g,' ').match(/-?\d[\d.]*(?:,\d+)?/); return m ? parseFloat(m[0].replace(/\./g,'').replace(',','.')) : NaN; };
+  function ordDet(){
+    $('detCorpo').querySelectorAll('table').forEach(t=>{
+      const ths = [...t.querySelectorAll('thead th')], tb = t.tBodies[0]; if (!ths.length || !tb) return;
+      const k = chaveT(t), e = DORD[k];
+      ths.forEach((th,i)=>{ if (!th.querySelector('.seta')) { th.classList.add('ord'); th.insertAdjacentHTML(th.classList.contains('r') ? 'afterbegin' : 'beforeend', '<span class="seta" aria-hidden="true">⇅</span>'); th.title = 'Ordenar por esta coluna'; }
+        const at = e && e.col === i; th.classList.toggle('ativa', !!at); th.querySelector('.seta').textContent = at ? (e.dir > 0 ? '▲' : '▼') : '⇅'; });
+      const rows = [...tb.rows]; if (rows.some(r=>r.querySelector('td[colspan]') && rows.length === 1)) return;
+      rows.forEach((r,i)=>{ if (r.dataset.o === undefined) r.dataset.o = i; });
+      const fixas = rows.filter(r=>r.classList.contains('leg') || r.classList.contains('cg-sep'));
+      const moveis = rows.filter(r=>!fixas.includes(r));
+      if (!e) moveis.sort((a,b)=>a.dataset.o-b.dataset.o);
+      else { const txt = ehTxt(ths[e.col]);
+        moveis.sort((a,b)=>{ const ca = a.children[e.col], cb = b.children[e.col];
+          if (txt) return e.dir * (ca ? ca.textContent : '').trim().localeCompare((cb ? cb.textContent : '').trim(), 'pt-BR', {numeric:true, sensitivity:'base'});
+          const va = numDe(ca), vb = numDe(cb), na = isNaN(va), nb = isNaN(vb); if (na || nb) return na - nb; return e.dir * (va - vb) || (a.dataset.o - b.dataset.o); }); }
+      if (e && fixas.length) tb.append(...moveis); else tb.append(...fixas.filter(r=>+r.dataset.o===0), ...moveis, ...fixas.filter(r=>+r.dataset.o!==0));
+    });
+  }
+  new MutationObserver(()=>ordDet()).observe($('detCorpo'), {childList:true});
+  $('detCorpo').addEventListener('click', ev=>{
+    const th = ev.target.closest('thead th'); if (!th) return;
+    const t = th.closest('table'), col = [...th.parentElement.children].indexOf(th), k = chaveT(t), e = DORD[k];
+    const prim = (ehTxt(th) || /^#|posi/i.test(th.textContent.replace(/[⇅▲▼]/g,'').trim())) ? 1 : -1;
+    if (!e || e.col !== col) DORD[k] = {col, dir: prim}; else if (e.dir === prim) DORD[k] = {col, dir: -prim}; else delete DORD[k];
+    ordDet();
+  });
   function fechar(){ dlg.close(); }
   dlg.addEventListener('close', ()=>{ if (voltar) setTocando(true); voltar = false; });
   $('detX').onclick = fechar;
