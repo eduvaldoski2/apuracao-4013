@@ -210,6 +210,25 @@ body.mob #p5MunH th, body.mob #p5BaiH th{white-space:normal;font-size:8.5px}
 body.mob #p5MunH th .seta, body.mob #p5BaiH th .seta{display:none}
 body.mob .p5-cols table{font-size:11.5px}
 body.mob .p5-cols td, body.mob .p5-cols th{padding-left:2px;padding-right:2px}
+/* tela Evolução 22·24·26 */
+:root{--y22:#9b86e0;--y24:#5241a3;--y26:#e8770a}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--y22:#7a68c9;--y24:#a99be6;--y26:#e8770a} }
+@media (min-width:900px){ .hm-cols{grid-template-columns:repeat(2,minmax(0,1fr))!important} }
+.hm-graf svg{width:100%;height:auto;display:block}
+.hm-graf{margin:2px 0 10px}
+.hm-leg{display:flex;gap:14px;font-size:12px;font-weight:700;color:var(--muted);margin:0 0 4px}
+.hm-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+#hmMun tr{cursor:pointer}
+#hmMun tr.sel td{background:rgba(246,135,18,.12);font-weight:700}
+.hm-y{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.04em}
+#hmBox .tr-body{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+body.mob .hm-graf{display:none}
+body.apres .hm-graf{flex:1;min-height:0;display:flex;flex-direction:column}
+body.apres .hm-graf svg{flex:1;min-height:0;height:100%;width:100%}
+body.apres .hm-cols .tt-col > .tbl-wrap{display:none}
+body.apres .hm-cols .tt-col{overflow:hidden}
+body.apres .hm-cols .legend-proj{display:none}
+body.mob .hm-cols table{font-size:11.5px}
 /* tela Congresso */
 .cg-sel{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
 .cg-st{font-size:12.5px;color:var(--muted);font-weight:600}
@@ -1042,6 +1061,24 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <p class="legend-proj cg-nota"><b>Cor cheia</b>: eleito confirmado pelo TSE · <b>cor clara</b>: eleito nesta parcial, pelo cálculo do painel (quociente eleitoral e sobras de cada estado). Federação conta como um partido. <b>Senado</b>: só as vagas em disputa nesta eleição (2 por estado em 2026, os mais votados); as cadeiras eleitas na eleição anterior não entram.</p>
     </div>
   </section>
+  <section class="tela" id="telaHist" data-nome="Evolução 22·24·26">
+    <div class="tt-wrap">
+      <section class="tr-box tt-box" id="hmBox" aria-label="Evolução da votação"><div class="tr-head"><h3>Evolução da votação</h3><span class="tr-n">carregando…</span></div><div class="tr-body"></div></section>
+      <div class="tt-cols hm-cols">
+        <div class="box tt-col">
+          <div class="box-head"><h2>Municípios · 2022 × 2026</h2><span class="eyebrow">clique numa cidade (gráfico ou tabela) para ver os bairros</span></div>
+          <div class="hm-graf" id="hmMunG"></div>
+          <div class="tbl-wrap scroll"><table><thead><tr><th>Município</th><th class="r">2022</th><th class="r">2026</th><th class="r">Dif. votos</th><th class="r">Var.</th></tr></thead><tbody id="hmMun"><tr><td colspan="5" class="empty">Carregando…</td></tr></tbody></table></div>
+        </div>
+        <div class="box tt-col">
+          <div class="box-head"><h2 id="hmBTit">Bairros</h2><span class="eyebrow" id="hmBMeta"></span></div>
+          <div class="hm-graf" id="hmBaiG"></div>
+          <div class="tbl-wrap scroll"><table><thead id="hmBaiH"></thead><tbody id="hmBai"><tr><td class="empty">Carregando…</td></tr></tbody></table></div>
+          <p class="legend-proj" id="hmNota"></p>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <div class="ticker" id="ticker" aria-label="Apuração presidente, governador e senado">
@@ -1068,6 +1105,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button type="button" data-tela="14"><b>22×26</b>Comparativo</button>
   <button type="button" data-tela="15"><b>QE</b>Partidos</button>
   <button type="button" data-tela="16"><b>BR</b>Congresso</button>
+  <button type="button" data-tela="17"><b>22·26</b>Evolução</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -2962,6 +3000,7 @@ async function atualizar(){
     if (mqApres.matches || telaAtual===IDX_MUN) atualizarMunicipio();
     if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
     if (telaAtual === window.IDX_CONG && window.CONG) CONG.atualizar();
+    if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
     const agora = new Date().toLocaleTimeString('pt-BR');
     const novo = d.tot.hora && d.tot.hora !== ultimaHora;
     $('meta').textContent = (d.tot.hora ? `Totalização ${d.tot.hora} · ` : '') + `verificado às ${agora}` + (ultimaHora && !novo ? ' · sem dados novos' : (ultimaHora ? ' · dados novos' : ''));
@@ -3112,7 +3151,7 @@ const TELAS = [...document.querySelectorAll('.tela')];
 const IDX_MUN = TELAS.findIndex(t=>t.id==='telaMun'), IDX_EST = TELAS.findIndex(t=>t.id==='telaEst');
 let telaAtual = 0, tocando = true, fimTela = Date.now()+DUR_TELA, restante = DUR_TELA;
 const mqApres = matchMedia('(min-width: 900px)');
-const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','2022 × 2026':'22×26','Top 5 PSB':'Top 5','Partidos':'Partidos','Congresso':'Congresso','Município':'Município'};
+const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','2022 × 2026':'22×26','Top 5 PSB':'Top 5','Partidos':'Partidos','Congresso':'Congresso','Evolução 22·24·26':'Evolução 22·26','Município':'Município'};
 $('dots').innerHTML = TELAS.map((t,k)=>`<button type="button" data-tela="${k}" title="${k+1}. ${esc(t.dataset.nome)}">${esc(CURTO[t.dataset.nome]||t.dataset.nome)}</button>`).join('');
 function mostrarTela(i){
   telaAtual = (i + TELAS.length) % TELAS.length;
@@ -3123,6 +3162,7 @@ function mostrarTela(i){
   if (telaAtual===IDX_MUN && !MUN_DADOS) atualizarMunicipio();
   if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
   if (telaAtual === window.IDX_CONG && window.CONG) CONG.atualizar();
+  if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
   if (TELAS[telaAtual] && TELAS[telaAtual].id==='telaEvo') renderGrafico();
   restante = DUR_TELA; fimTela = Date.now()+DUR_TELA;
 }
@@ -3183,7 +3223,7 @@ if (!ehLocal && !MODO_APP) diag('Aberto fora do servidor local: exibindo dados f
    Listas divididas em duas colunas (Câmara, Alerj, PSB) são ordenadas juntas. */
 const ORD = (()=>{
   const PARES = { feB:'feA', deB:'deA', tbFocoB:'tbFoco' };
-  const IDS = ['ptFe','ptDe','p5Mun','p5Bai','cpZonas','cpBairros','cpMunis','ttZonas','ttBairros','ttMun','mpLista','mrLista','feA','feB','feDetLista','tbFoco','tbFocoB','munZonas','munBairros','deA','deB','deDetLista'];
+  const IDS = ['hmMun','hmBai','ptFe','ptDe','p5Mun','p5Bai','cpZonas','cpBairros','cpMunis','ttZonas','ttBairros','ttMun','mpLista','mrLista','feA','feB','feDetLista','tbFoco','tbFocoB','munZonas','munBairros','deA','deB','deDetLista'];
   let est = {}; try { est = JSON.parse(localStorage.getItem('painelOrdem') || '{}'); } catch(e){}
   const salvar = () => { try { localStorage.setItem('painelOrdem', JSON.stringify(est)); } catch(e){} };
   const grupo = id => { const a = PARES[id] || id, b = Object.keys(PARES).find(k=>PARES[k]===a); return b ? [a, b] : [a]; };
@@ -3750,6 +3790,119 @@ const CONG = (()=>{
   return { atualizar, render, RES, plenario };
 })();
 window.IDX_CONG = TELAS.findIndex(t=>t.id==='telaCong'); window.CONG = CONG;
+/* ============ EVOLUÇÃO 22 · 24 · 26 ============
+   Votação de Tatiana Roque: 2022 (Dep. Federal, dados oficiais do TSE), 2024 (Vereadora na capital, nº 40123,
+   lido do TSE por zona e guardado aqui) e 2026 (Dep. Federal, apuração em andamento).
+   Municípios: 2022 × 2026. Bairros: 2022 × 2026, e 2022 × 2024 × 2026 na capital. */
+const D24 = {"n40123":"40123","tot":[16957,3034419],"pos":40,"n":990,"z":{"0004":[1959,70605],"0007":[856,65509],"0009":[705,94553],"0010":[95,51410],"0014":[178,52576],"0005":[1191,64150],"0008":[202,53453],"0016":[1587,71077],"0017":[2064,63482],"0021":[126,56409],"0022":[130,70250],"0023":[64,50226],"0024":[85,61647],"0025":[98,59227],"0118":[103,39309],"0119":[887,91831],"0120":[53,53794],"0122":[50,55087],"0123":[48,57348],"0125":[44,59602],"0161":[125,57917],"0162":[166,72943],"0167":[38,43745],"0169":[117,54329],"0170":[827,80995],"0176":[106,57697],"0179":[219,90565],"0180":[154,55519],"0182":[229,67228],"0185":[193,66570],"0188":[180,80764],"0191":[212,60843],"0192":[279,37528],"0204":[210,64326],"0211":[1384,61132],"0214":[342,80289],"0216":[201,50786],"0218":[102,60655],"0219":[56,66076],"0229":[549,65776],"0230":[30,40837],"0233":[168,65081],"0234":[182,51264],"0238":[81,69944],"0241":[13,46718],"0242":[53,44624],"0243":[105,53048],"0245":[61,65977],"0246":[50,70638]}};
+const EVOL = (()=>{
+  const CAP = '60011', CH = 'painelHist', N = () => CFG.candidata;
+  let SEL = { mun: CAP }; try { const v = JSON.parse(localStorage.getItem(CH)||'null'); if (v && RJB.mun[v.mun]) SEL = v; } catch(e){}
+  const salvar = () => { try { localStorage.setItem(CH, JSON.stringify(SEL)); } catch(e){} };
+  let B22 = null, seq = 0; const MUN26 = new Map();
+  const ANOS = { 22:{rot:'2022', cor:'var(--y22)'}, 24:{rot:'2024', cor:'var(--y24)'}, 26:{rot:'2026', cor:'var(--y26)'} };
+  async function base22(){
+    if (B22) return B22;
+    const [c6, meta, b6] = await Promise.all([T22.dados('c6.json'), T22.dados('meta.json'), T22.dados('b6.json')]);
+    const i = c6.cands.findIndex(x=>x[0]==='4013'), mun = {}, val = {};
+    for (const [k, l] of Object.entries(c6.mz)) { const m = k.split('|')[0], e = l.find(([j])=>j===i), d = meta.det['6|'+k];
+      mun[m] = (mun[m]||0) + (e ? e[1] : 0); val[m] = (val[m]||0) + (d ? d[3] : 0); }
+    return B22 = { b6, mun, val };
+  }
+  // bairros de um município em 2022 (votos reais por seção, bairro do local de votação)
+  function bairros22(mun){
+    const M = RJB.mun[mun], out = new Map(); if (!M || !B22) return out;
+    for (const bs of Object.values((B22.b6.mz||{})[mun] || {})) for (const [bi, vs] of Object.entries(bs)) {
+      const nome = M.b[+bi] || ('Bairro '+bi), k = semAcento(nome), a = out.get(k) || {nome, v:0, t:0}; a.v += vs['4013']||0; a.t += vs._t||0; out.set(k, a); }
+    return out;
+  }
+  // capital em 2024: votos da zona repartidos pelo eleitorado de cada bairro da zona
+  function bairros24(){
+    const M = RJB.mun[CAP], out = new Map();
+    for (const [zc, [v, t]] of Object.entries(D24.z)) { const pesos = M.z[zc]; if (!pesos) continue; const tot = pesos.reduce((s,[,x])=>s+x,0) || 1;
+      for (const [bi, x] of pesos) { const nome = M.b[bi], k = semAcento(nome), a = out.get(k) || {nome, v:0, t:0}; a.v += v*x/tot; a.t += t*x/tot; out.set(k, a); } }
+    return out;
+  }
+  // bairros em 2026 (boletins de urna já lidos + estimativa)
+  async function bairros26(mun){
+    const n = N();
+    if (mun === CAP) return new Map(bairrosCap(n).map(b=>[semAcento(b.nome), {nome:b.nome, v:b.v, t:b.val, est:b.parcialReal < 0.995}]));
+    const c = MUN26.get(mun);
+    let D = c && Date.now()-c.t < 120000 && c.g === GERACAO ? c.D : null;
+    if (!D) { D = (MUN_DADOS && MUN_DADOS.mun === mun && MUN_DADOS.cargo === 6) ? MUN_DADOS : (CFG.ambiente === 'demo' ? municipioDemo(mun, 6) : await carregarMunicipioReal(mun, 6)); MUN26.set(mun, {D, t:Date.now(), g:GERACAO}); }
+    let real = null; if (CFG.ambiente !== 'demo') { try { real = await atualizarReais(n.slice(0,2)); } catch(e){} }
+    const comb = bairrosDoMunicipio(mun, D.zonas.map(z=>{ const x = z.d.cands.find(y=>y.n===n); return {zc:z.zc, v: x ? x.votos : 0, t: baseValidos(z.d)}; }), n, real);
+    return new Map(comb.lista.map(b=>[semAcento(b.nome), {nome:b.nome, v:b.v, t:b.val, est:b.parcialReal < 0.995}]));
+  }
+  // gráfico de barras horizontais agrupadas (uma barra por ano); rótulos e valores em tinta de texto
+  function grafico(el, linhas, anos){
+    if (!el) return; if (!linhas.length) { el.innerHTML = ''; return; }
+    const W = 600, lab = 150, bh = 7, gapS = 2, gapR = 9, rowH = anos.length*bh + (anos.length-1)*gapS + gapR, H = linhas.length*rowH + 6;
+    const max = Math.max(1, ...linhas.flatMap(l=>anos.map(a=>l.v[a]||0))), esc2 = v => (W - lab - 62) * v / max;
+    let s = '';
+    linhas.forEach((l, r)=>{ const y0 = 4 + r*rowH;
+      if (l.cd) s += `<g data-hm="${l.cd}" style="cursor:pointer"><rect x="0" y="${y0-2}" width="${W}" height="${rowH}" fill="transparent"/>`;
+      s += `<text x="${lab-8}" y="${(y0 + (rowH-gapR)/2 + 4).toFixed(1)}" text-anchor="end" font-size="11.5" font-weight="700" fill="var(--ink)">${esc(l.rot.length > 22 ? l.rot.slice(0,21)+'…' : l.rot)}</text>`;
+      anos.forEach((a, k)=>{ const v = l.v[a]||0, w = Math.max(v ? 2 : 0, esc2(v)), y = y0 + k*(bh+gapS);
+        s += `<g><title>${esc(l.rot)} · ${ANOS[a].rot}: ${(l.est && l.est[a]) ? '≈ ' : ''}${fmt(v)} votos</title><rect x="${lab}" y="${y}" width="${w.toFixed(1)}" height="${bh}" rx="2" fill="${ANOS[a].cor}"/>`
+          + `<text x="${(lab + w + 4).toFixed(1)}" y="${y + bh - 0.5}" font-size="9.5" fill="var(--muted)">${(l.est && l.est[a]) ? '≈' : ''}${fmt(v)}</text></g>`; });
+      if (l.cd) s += '</g>';
+    });
+    el.innerHTML = `<div class="hm-leg">${anos.map(a=>`<span><i style="background:${ANOS[a].cor}"></i>${ANOS[a].rot}</span>`).join('')}</div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Votos por ano">${s}</svg>`;
+  }
+  const varTd = (a, b) => { if (!(a > 0) || b == null) return '<td class="r num">—</td><td class="r num">—</td>'; const d = b - a, p = 100*d/a;
+    return `<td class="r num ${d >= 0 ? 'cp-sobe' : 'cp-cai'}">${d >= 0 ? '+' : ''}${fmt(d)}</td><td class="r num ${d >= 0 ? 'cp-sobe' : 'cp-cai'}">${d >= 0 ? '▲ +' : '▼ '}${p.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</td>`; };
+  const pctTxt = (v, t) => t > 0 ? fmtP(100*v/t, 2) + ' dos válidos' : '';
+  async function atualizar(){
+    if (!$('hmMun')) return;
+    const meu = ++seq, n = N();
+    try { await base22(); } catch(e){ $('hmMun').innerHTML = '<tr><td colspan="5" class="empty">Não foi possível ler os dados de 2022 agora.</td></tr>'; return; }
+    if (meu !== seq) return;
+    const c26 = ULTIMO && ULTIMO.d.cands.find(c=>c.n===n), tot26 = c26 ? c26.votos : 0;
+    const tot22 = Object.values(B22.mun).reduce((s,v)=>s+v, 0);
+    const cid = CIDADES ? new Map(CIDADES.map(c=>[c.mun, c])) : new Map();
+    const v26 = cd => { const c = cid.get(cd); return c ? (c.votos[n]||0) : null; };
+    // ---- resumo ----
+    const cap22 = B22.mun[CAP]||0, cap26 = v26(CAP), capT26 = (cid.get(CAP)||{}).validos;
+    const bloco = (rot, v, sub, cor) => `<div><div class="eyebrow"><i style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${cor};margin-right:5px"></i>${rot}</div><div class="tr-v num">${v}</div><div class="tr-s num">${sub}</div></div>`;
+    $('hmBox').innerHTML = `<div class="tr-head"><h3>${esc(c26 ? titulo(c26.nome) : 'Tatiana Roque')} <span>evolução da votação</span></h3><span class="tr-n">2022 e 2026: Deputada Federal (4013) · 2024: Vereadora na capital (40123)</span></div><div class="tr-body">`
+      + bloco('2022 · estado', fmt(tot22), 'Dep. Federal · 74º geral', 'var(--y22)')
+      + bloco('2022 · capital', fmt(cap22), pctTxt(cap22, B22.val[CAP]), 'var(--y22)')
+      + bloco('2024 · capital', fmt(D24.tot[0]), `Vereadora · ${D24.pos}º de ${D24.n} · ${pctTxt(D24.tot[0], D24.tot[1])}`, 'var(--y24)')
+      + bloco('2026 · capital', cap26 == null ? '—' : fmt(cap26), cap26 == null ? 'carregando…' : pctTxt(cap26, capT26), 'var(--y26)')
+      + bloco('2026 · estado', fmt(tot26), `${tot22 ? (tot26 >= tot22 ? '▲ ' : '▼ ') + fmtP(100*(tot26-tot22)/tot22, 0) + ' sobre 2022 · ' : ''}${fmtP(PCT_EST,1)} apurado`, 'var(--y26)')
+      + '</div>';
+    // ---- municípios ----
+    const cds = [...new Set([...Object.keys(B22.mun), ...cid.keys()])].filter(cd=>RJB.mun[cd]);
+    const L = cds.map(cd=>({cd, nome: titulo(RJB.mun[cd].nm), a: B22.mun[cd]||0, b: v26(cd)})).filter(m=>m.a > 0 || m.b > 0).sort((x,y)=>(y.b||0)-(x.b||0) || y.a-x.a);
+    $('hmMun').innerHTML = L.map(m=>`<tr data-hm="${m.cd}" class="${m.cd===SEL.mun?'sel':''}"><td><div class="zname">${esc(m.nome)}</div>${apurTag(apurMun(m.cd))}</td><td class="r num">${fmt(m.a)}</td><td class="r num">${m.b == null ? '—' : fmt(m.b)}</td>${varTd(m.a, m.b)}</tr>`).join('') || '<tr><td colspan="5" class="empty">Sem votos.</td></tr>';
+    grafico($('hmMunG'), L.slice().sort((x,y)=>Math.max(y.a,y.b||0)-Math.max(x.a,x.b||0)).slice(0, document.body.classList.contains('apres') ? 8 : 10).map(m=>({rot:m.nome, cd:m.cd, v:{22:m.a, 26:m.b||0}})), [22, 26]);
+    // ---- bairros da cidade escolhida ----
+    await bairrosDe(SEL.mun, meu);
+  }
+  async function bairrosDe(mun, meu){
+    const cap = mun === CAP, nomeMun = titulo((RJB.mun[mun]||{}).nm || mun), anos = cap ? [22, 24, 26] : [22, 26];
+    $('hmBTit').textContent = `Bairros · ${nomeMun}`;
+    $('hmBaiH').innerHTML = `<tr><th>Bairro</th>${anos.map(a=>`<th class="r">${ANOS[a].rot}</th>`).join('')}<th class="r">Dif. 22→26</th><th class="r">Var.</th></tr>`;
+    let b26; try { b26 = await bairros26(mun); } catch(e){ b26 = new Map(); }
+    if (meu !== seq) return;
+    const b22 = bairros22(mun), b24 = cap ? bairros24() : new Map();
+    const ks = [...new Set([...b22.keys(), ...b24.keys(), ...b26.keys()])];
+    const L = ks.map(k=>{ const x = b22.get(k), y = b24.get(k), z = b26.get(k);
+      return { nome: titulo((z||x||y).nome), v:{22: x ? x.v : 0, 24: y ? y.v : 0, 26: z ? z.v : 0}, est:{24:true, 26: z ? z.est : false} }; })
+      .filter(b=>anos.some(a=>b.v[a] >= 0.5)).sort((p,q)=>q.v[26]-p.v[26] || q.v[22]-p.v[22]);
+    $('hmBMeta').textContent = `${L.length} bairros · ${anos.map(a=>ANOS[a].rot).join(' × ')}`;
+    $('hmBai').innerHTML = L.map(b=>`<tr data-loc="b:${mun}:${esc(b.nome)}" data-cargo="6"><td><div class="zname">${esc(b.nome)}</div>${apurTag(apurBairro(mun, b.nome), true)}</td>${anos.map(a=>`<td class="r num">${a===24 && b.v[a] ? '≈ ' : ''}${a===26 && b.est[26] && b.v[a] ? '≈ ' : ''}${fmt(Math.round(b.v[a]))}</td>`).join('')}${varTd(Math.round(b.v[22]), Math.round(b.v[26]))}</tr>`).join('')
+      || `<tr><td colspan="${anos.length+3}" class="empty">Sem votos nos bairros de ${esc(nomeMun)}.</td></tr>`;
+    grafico($('hmBaiG'), L.slice(0, document.body.classList.contains('apres') ? 7 : 12).map(b=>({rot:b.nome, v:{22:Math.round(b.v[22]), 24:Math.round(b.v[24]), 26:Math.round(b.v[26])}, est:b.est})), anos);
+    $('hmNota').textContent = `2022: votos reais por seção, somados no bairro do local de votação. ${cap ? '2024 (vereadora, nº 40123): votos de cada zona repartidos pelo eleitorado dos bairros da zona ("≈"). ' : ''}2026: boletins de urna já lidos + estimativa do restante ("≈"), apuração em andamento. Clique num bairro para ver os mais votados ali.`;
+  }
+  ['hmMun','hmMunG'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-hm]'); if (!tr) return;
+    SEL.mun = tr.dataset.hm; salvar(); document.querySelectorAll('#hmMun tr').forEach(t=>t.classList.toggle('sel', t.dataset.hm===SEL.mun));
+    bairrosDe(SEL.mun, seq); if (document.body.classList.contains('mob')) $('hmBTit').scrollIntoView({behavior:'smooth', block:'start'}); }));
+  return { atualizar };
+})();
+window.IDX_HIST = TELAS.findIndex(t=>t.id==='telaHist'); window.EVOL = EVOL;
 </script>
 
 <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
