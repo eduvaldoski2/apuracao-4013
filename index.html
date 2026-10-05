@@ -237,6 +237,8 @@ body.mob .rg-dv{white-space:normal;font-size:8.5px}
 body.mob .rg-cols .zmun{display:none}
 body.mob .rg-cols td.r{white-space:normal}
 .rg-cols .zname{font-size:12.5px}
+.cg-el{margin-bottom:14px}
+.cg-el h3,.cg-todas{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--purple-ink);margin:4px 0 8px}
 .cg-uf-det{border:1px solid var(--line);border-radius:8px;margin:0 0 6px;padding:0 8px}
 .cg-uf-det summary{cursor:pointer;padding:7px 0;font-size:13px}
 .cg-uf-det summary span{color:var(--muted);font-weight:600;margin-left:6px;font-size:12px}
@@ -320,6 +322,9 @@ td.pt-el small{color:var(--ok);font-weight:800;font-size:10.5px;margin-left:3px}
 .pt-80{font-size:9.5px;font-weight:800;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 3px;margin-left:4px;white-space:nowrap}
 tr.pt-foco td{background:rgba(246,135,18,.10)}
 .pt-nota{margin-top:10px}
+.pt-esc{font-size:12px;font-weight:700;color:var(--muted);display:inline-flex;gap:6px;align-items:center;margin-left:14px}
+.pt-esc select{font:inherit;font-size:13px;padding:3px 6px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.pt-st{font-size:11.5px;color:var(--muted);margin-left:8px}
 .pt-plen{display:grid;grid-template-columns:minmax(0,1fr);gap:6px 16px;align-items:center;margin-bottom:12px;flex:none}
 .pt-plen .pt-seats, body.apres .pt-plen .pt-seats{grid-template-columns:repeat(2,minmax(0,1fr))}
 .pt-seats li > span:nth-child(2) > .pt{display:none}
@@ -1057,7 +1062,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </section>
   <section class="tela" id="telaPart" data-nome="Partidos">
     <div class="tt-wrap">
-      <div class="cards-head"><h2>Cadeiras por partido</h2><span class="meta">cadeiras = votos ÷ quociente eleitoral (ex.: 1,7 = uma cadeira cheia e 70% de outra) · federação conta como um partido · clique num partido para ver a lista</span></div>
+      <div class="cards-head"><h2>Cadeiras por partido</h2><label class="pt-esc" for="ptEsc">Recorte <select id="ptEsc"><option value="RJ">RJ · Rio de Janeiro</option><option value="BR">Brasil · todos os estados</option><option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option><option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option><option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option><option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option><option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option><option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option><option value="RN">RN</option><option value="RO">RO</option><option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option><option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option></select></label><span class="pt-st" id="ptSt"></span><span class="meta">cadeiras = votos ÷ quociente eleitoral (ex.: 1,7 = uma cadeira cheia e 70% de outra) · federação conta como um partido · clique num partido para ver a lista</span></div>
       <div class="tt-cols p5-cols pt-cols">
         <div class="box tt-col">
           <div class="box-head"><h2>Federais</h2><span class="eyebrow" id="ptFeMeta"></span></div>
@@ -3011,37 +3016,107 @@ function partidosDe(d, calc){
     return { a, rot, cad, el:el.length, conf:el.filter(e=>e.conf).length, falta: QE ? Math.ceil((Math.floor(cad)+1)*QE - a.votos) : NaN, abaixo80: QE ? a.votos < 0.8*QE : false };
   }).sort((x,y)=>y.a.votos-x.a.votos);
 }
+// recorte da tela Partidos: RJ (padrão), Brasil (soma dos 27 estados) ou outro estado
+let PT_ESC = 'RJ'; try { PT_ESC = localStorage.getItem('painelPtEsc') || 'RJ'; } catch(e){}
+const ALE = {AC:24,AL:27,AM:24,AP:24,BA:63,CE:46,DF:24,ES:30,GO:41,MA:42,MG:77,MS:24,MT:24,PA:41,PB:36,PE:49,PI:30,PR:54,RJ:70,RN:24,RO:24,RR:24,RS:55,SC:40,SE:24,SP:94,TO:24};
+const UFS_PT = Object.keys(ALE);
+const EST7 = {}; let EST7_T = 0, EST7_RUN = false, EST7_G = -1;
+async function carregarEst7(){
+  if (EST7_RUN || CFG.ambiente === 'demo' || !ESTADO.ele) return; if (EST7_G !== GERACAO) { for (const k in EST7) delete EST7[k]; EST7_G = GERACAO; }
+  if (Date.now() - EST7_T < 90000 && Object.keys(EST7).length) return;
+  EST7_RUN = true; EST7_T = Date.now(); let n = 0;
+  try { await pool(UFS_PT.filter(u=>u !== CFG.uf.toUpperCase()).map(u=>async()=>{ try {
+      const d = extrair(await getJSON(CONG.urlUF(u, 7), {limite:20000, recuo404:true}));
+      if (!d.cands.length) return; const vagas = d.meta && d.meta.nv ? +d.meta.nv : ALE[u];
+      EST7[u] = { d, vagas, calc: aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d, vagas) };
+    } catch(e){} if (++n % 6 === 0) renderPartidos(); }), 6); }
+  finally { EST7_RUN = false; } renderPartidos();
+}
+// fontes de um cargo no recorte escolhido: [{uf, d, calc, vagas}]
+function fontesPT(cg){
+  const rj = CFG.uf.toUpperCase(), base = cg === 6 ? (ULTIMO ? {uf:rj, d:ULTIMO.d, calc:ULTIMO.calc, vagas:VAGAS} : null) : (EST ? {uf:rj, d:EST.d, calc:EST.calc, vagas:EST.vagas} : null);
+  const de = u => u === rj ? base : (cg === 6 ? (window.CONG && CONG.RES[6][u] ? {uf:u, ...CONG.RES[6][u]} : null) : (EST7[u] ? {uf:u, ...EST7[u]} : null));
+  if (PT_ESC === 'RJ' || PT_ESC === rj) return base ? [base] : [];
+  if (PT_ESC === 'BR') return UFS_PT.map(de).filter(Boolean);
+  const f = de(PT_ESC); return f ? [f] : [];
+}
+const chaveGrupo = rot => String(rot).toUpperCase().split('/').sort().join('/');
 function renderPartidos(){
-  const alvo = [['Fe', ULTIMO && ULTIMO.d, ULTIMO && ULTIMO.calc, VAGAS, 6], ['De', EST && EST.d, EST && EST.calc, EST && EST.vagas, 7]];
-  for (const [px, d, calc, vagas, cg] of alvo) {
+  if ($('ptEsc') && $('ptEsc').value !== PT_ESC) $('ptEsc').value = PT_ESC;
+  const precisaCong = PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase();
+  for (const [px, cg] of [['Fe', 6], ['De', 7]]) {
     const tb = $('pt'+px); if (!tb) continue;
-    if (!d || !calc) continue;
-    const L = partidosDe(d, calc); PT_ULT[cg] = { d, calc, vagas, L };
-    const QE = calc.QE_TSE || calc.QE, maxC = Math.max(1, ...L.map(x=>x.cad||0));
-    const somaInt = L.reduce((s,x)=>s+Math.floor(x.cad||0),0);
-    $('pt'+px+'Meta').textContent = `${vagas} vagas · QE ${fmt(QE)} · ${somaInt} pelo quociente + ${Math.max(0, vagas-somaInt)} nas sobras${calc.nConf ? ' · ✓'+calc.nConf+' TSE' : ''}`;
+    const F = fontesPT(cg);
+    if (!F.length) { if (precisaCong) { tb.innerHTML = '<tr><td colspan="6" class="empty">Carregando os dados deste recorte…</td></tr>'; $('pt'+px+'Meta').textContent = ''; ['Hemi','Seats'].forEach(k=>{ if ($('pt'+px+k)) $('pt'+px+k).innerHTML = ''; }); if ($('pt'+px+'HemiLeg')) $('pt'+px+'HemiLeg').textContent = ''; } continue; }
+    const multi = F.length > 1;
+    let L, eleitos, vagas, validos, meta, nConf;
+    if (!multi) {
+      const {d, calc} = F[0]; vagas = F[0].vagas; L = partidosDe(d, calc); validos = calc.validos; nConf = calc.nConf;
+      const QE = calc.QE_TSE || calc.QE, somaInt = L.reduce((s,x)=>s+Math.floor(x.cad||0),0);
+      meta = `${F[0].uf} · ${vagas} vagas · QE ${fmt(QE)} · ${somaInt} pelo quociente + ${Math.max(0, vagas-somaInt)} nas sobras${calc.nConf ? ' · ✓'+calc.nConf+' TSE' : ''}`;
+      const rotAgr = {}; L.forEach(x=>rotAgr[x.a.id] = x.rot);
+      eleitos = calc.eleitos.map(e=>({...e, g: rotAgr[e.agr] || e.partido}));
+      PT_ULT[cg] = { d, calc, vagas, L, multi:false };
+    } else {
+      const M = new Map(); eleitos = []; vagas = 0; validos = 0; nConf = 0;
+      for (const f of F) { vagas += f.vagas; validos += f.calc.validos; nConf += f.calc.nConf || 0;
+        const Lf = partidosDe(f.d, f.calc), keyAgr = {};
+        for (const x of Lf) { const k = chaveGrupo(x.rot); keyAgr[x.a.id] = k;
+          const o = M.get(k) || {a:{id:k, votos:0, nome:'', tipo: x.a.tipo, partidos: x.a.partidos}, rot:x.rot, top:0, cad:0, el:0, conf:0, falta:NaN, abaixo80:false, ufs:0};
+          o.a.votos += x.a.votos; o.cad += x.cad || 0; o.el += x.el; o.conf += x.conf; if (x.el) o.ufs++;
+          if (x.a.votos > o.top) { o.top = x.a.votos; o.rot = x.rot; if (x.a.nome && !/^\d+$/.test(x.a.nome) && x.a.tipo !== 'Partido') o.a.nome = x.a.nome; }
+          M.set(k, o); }
+        f.calc.eleitos.forEach(e=>eleitos.push({...e, uf:f.uf, k: keyAgr[e.agr]})); }
+      L = [...M.values()].sort((x,y)=>y.a.votos-x.a.votos);
+      const rotK = {}; L.forEach(x=>rotK[x.a.id] = x.rot); eleitos.forEach(e=>e.g = rotK[e.k] || e.partido);
+      meta = `Brasil · ${F.length} de 27 estados · ${vagas} vagas · ${eleitos.length} definidas${nConf ? ' · ✓'+nConf+' TSE' : ''}`;
+      PT_ULT[cg] = { multi:true, F, L, vagas };
+    }
+    const maxC = Math.max(1, ...L.map(x=>x.cad||0));
+    $('pt'+px+'Meta').textContent = meta;
     tb.innerHTML = L.map(x=>{
       const cor = corGrupo(x.rot), fed = x.a.tipo && x.a.tipo!=='Partido' && x.a.nome && !/^\d+$/.test(x.a.nome) ? `<span class="pt-fed">${esc(x.a.nome)}</span>` : '';
       return `<tr data-agr="${esc(x.a.id)}" data-cargo="${cg}" class="${ehFoco(x.rot)?'pt-foco':''}" style="--pc:${cor}" title="Clique para ver os candidatos de ${esc(x.rot)}">`
         + `<td><span class="pt-nm"><i></i>${esc(x.rot)}${x.abaixo80?'<span class="pt-80" title="Abaixo de 80% do quociente eleitoral: fora da 2ª fase das sobras">&lt;80%</span>':''}</span>${fed}</td>`
-        + `<td class="r num">${fmt(x.a.votos)}</td><td class="r num">${fmtP(100*x.a.votos/calc.validos,1)}</td>`
+        + `<td class="r num">${fmt(x.a.votos)}</td><td class="r num">${fmtP(100*x.a.votos/validos,1)}</td>`
         + `<td class="r num pt-cad">${isNaN(x.cad)?'—':x.cad.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})}<span class="pt-bar"><i style="width:${(100*(x.cad||0)/maxC).toFixed(1)}%"></i></span></td>`
         + `<td class="r num pt-el"><b>${x.el}</b>${x.conf?`<small title="confirmados pelo TSE">✓${x.conf}</small>`:''}</td>`
-        + `<td class="r num">${fmt(x.falta)}</td></tr>`;
+        + `<td class="r num">${multi ? (x.ufs ? x.ufs + ' UF' : '—') : fmt(x.falta)}</td></tr>`;
     }).join('') || '<tr><td colspan="6" class="empty">Sem votos ainda.</td></tr>';
-    // plenário no formato da tela Total: bolinhas por partido (federação = um) e legenda com cadeiras e quocientes
-    const rotAgr = {}; L.forEach(x=>rotAgr[x.a.id] = x.rot);
-    const cont = {}; calc.eleitos.forEach(e=>{ const g = rotAgr[e.agr] || e.partido; cont[g] = (cont[g]||0) + 1; });
-    const itens = calc.eleitos.map(e=>({...e, g: rotAgr[e.agr] || e.partido})).sort((a,b)=>(cont[b.g]-cont[a.g]) || a.g.localeCompare(b.g) || (b.conf - a.conf) || (b.votos - a.votos));
+    const th = tb.closest('table').querySelectorAll('thead th')[5]; if (th) { const sp = th.querySelector('.seta'); th.textContent = multi ? 'Estados c/ cadeira' : 'Falta p/ +1'; if (sp) th.prepend(sp); }
+    const cont = {}; eleitos.forEach(e=>cont[e.g] = (cont[e.g]||0) + 1);
+    const itens = eleitos.sort((a,b)=>(cont[b.g]-cont[a.g]) || a.g.localeCompare(b.g) || (b.conf - a.conf) || (b.votos - a.votos));
     if (window.CONG && $('pt'+px+'Hemi')) CONG.plenario($('pt'+px+'Hemi'), itens, vagas, '');
-    if ($('pt'+px+'HemiLeg')) $('pt'+px+'HemiLeg').innerHTML = calc.nConf ? `<i></i>cor cheia: confirmado pelo TSE (${calc.nConf}) <i style="opacity:.4"></i>cor clara: eleito na parcial (${calc.eleitos.length-calc.nConf})` : 'Nenhuma cadeira confirmada pelo TSE ainda: todas são da parcial (cálculo do painel).';
+    if ($('pt'+px+'HemiLeg')) $('pt'+px+'HemiLeg').innerHTML = nConf ? `<i></i>cor cheia: confirmado pelo TSE (${nConf}) <i style="opacity:.4"></i>cor clara: eleito na parcial (${eleitos.length-nConf})` : 'Nenhuma cadeira confirmada pelo TSE ainda: todas são da parcial (cálculo do painel).';
     const comCad = L.filter(x=>x.el > 0).sort((a,b)=>b.el-a.el || b.a.votos-a.a.votos);
-    if ($('pt'+px+'Seats')) $('pt'+px+'Seats').innerHTML = comCad.map(x=>{ const fed = x.a.tipo && x.a.tipo!=='Partido' && x.a.nome && !/^\d+$/.test(x.a.nome) ? ` <span class="pt">${esc(x.a.nome)}</span>` : '';
-      return `<li class="${ehFoco(x.rot)?'foco':''}" data-agr="${esc(x.a.id)}" data-cargo="${cg}" title="Clique para ver os candidatos"><span class="sw" style="background:${corGrupo(x.rot)}"></span><span>${esc(x.rot)}${fed}<span class="pt-q">${isNaN(x.cad)?'':x.cad.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' QE'}</span></span><span class="n num">${x.conf ? `<small class="n-conf" title="confirmados pelo TSE">✓${x.conf}</small> ` : ''}${x.el}</span></li>`; }).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
+    if ($('pt'+px+'Seats')) $('pt'+px+'Seats').innerHTML = comCad.map(x=>`<li class="${ehFoco(x.rot)?'foco':''}" data-agr="${esc(x.a.id)}" data-cargo="${cg}" title="Clique para ver os candidatos"><span class="sw" style="background:${corGrupo(x.rot)}"></span><span>${esc(x.rot)}<span class="pt-q">${isNaN(x.cad)?'':x.cad.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' QE'}${multi ? ' · ' + x.ufs + ' UF' : ''}</span></span><span class="n num">${x.conf ? `<small class="n-conf" title="confirmados pelo TSE">✓${x.conf}</small> ` : ''}${x.el}</span></li>`).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
   }
+  if ($('ptSt')) { const nF = fontesPT(6).length, nE = fontesPT(7).length;
+    $('ptSt').textContent = PT_ESC === 'BR' ? `${nF}/27 estados (federais) · ${nE}/27 (estaduais)${(window.CONG && CONG.carregando()) || EST7_RUN ? ' · carregando…' : ''}` : ''; }
+}
+// Brasil: eleitos do partido estado por estado (e todas as candidaturas, por estado)
+function abrirPartidoNac(k, cg){
+  const P = PT_ULT[cg]; if (!P || !P.multi) return;
+  const x = P.L.find(y=>y.a.id===k); if (!x) return;
+  const el = [], blocos = [];
+  for (const f of P.F) { const Lf = partidosDe(f.d, f.calc), ids = new Set(Lf.filter(y=>chaveGrupo(y.rot)===k).map(y=>y.a.id)); if (!ids.size) continue;
+    f.calc.eleitos.filter(e=>ids.has(e.agr)).forEach(e=>el.push({...e, uf:f.uf, calc:f.calc}));
+    const cands = f.d.cands.filter(c=>ids.has(c.agr) && !c.soLegenda).sort((a,b)=>b.votos-a.votos);
+    blocos.push({uf:f.uf, n:cands.length, e: f.calc.eleitos.filter(e=>ids.has(e.agr)).length, html: `<table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">Situação</th></tr></thead><tbody>${cands.map((c,i)=>`<tr${f.uf===CFG.uf.toUpperCase() ? ` data-n="${esc(c.n)}" data-cargo="${cg}"` : ''}><td class="rk">${i+1}</td><td><div class="nm">${esc(titulo(c.nome))}</div><span class="pt">${esc(c.partido)} · ${esc(c.n)}</span></td><td class="r num">${fmt(c.votos)}</td><td class="r">${selo(c, f.calc)}</td></tr>`).join('')}</tbody></table>`}); }
+  const porUF = {}; el.forEach(e=>porUF[e.uf] = (porUF[e.uf]||0) + 1);
+  el.sort((a,b)=>(porUF[b.uf]-porUF[a.uf]) || a.uf.localeCompare(b.uf) || b.votos-a.votos);
+  blocos.sort((a,b)=>b.e-a.e || a.uf.localeCompare(b.uf));
+  const casa = cg === 7 ? 'deputados estaduais' : 'deputados federais';
+  DET.abrir(`<i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${corGrupo(x.rot)};margin-right:8px"></i>${esc(x.rot)}`,
+    `Brasil · ${el.length} ${casa} eleitos na parcial em ${Object.keys(porUF).length} estados · ${fmt(x.a.votos)} votos`,
+    `<section class="cg-el"><h3>Eleitos no Brasil · ${el.length} ${casa}</h3><table><thead><tr><th>#</th><th>Candidatura</th><th>Estado</th><th class="r">Votos</th><th class="r">Situação</th></tr></thead><tbody>`
+    + el.map((e,i)=>`<tr${e.uf===CFG.uf.toUpperCase() ? ` data-n="${esc(e.n)}" data-cargo="${cg}"` : ''}><td class="rk">${i+1}</td><td><div class="nm">${esc(titulo(e.nome))}</div><span class="pt">${esc(e.partido)} · ${esc(e.n)}</span></td><td><b>${e.uf}</b></td><td class="r num">${fmt(e.votos)}</td><td class="r">${selo(e, e.calc)}</td></tr>`).join('')
+    + (el.length ? '' : '<tr><td colspan="5" class="empty">Nenhum eleito na parcial.</td></tr>') + '</tbody></table></section><h3 class="cg-todas">Todas as candidaturas, por estado</h3>'
+    + blocos.map(b=>`<details class="cg-uf-det"><summary><b>${b.uf}</b> <span>${b.e} eleito${b.e===1?'':'s'} · ${b.n} candidaturas</span></summary>${b.html}</details>`).join('')
+    + `<p class="det-nota">Situação pelo cálculo de cada estado (quociente e sobras); ✓ = confirmado pelo TSE.</p>`, false, null);
 }
 function abrirPartido(agr, cg){
-  const P = PT_ULT[cg]; if (!P) return;
+  const P = PT_ULT[cg]; if (!P) return; if (P.multi) return abrirPartidoNac(agr, cg);
   const x = P.L.find(y=>String(y.a.id)===String(agr)); if (!x) return;
   const { d, calc } = P, pv = v => calc.validos ? fmtP(100*v/calc.validos,1) : '—';
   const cands = d.cands.filter(c=>c.agr===x.a.id && !c.soLegenda).sort((a,b)=>b.votos-a.votos);
@@ -3054,6 +3129,9 @@ function abrirPartido(agr, cg){
     `${cg===7?'Deputados estaduais':'Deputados federais'} · ${cands.length} candidaturas${fed && x.a.nome && !/^\d+$/.test(x.a.nome) ? ' · '+x.a.nome : ''}`,
     res + `<table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Situação</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="empty">Sem candidaturas.</td></tr>'}</tbody></table><p class="det-nota">${LEGENDA_SELO}. Clique numa candidatura para ver onde ela foi mais votada.</p>`, false, { p: d.tot && !isNaN(d.tot.pctApurado) ? d.tot.pctApurado : PCT_EST, rot: 'no estado' });
 }
+function trocarEscPT(){ PT_ESC = $('ptEsc').value; try { localStorage.setItem('painelPtEsc', PT_ESC); } catch(e){} renderPartidos();
+  if (PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) CONG.atualizar().then(renderPartidos); carregarEst7(); } }
+$('ptEsc').addEventListener('change', trocarEscPT);
 ['ptFe','ptDe','ptFeSeats','ptDeSeats'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-agr]'); if (tr) abrirPartido(tr.dataset.agr, +tr.dataset.cargo); }));
 ['fe','de'].forEach(px=>$(px+'Partidos').addEventListener('click', e=>{
   if (e.target.closest('button[data-todos]')) { $(px+'Partidos').classList.toggle('todos'); if (ULT_LP[px]) renderListaPartidos(px, ...ULT_LP[px]); return; }
@@ -3115,6 +3193,7 @@ async function atualizar(){
     if (mqApres.matches || telaAtual===IDX_MUN) atualizarMunicipio();
     if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
     if (telaAtual === window.IDX_CONG && window.CONG) CONG.atualizar();
+    if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) CONG.atualizar().then(renderPartidos); carregarEst7(); }
     if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
     if (telaAtual === window.IDX_REG && window.REG) REG.atualizar();
     const agora = new Date().toLocaleTimeString('pt-BR');
@@ -3278,6 +3357,7 @@ function mostrarTela(i){
   if (telaAtual===IDX_MUN && !MUN_DADOS) atualizarMunicipio();
   if (telaAtual === window.IDX_COMP && window.COMP) COMP.atualizar();
   if (telaAtual === window.IDX_CONG && window.CONG) CONG.atualizar();
+  if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) CONG.atualizar().then(renderPartidos); carregarEst7(); }
   if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
   if (telaAtual === window.IDX_REG && window.REG) REG.atualizar();
   if (TELAS[telaAtual] && TELAS[telaAtual].id==='telaEvo') renderGrafico();
@@ -4034,15 +4114,26 @@ const CONG = (()=>{
     const tC = blocos.reduce((s2,b)=>s2+b.eC,0), tS = blocos.reduce((s2,b)=>s2+b.eS,0), tN = blocos.reduce((s2,b)=>s2+b.n,0);
     DET.abrir(`<i style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${corGrupo(g)};margin-right:8px"></i>${esc(g)}`,
       `${tC} deputados federais e ${tS} senadores eleitos na parcial · ${tN} candidaturas em ${blocos.length} estados`,
-      blocos.map(b=>`<details class="cg-uf-det"${b.u===SEL.uf ? ' open' : ''}><summary><b>${b.u}</b> ${esc(NOME_UF[b.u])} <span>${b.eC} na Câmara${b.eS ? ' · ' + b.eS + ' no Senado' : ''} · ${b.n} candidaturas · ${fmt(b.votos)} votos nominais</span></summary>${b.html}</details>`).join('')
-      + '<p class="det-nota">Clique num estado para abrir ou fechar a lista. Situação na Câmara pelo cálculo de cada estado (quociente e sobras); ✓ = confirmado pelo TSE.</p>', false, null);
+      // eleitos do partido no Brasil, estado por estado (Senado e Câmara)
+      (()=>{ const el = [];
+        for (const u of UFS) { const calc = RES[6][u] && RES[6][u].calc;
+          (RES[5][u] ? RES[5][u].eleitos : []).filter(e=>gr(e.partido)===g).forEach(e=>el.push({...e, u, casa:'Senado', ord:0, sel: e.conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>'}));
+          (RES[6][u] ? RES[6][u].eleitos : []).filter(e=>gr(e.partido)===g).forEach(e=>el.push({...e, u, casa:'Câmara', ord:1, sel: calc ? selo(e, calc) : (e.conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>')})); }
+        const porUF = {}; el.forEach(e=>porUF[e.u] = (porUF[e.u]||0) + 1);
+        el.sort((a,b)=>(porUF[b.u]-porUF[a.u]) || a.u.localeCompare(b.u) || a.ord-b.ord || b.votos-a.votos);
+        return `<section class="cg-el"><h3>Eleitos no Brasil · ${el.filter(e=>e.casa==='Câmara').length} deputados federais e ${el.filter(e=>e.casa==='Senado').length} senadores</h3>`
+          + `<table><thead><tr><th>#</th><th>Candidatura</th><th>Estado</th><th>Casa</th><th class="r">Votos</th><th class="r">Situação</th></tr></thead><tbody>`
+          + el.map((e,k)=>`<tr${e.casa==='Câmara' && e.u === CFG.uf.toUpperCase() ? ` data-n="${esc(e.n)}" data-cargo="6"` : ''}><td class="rk">${k+1}</td><td><div class="nm">${esc(titulo(e.nome))}</div><span class="pt">${esc(e.partido)} · ${esc(e.n)}</span></td><td><b>${e.u}</b></td><td>${e.casa}</td><td class="r num">${fmt(e.votos)}</td><td class="r">${e.sel}</td></tr>`).join('')
+          + (el.length ? '' : '<tr><td colspan="6" class="empty">Nenhum eleito na parcial.</td></tr>') + '</tbody></table></section><h3 class="cg-todas">Todas as candidaturas, por estado</h3>'; })()
+      + blocos.map(b=>`<details class="cg-uf-det"><summary><b>${b.u}</b> ${esc(NOME_UF[b.u])} <span>${b.eC} na Câmara${b.eS ? ' · ' + b.eS + ' no Senado' : ''} · ${b.n} candidaturas · ${fmt(b.votos)} votos nominais</span></summary>${b.html}</details>`).join('')
+      + '<p class="det-nota">Clique num estado para ver todas as candidaturas dele. Situação na Câmara pelo cálculo de cada estado (quociente e sobras); ✓ = confirmado pelo TSE.</p>', false, null);
   }
   $('cgVerLista').addEventListener('click', ()=>{ if (SEL.part) abrirPartidoBR(SEL.part); });
   $('cgUf').addEventListener('change', ()=>{ SEL.uf = $('cgUf').value; salvar(); render(); });
   $('cgPart').addEventListener('change', ()=>{ SEL.part = $('cgPart').value; salvar(); render(); if (SEL.part) abrirPartidoBR(SEL.part); });
   ['cgCamLeg','cgSenLeg'].forEach(id=>$(id).addEventListener('click', e=>{ const li = e.target.closest('li[data-g]'); if (!li) return; SEL.part = SEL.part === li.dataset.g ? '' : li.dataset.g; salvar(); render(); if (SEL.part) abrirPartidoBR(SEL.part); }));
   $('cgUfs').addEventListener('click', e=>{ const tr = e.target.closest('tr[data-uf]'); if (!tr) return; SEL.uf = tr.dataset.uf; salvar(); render(); if (document.body.classList.contains('mob')) $('cgUf').scrollIntoView({behavior:'smooth', block:'start'}); });
-  return { atualizar, render, RES, plenario };
+  return { atualizar, render, RES, plenario, urlUF, abrirPartidoBR, grupos, carregando: () => rodando };
 })();
 window.IDX_CONG = TELAS.findIndex(t=>t.id==='telaCong'); window.CONG = CONG;
 /* ============ EVOLUÇÃO 22 · 24 · 26 ============
