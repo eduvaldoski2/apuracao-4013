@@ -235,6 +235,7 @@ body.mob .p5-cols td, body.mob .p5-cols th{padding-left:2px;padding-right:2px}
 .cg-leg li.sel{border-color:var(--pc);box-shadow:inset 0 0 0 2px var(--pc)}
 .cg-leg li.apag{opacity:.4}
 #cgUfs tr{cursor:pointer}
+#cgNomes tr.cg-sep td{border-top:2px solid var(--line)}
 #cgUfs tr.sel td{background:rgba(246,135,18,.10);font-weight:700}
 .cg-nota{margin-top:10px}
 body.mob .cg-par{grid-template-columns:minmax(0,1fr)}
@@ -3620,9 +3621,9 @@ const CONG = (()=>{
     else if (CFG.ambiente === 'demo') d = demoUF(uf, cargo);
     else d = extrair(await getJSON(urlUF(uf, cargo), {limite:20000, recuo404:true}));
     if (!d || !d.cands || !d.cands.length) throw new Error('sem candidatos');
-    let vagas = d.meta && d.meta.nv ? +d.meta.nv : (cargo === 6 ? VAGAS_UF[uf] : SEN_VAGAS()), eleitos;
+    let vagas = d.meta && d.meta.nv ? +d.meta.nv : (cargo === 6 ? VAGAS_UF[uf] : SEN_VAGAS()), eleitos, calc = null;
     if (cargo === 6) {
-      const calc = (uf === CFG.uf.toUpperCase() && ULTIMO && d === ULTIMO.d) ? ULTIMO.calc : aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d, vagas);
+      calc = (uf === CFG.uf.toUpperCase() && ULTIMO && d === ULTIMO.d) ? ULTIMO.calc : aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d, vagas);
       eleitos = calc.eleitos.map(e=>({n:e.n, nome:e.nome, partido:e.partido, votos:e.votos, conf:!!e.conf, via:e.via}));
     } else {
       const eleitoTSE = c => c.e==='s' || (/^eleit/i.test(c.st||'') && !/n[ãa]o/i.test(c.st||''));
@@ -3632,7 +3633,7 @@ const CONG = (()=>{
     }
     eleitos.sort((a,b)=>b.votos-a.votos);
     const t = d.tot || {}, sA = Math.min(t.secoes, t.secoesTot), sT = Math.max(t.secoes, t.secoesTot);
-    return { vagas, eleitos, d, pct: t.pctApurado, sA, sT };
+    return { vagas, eleitos, d, calc, pct: t.pctApurado, sA, sT };
   }
   async function atualizar(forcar){
     if (rodando) return; if (GERA !== GERACAO) { RES[6] = {}; RES[5] = {}; GERA = GERACAO; }
@@ -3723,16 +3724,28 @@ const CONG = (()=>{
     $('cgUfs').innerHTML = UFS.map(u=>{ const c = RES[6][u], s = RES[5][u];
       const nc = c ? (foco ? c.eleitos.filter(e=>gr(e.partido)===foco).length : c.eleitos.length) : null, ns = s ? (foco ? s.eleitos.filter(e=>gr(e.partido)===foco).length : s.eleitos.length) : null;
       return `<tr data-uf="${u}" class="${u===uf?'sel':''}"><td><b>${u}</b> <span class="zmun" style="display:inline">${esc(NOME_UF[u])}</span></td><td class="r num">${nc==null?'—':nc}${foco || !c ? '' : `<span class="zmun" style="display:inline"> /${c.vagas}</span>`}</td><td class="r num">${ns==null?'—':ns}</td><td class="r">${c ? apurTag(c.pct) : '<span class="zmun">sem dados</span>'}</td></tr>`; }).join('');
-    // nomes eleitos no estado escolhido
-    const lista = [...camUf.map(e=>({...e, casa:'Câmara', cg:6})), ...senUf.map(e=>({...e, casa:'Senado', cg:5}))].filter(e=>!foco || e.g===foco).sort((a,b)=>(a.casa===b.casa ? b.votos-a.votos : (a.casa==='Senado' ? -1 : 1)));
-    $('cgNomesTit').textContent = `${foco ? foco + ' · ' : ''}eleitos em ${NOME_UF[uf]}`;
-    $('cgNomesMeta').textContent = `${lista.filter(e=>e.casa==='Senado').length} no Senado · ${lista.filter(e=>e.casa==='Câmara').length} na Câmara`;
-    $('cgNomes').innerHTML = lista.map((e,i)=>`<tr${e.cg===6 && uf===CFG.uf.toUpperCase() ? ` data-n="${esc(e.n)}" data-cargo="6"` : ''} style="--pc:${corGrupo(e.g)}"><td class="rk">${i+1}</td><td><div class="nm">${esc(titulo(e.nome))}</div><span class="pt"><span class="sw-pt" style="background:${corGrupo(e.g)}"></span>${esc(e.g)} · ${e.casa}</span></td><td class="r num">${fmt(e.votos)}</td><td class="r">${e.conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>'}</td></tr>`).join('')
-      || `<tr><td colspan="4" class="empty">${RES[6][uf] || RES[5][uf] ? 'Nenhum eleito ' + (foco ? 'deste partido ' : '') + 'neste estado ainda.' : 'Carregando…'}</td></tr>`;
+    // estado escolhido: eleitos de todos os partidos ou, com um partido escolhido, TODAS as candidaturas dele
+    const rjUF = uf === CFG.uf.toUpperCase();
+    let lista;
+    if (foco) {
+      const setS = new Set(senUf.map(e=>e.n));
+      const todos = cg => ((RES[cg][uf] || {}).d || {cands:[]}).cands.filter(c=>!c.soLegenda && gr(c.partido)===foco).map(c=>({...c, g:gr(c.partido), casa: cg===5 ? 'Senado' : 'Câmara', cg}));
+      lista = [...todos(5), ...todos(6)].sort((a,b)=>(a.casa===b.casa ? b.votos-a.votos : (a.casa==='Senado' ? -1 : 1)));
+      lista.forEach(c=>{ if (c.cg === 5) c.selo = setS.has(c.n) ? (senUf.find(e=>e.n===c.n).conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>') : (/n[ãa]o\s*eleit/i.test(c.st||'') ? '<span class="selo fora conf">✓ NÃO ELEITO</span>' : '<span class="selo fora">FORA</span>');
+        else c.selo = RES[6][uf] && RES[6][uf].calc ? selo(c, RES[6][uf].calc) : ''; });
+    } else lista = [...senUf.map(e=>({...e, casa:'Senado', cg:5, selo: e.conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>'})), ...camUf.map(e=>({...e, casa:'Câmara', cg:6, selo: e.conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>'}))];
+    $('cgNomesTit').textContent = foco ? `${foco} · todas as candidaturas em ${NOME_UF[uf]}` : `Eleitos em ${NOME_UF[uf]}`;
+    const nSen = lista.filter(e=>e.cg===5).length, nCam = lista.filter(e=>e.cg===6).length;
+    $('cgNomesMeta').textContent = foco ? `${nSen} ao Senado · ${nCam} à Câmara · ${camUf.filter(e=>e.g===foco).length + senUf.filter(e=>e.g===foco).length} eleitos na parcial` : `${nSen} no Senado · ${nCam} na Câmara`;
+    let k6 = 0, k5 = 0;
+    $('cgNomes').innerHTML = lista.map(e=>{ const k = e.cg===5 ? ++k5 : ++k6;
+      const sep = (e.cg===6 && k===1 && nSen) ? ' class="cg-sep"' : '';
+      return `<tr${e.cg===6 && rjUF ? ` data-n="${esc(e.n)}" data-cargo="6"` : ''}${sep}><td class="rk">${k}</td><td><div class="nm">${esc(titulo(e.nome))}</div><span class="pt"><span class="sw-pt" style="background:${corGrupo(e.g)}"></span>${esc(e.partido && e.partido!==e.g ? e.partido + ' · ' + e.g : e.g)} · ${e.casa} · ${esc(e.n)}</span></td><td class="r num">${fmt(e.votos)}</td><td class="r">${e.selo}</td></tr>`; }).join('')
+      || `<tr><td colspan="4" class="empty">${RES[6][uf] || RES[5][uf] ? (foco ? 'Este partido não tem candidaturas neste estado.' : 'Nenhum eleito neste estado ainda.') : 'Carregando…'}</td></tr>`;
   }
   $('cgUf').addEventListener('change', ()=>{ SEL.uf = $('cgUf').value; salvar(); render(); });
   $('cgPart').addEventListener('change', ()=>{ SEL.part = $('cgPart').value; salvar(); render(); });
-  ['cgCamLeg','cgSenLeg'].forEach(id=>$(id).addEventListener('click', e=>{ const li = e.target.closest('li[data-g]'); if (!li) return; SEL.part = SEL.part === li.dataset.g ? '' : li.dataset.g; salvar(); render(); }));
+  ['cgCamLeg','cgSenLeg'].forEach(id=>$(id).addEventListener('click', e=>{ const li = e.target.closest('li[data-g]'); if (!li) return; SEL.part = SEL.part === li.dataset.g ? '' : li.dataset.g; salvar(); render(); if (SEL.part) $('cgNomes').closest('.box').scrollIntoView({behavior:'smooth', block:'nearest'}); }));
   $('cgUfs').addEventListener('click', e=>{ const tr = e.target.closest('tr[data-uf]'); if (!tr) return; SEL.uf = tr.dataset.uf; salvar(); render(); if (document.body.classList.contains('mob')) $('cgUf').scrollIntoView({behavior:'smooth', block:'start'}); });
   return { atualizar, render, RES, plenario };
 })();
