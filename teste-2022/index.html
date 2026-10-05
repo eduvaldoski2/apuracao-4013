@@ -255,6 +255,21 @@ td.pt-el small{color:var(--ok);font-weight:800;font-size:10.5px;margin-left:3px}
 .pt-80{font-size:9.5px;font-weight:800;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 3px;margin-left:4px;white-space:nowrap}
 tr.pt-foco td{background:rgba(246,135,18,.10)}
 .pt-nota{margin-top:10px}
+.pt-plen{display:grid;grid-template-columns:minmax(0,1fr);gap:6px 16px;align-items:center;margin-bottom:12px;flex:none}
+.pt-plen .pt-seats, body.apres .pt-plen .pt-seats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.pt-seats li > span:nth-child(2) > .pt{display:none}
+@media (min-width:1100px){ .pt-plen{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)} }
+.pt-hemi{max-width:440px}
+.pt-seats li{padding:2px 0;font-size:13px}
+.pt-seats .n{font-size:17px}
+body.apres .pt-nota{display:none}
+body.apres .pt-plen{flex:1;min-height:0;margin-bottom:0}
+body.apres .pt-plen .pt-seats{max-height:100%;overflow-y:auto;align-self:stretch;align-content:start}
+body.apres .pt-cols .tt-col > .tbl-wrap{display:none}
+body.apres .pt-cols .tt-col{overflow:hidden}
+.pt-seats li{cursor:pointer}
+.pt-seats li:hover{background:rgba(246,135,18,.08)}
+.pt-q{display:block;font-size:10.5px;font-weight:700;color:var(--muted)}
 .det-res{margin:0 0 10px;font-size:13px;color:var(--muted)}
 .det-res b{color:var(--ink)}
 body.mob td.pt-cad{font-size:14px}
@@ -973,10 +988,16 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <div class="tt-cols p5-cols pt-cols">
         <div class="box tt-col">
           <div class="box-head"><h2>Federais</h2><span class="eyebrow" id="ptFeMeta"></span></div>
+          <div class="pt-plen"><div class="pt-plen-g"><svg class="hemi pt-hemi" id="ptFeHemi" viewBox="0 0 200 106" role="img" aria-label="Plenário: Câmara"></svg>
+          <p class="hemi-leg" id="ptFeHemiLeg"></p></div>
+          <ul class="seats pt-seats" id="ptFeSeats"></ul></div>
           <div class="tbl-wrap scroll"><table><thead><tr><th>Partido</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Cadeiras</th><th class="r">Eleitos</th><th class="r">Falta p/ +1</th></tr></thead><tbody id="ptFe"><tr><td colspan="6" class="empty">Carregando…</td></tr></tbody></table></div>
         </div>
         <div class="box tt-col">
           <div class="box-head"><h2>Estaduais</h2><span class="eyebrow" id="ptDeMeta"></span></div>
+          <div class="pt-plen"><div class="pt-plen-g"><svg class="hemi pt-hemi" id="ptDeHemi" viewBox="0 0 200 106" role="img" aria-label="Plenário: Alerj"></svg>
+          <p class="hemi-leg" id="ptDeHemiLeg"></p></div>
+          <ul class="seats pt-seats" id="ptDeSeats"></ul></div>
           <div class="tbl-wrap scroll"><table><thead><tr><th>Partido</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Cadeiras</th><th class="r">Eleitos</th><th class="r">Falta p/ +1</th></tr></thead><tbody id="ptDe"><tr><td colspan="6" class="empty">Aparece quando o TSE começar a divulgar.</td></tr></tbody></table></div>
         </div>
       </div>
@@ -2855,6 +2876,15 @@ function renderPartidos(){
         + `<td class="r num pt-el"><b>${x.el}</b>${x.conf?`<small title="confirmados pelo TSE">✓${x.conf}</small>`:''}</td>`
         + `<td class="r num">${fmt(x.falta)}</td></tr>`;
     }).join('') || '<tr><td colspan="6" class="empty">Sem votos ainda.</td></tr>';
+    // plenário no formato da tela Total: bolinhas por partido (federação = um) e legenda com cadeiras e quocientes
+    const rotAgr = {}; L.forEach(x=>rotAgr[x.a.id] = x.rot);
+    const cont = {}; calc.eleitos.forEach(e=>{ const g = rotAgr[e.agr] || e.partido; cont[g] = (cont[g]||0) + 1; });
+    const itens = calc.eleitos.map(e=>({...e, g: rotAgr[e.agr] || e.partido})).sort((a,b)=>(cont[b.g]-cont[a.g]) || a.g.localeCompare(b.g) || (b.conf - a.conf) || (b.votos - a.votos));
+    if (window.CONG && $('pt'+px+'Hemi')) CONG.plenario($('pt'+px+'Hemi'), itens, vagas, '');
+    if ($('pt'+px+'HemiLeg')) $('pt'+px+'HemiLeg').innerHTML = calc.nConf ? `<i></i>cor cheia: confirmado pelo TSE (${calc.nConf}) <i style="opacity:.4"></i>cor clara: eleito na parcial (${calc.eleitos.length-calc.nConf})` : 'Nenhuma cadeira confirmada pelo TSE ainda: todas são da parcial (cálculo do painel).';
+    const comCad = L.filter(x=>x.el > 0).sort((a,b)=>b.el-a.el || b.a.votos-a.a.votos);
+    if ($('pt'+px+'Seats')) $('pt'+px+'Seats').innerHTML = comCad.map(x=>{ const fed = x.a.tipo && x.a.tipo!=='Partido' && x.a.nome && !/^\d+$/.test(x.a.nome) ? ` <span class="pt">${esc(x.a.nome)}</span>` : '';
+      return `<li class="${ehFoco(x.rot)?'foco':''}" data-agr="${esc(x.a.id)}" data-cargo="${cg}" title="Clique para ver os candidatos"><span class="sw" style="background:${corGrupo(x.rot)}"></span><span>${esc(x.rot)}${fed}<span class="pt-q">${isNaN(x.cad)?'':x.cad.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+' QE'}</span></span><span class="n num">${x.conf ? `<small class="n-conf" title="confirmados pelo TSE">✓${x.conf}</small> ` : ''}${x.el}</span></li>`; }).join('') || '<li class="empty">Sem cadeiras definidas ainda.</li>';
   }
 }
 function abrirPartido(agr, cg){
@@ -2871,7 +2901,7 @@ function abrirPartido(agr, cg){
     `${cg===7?'Deputados estaduais':'Deputados federais'} · ${cands.length} candidaturas${fed && x.a.nome && !/^\d+$/.test(x.a.nome) ? ' · '+x.a.nome : ''}`,
     res + `<table><thead><tr><th>#</th><th>Candidatura</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Situação</th></tr></thead><tbody>${linhas || '<tr><td colspan="5" class="empty">Sem candidaturas.</td></tr>'}</tbody></table><p class="det-nota">${LEGENDA_SELO}. Clique numa candidatura para ver onde ela foi mais votada.</p>`, false, { p: d.tot && !isNaN(d.tot.pctApurado) ? d.tot.pctApurado : PCT_EST, rot: 'no estado' });
 }
-['ptFe','ptDe'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('tr[data-agr]'); if (tr) abrirPartido(tr.dataset.agr, +tr.dataset.cargo); }));
+['ptFe','ptDe','ptFeSeats','ptDeSeats'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-agr]'); if (tr) abrirPartido(tr.dataset.agr, +tr.dataset.cargo); }));
 ['fe','de'].forEach(px=>$(px+'Partidos').addEventListener('click', e=>{
   if (e.target.closest('button[data-todos]')) { $(px+'Partidos').classList.toggle('todos'); if (ULT_LP[px]) renderListaPartidos(px, ...ULT_LP[px]); return; }
   const b = e.target.closest('button[data-p]'); if (!b) return;
@@ -3705,7 +3735,7 @@ const CONG = (()=>{
   $('cgPart').addEventListener('change', ()=>{ SEL.part = $('cgPart').value; salvar(); render(); });
   ['cgCamLeg','cgSenLeg'].forEach(id=>$(id).addEventListener('click', e=>{ const li = e.target.closest('li[data-g]'); if (!li) return; SEL.part = SEL.part === li.dataset.g ? '' : li.dataset.g; salvar(); render(); }));
   $('cgUfs').addEventListener('click', e=>{ const tr = e.target.closest('tr[data-uf]'); if (!tr) return; SEL.uf = tr.dataset.uf; salvar(); render(); if (document.body.classList.contains('mob')) $('cgUf').scrollIntoView({behavior:'smooth', block:'start'}); });
-  return { atualizar, render, RES };
+  return { atualizar, render, RES, plenario };
 })();
 window.IDX_CONG = TELAS.findIndex(t=>t.id==='telaCong'); window.CONG = CONG;
 </script>
