@@ -319,6 +319,10 @@ body.mob .hm-cols table{font-size:11.5px}
 .cg-leg li.sel{border-color:var(--pc);box-shadow:inset 0 0 0 2px var(--pc)}
 .cg-leg li.apag{opacity:.4}
 #cgUfs tr{cursor:pointer}
+#telaCong.cg-nac .cg-uf{display:none}
+#telaCong.cg-nac .cg-par{grid-template-columns:minmax(0,1fr)}
+#telaCong.cg-nac .cg-br{max-width:560px;margin:0 auto;width:100%}
+body.apres #telaCong.cg-nac .cg-br{max-width:440px}
 #cgNomes tr.cg-sep td{border-top:2px solid var(--line)}
 #cgNomes tr.cg-grp td{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--purple-ink);background:var(--bar);padding-top:6px;padding-bottom:6px}
 #cgUfs tr.sel td{background:rgba(246,135,18,.10);font-weight:700}
@@ -3975,7 +3979,8 @@ window.IDX_COMP = TELAS.findIndex(t=>t.id==='telaComp'); window.IDX_PART = TELAS
    de cada estado como na tela Total (quociente eleitoral + sobras) e soma o país. Atualiza quando a tela está aberta. */
 const CONG = (()=>{
   const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
-  const NOME_UF = {AC:'Acre',AL:'Alagoas',AM:'Amazonas',AP:'Amapá',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MG:'Minas Gerais',MS:'Mato Grosso do Sul',MT:'Mato Grosso',PA:'Pará',PB:'Paraíba',PE:'Pernambuco',PI:'Piauí',PR:'Paraná',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RO:'Rondônia',RR:'Roraima',RS:'Rio Grande do Sul',SC:'Santa Catarina',SE:'Sergipe',SP:'São Paulo',TO:'Tocantins'};
+  const NOME_UF = {BR:'Brasil',AC:'Acre',AL:'Alagoas',AM:'Amazonas',AP:'Amapá',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MG:'Minas Gerais',MS:'Mato Grosso do Sul',MT:'Mato Grosso',PA:'Pará',PB:'Paraíba',PE:'Pernambuco',PI:'Piauí',PR:'Paraná',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RO:'Rondônia',RR:'Roraima',RS:'Rio Grande do Sul',SC:'Santa Catarina',SE:'Sergipe',SP:'São Paulo',TO:'Tocantins'};
+  const NOME_BR = 'Brasil';
   const VAGAS_UF = {AC:8,AL:9,AM:8,AP:8,BA:39,CE:22,DF:8,ES:10,GO:17,MA:18,MG:53,MS:8,MT:8,PA:17,PB:12,PE:25,PI:10,PR:30,RJ:46,RN:8,RO:8,RR:8,RS:31,SC:16,SE:8,SP:70,TO:8};
   const CH = 'painelCong';
   const SEN_VAGAS = () => CFG.ambiente === '2022' ? 1 : 2;     // 2022: 1/3 do Senado (1 por estado); 2026: 2/3 (2 por estado)
@@ -4077,15 +4082,16 @@ const CONG = (()=>{
 
   function render(){
     if (!$('cgUf')) return;
-    if (!$('cgUf').options.length) $('cgUf').innerHTML = UFS.map(u=>`<option value="${u}">${u} · ${esc(NOME_UF[u])}</option>`).join('');
+    if (!$('cgUf').options.length) $('cgUf').innerHTML = '<option value="BR">Brasil · nacional</option>' + UFS.map(u=>`<option value="${u}">${u} · ${esc(NOME_UF[u])}</option>`).join('');
     $('cgUf').value = SEL.uf;
     const gr = grupos(), uf = SEL.uf, foco = SEL.part;
     const nC = Object.keys(RES[6]).length, nS = Object.keys(RES[5]).length;
     const vagasC = UFS.reduce((s,u)=>s + (RES[6][u] ? RES[6][u].vagas : VAGAS_UF[u]), 0), vagasS = UFS.reduce((s,u)=>s + (RES[5][u] ? RES[5][u].vagas : SEN_VAGAS()), 0);
     const camBr = ordenar(UFS.flatMap(u=>(RES[6][u]||{eleitos:[]}).eleitos.map(e=>({...e, uf:u}))), gr);
     const senBr = ordenar(UFS.flatMap(u=>(RES[5][u]||{eleitos:[]}).eleitos.map(e=>({...e, uf:u}))), gr);
-    const camUf = ordenar((RES[6][uf]||{eleitos:[]}).eleitos.map(e=>({...e, uf})), gr), senUf = ordenar((RES[5][uf]||{eleitos:[]}).eleitos.map(e=>({...e, uf})), gr);
-    const vagasUf = RES[6][uf] ? RES[6][uf].vagas : VAGAS_UF[uf];
+    const isBR = uf === 'BR'; $('telaCong').classList.toggle('cg-nac', isBR);
+    const camUf = isBR ? camBr : ordenar((RES[6][uf]||{eleitos:[]}).eleitos.map(e=>({...e, uf})), gr), senUf = isBR ? senBr : ordenar((RES[5][uf]||{eleitos:[]}).eleitos.map(e=>({...e, uf})), gr);
+    const vagasUf = isBR ? vagasC : (RES[6][uf] ? RES[6][uf].vagas : VAGAS_UF[uf]);
     plenario($('cgCamBr'), camBr, vagasC, foco); plenario($('cgCamUf'), camUf, vagasUf, foco); plenario($('cgSenBr'), senBr, vagasS, foco);
     document.querySelectorAll('#telaCong .cg-ufn').forEach(el=>el.textContent = NOME_UF[uf]);
     $('cgCamBrN').textContent = `· ${camBr.length} de ${vagasC}`; $('cgCamUfN').textContent = `· ${camUf.length} de ${vagasUf}`;
@@ -4115,21 +4121,22 @@ const CONG = (()=>{
     // estado escolhido: eleitos de todos os partidos ou, com um partido escolhido, TODAS as candidaturas dele
     const rjUF = uf === CFG.uf.toUpperCase();
     let lista;
-    if (foco) {
+    if (foco && !isBR) {
       const setS = new Set(senUf.map(e=>e.n));
       const todos = cg => ((RES[cg][uf] || {}).d || {cands:[]}).cands.filter(c=>!c.soLegenda && gr(c.partido)===foco).map(c=>({...c, g:gr(c.partido), casa: cg===5 ? 'Senado' : 'Câmara', cg}));
       lista = [...todos(5), ...todos(6)].sort((a,b)=>(a.casa===b.casa ? b.votos-a.votos : (a.casa==='Senado' ? -1 : 1)));
       lista.forEach(c=>{ if (c.cg === 5) c.selo = setS.has(c.n) ? (senUf.find(e=>e.n===c.n).conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>') : (/n[ãa]o\s*eleit/i.test(c.st||'') ? '<span class="selo fora conf">✓ NÃO ELEITO</span>' : '<span class="selo fora">FORA</span>');
         else c.selo = RES[6][uf] && RES[6][uf].calc ? selo(c, RES[6][uf].calc) : ''; });
     } else lista = [...senUf.map(e=>({...e, casa:'Senado', cg:5, selo: e.conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>'})), ...camUf.map(e=>({...e, casa:'Câmara', cg:6, selo: e.conf ? '<span class="selo conf">✓ ELEITO</span>' : '<span class="selo proj">ELEITO</span>'}))];
-    $('cgNomesTit').textContent = foco ? `${foco} · todas as candidaturas em ${NOME_UF[uf]}` : `Eleitos em ${NOME_UF[uf]}`;
+    if (isBR) { if (foco) lista = lista.filter(e=>e.g===foco); lista.sort((a,b)=>(a.cg===b.cg ? (a.uf||'').localeCompare(b.uf||'') || b.votos-a.votos : b.cg===5 ? 1 : -1)); }
+    $('cgNomesTit').textContent = isBR ? `${foco ? foco + ' · ' : ''}eleitos no Brasil, por estado` : (foco ? `${foco} · todas as candidaturas em ${NOME_UF[uf]}` : `Eleitos em ${NOME_UF[uf]}`);
     const nSen = lista.filter(e=>e.cg===5).length, nCam = lista.filter(e=>e.cg===6).length;
-    $('cgNomesMeta').textContent = foco ? `${nSen} ao Senado · ${nCam} à Câmara · ${camUf.filter(e=>e.g===foco).length + senUf.filter(e=>e.g===foco).length} eleitos na parcial` : `${nSen} no Senado · ${nCam} na Câmara`;
+    $('cgNomesMeta').textContent = foco && !isBR ? `${nSen} ao Senado · ${nCam} à Câmara · ${camUf.filter(e=>e.g===foco).length + senUf.filter(e=>e.g===foco).length} eleitos na parcial` : `${nSen} no Senado · ${nCam} na Câmara`;
     let k6 = 0, k5 = 0;
     $('cgNomes').innerHTML = lista.map(e=>{ const k = e.cg===5 ? ++k5 : ++k6;
       const grp = k===1 ? `<tr class="cg-grp"><td colspan="4">${e.cg===5 ? 'Senado' : 'Câmara dos Deputados'} · ${e.cg===5 ? nSen : nCam}</td></tr>` : '';
       const sep = '';
-      return grp + `<tr${e.cg===6 && rjUF ? ` data-n="${esc(e.n)}" data-cargo="6"` : ''}${sep}><td class="rk">${k}</td><td><div class="nm">${esc(titulo(e.nome))}</div><span class="pt"><span class="sw-pt" style="background:${corGrupo(e.g)}"></span>${esc(e.partido && e.partido!==e.g ? e.partido + ' · ' + e.g : e.g)} · ${e.casa} · ${esc(e.n)}</span></td><td class="r num">${fmt(e.votos)}</td><td class="r">${e.selo}</td></tr>`; }).join('')
+      return grp + `<tr${e.cg===6 && (rjUF || (isBR && e.uf === CFG.uf.toUpperCase())) ? ` data-n="${esc(e.n)}" data-cargo="6"` : ''}${sep}><td class="rk">${k}</td><td><div class="nm">${esc(titulo(e.nome))}</div><span class="pt"><span class="sw-pt" style="background:${corGrupo(e.g)}"></span>${esc(e.partido && e.partido!==e.g ? e.partido + ' · ' + e.g : e.g)} · ${e.casa}${isBR ? ' · ' + e.uf : ''} · ${esc(e.n)}</span></td><td class="r num">${fmt(e.votos)}</td><td class="r">${e.selo}</td></tr>`; }).join('')
       || `<tr><td colspan="4" class="empty">${RES[6][uf] || RES[5][uf] ? (foco ? 'Este partido não tem candidaturas neste estado.' : 'Nenhum eleito neste estado ainda.') : 'Carregando…'}</td></tr>`;
   }
   // lista de todas as candidaturas do partido, estado por estado (o estado escolhido aberto primeiro)
