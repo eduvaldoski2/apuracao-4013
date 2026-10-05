@@ -1014,6 +1014,15 @@ table.cs-sim td,table.cs-sim th{cursor:default}
 .cs-pick select[data-pk="cand"]{min-width:220px;max-width:min(460px,100%)}
 body.ano-hist .hdr-cand, body.ano-hist #apurStrip, body.ano-hist #apurPill, body.ano-hist .ticker{display:none!important}
 
+body[data-sec]:not([data-sec="rj"]) .cb-sel{display:none}
+.cb-sel label:has(#cbUF){display:none}
+.cs-tat{margin-bottom:4px}
+.cs-filtro{font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);width:min(420px,100%);margin-bottom:8px}
+
+table.cs-t tr.cs-totl td{background:var(--purple-soft);border-bottom:2px solid var(--line)}
+#tatRegBox .cs-tw{max-height:none}
+body.mob .ticker, body.consulta .ticker{display:none!important}
+
 /* ==== /CONS CSS ==== */
 </style>
 
@@ -1044,6 +1053,7 @@ body.ano-hist .hdr-cand, body.ano-hist #apurStrip, body.ano-hist #apurPill, body
 <div class="cbar" id="cbar">
   <nav class="secnav" id="secnav" aria-label="Seções"></nav>
   <div class="cb-sel">
+    <label>UF <select id="cbUF"></select></label>
     <label>Eleição <select id="cbAno"></select></label>
     <label>Cargo <select id="cbCargo"></select></label>
     <label id="cbMunL" hidden>Município <select id="cbMun"></select></label>
@@ -1366,6 +1376,9 @@ body.ano-hist .hdr-cand, body.ano-hist #apurStrip, body.ano-hist #apurPill, body
     </div>
   </section>
   <section class="tela cons" id="telaReg" data-nome="Regiões"><div class="cs-wrap" id="regBox"></div></section>
+  <section class="tela cons" id="telaTatReg" data-nome="Tatiana · regiões"><div class="cs-head cs-tat"><div class="cs-id"><span class="cs-sw" style="background:var(--accent)"></span><div><h2>Tatiana Roque · votação por região</h2><div class="cs-sub">2018 Dep. Federal (PSOL) · 2022 Dep. Federal (PSB) · 2024 Vereadora (capital) · 2026 Dep. Federal (PSB) · TSE</div></div></div></div><div class="cs-wrap" id="tatRegBox"></div></section>
+  <section class="tela cons" id="telaTatFicha" data-nome="Tatiana · ficha"><div class="cs-wrap" id="tatFichaBox"></div></section>
+  <section class="tela cons" id="telaUF" data-nome="Outros estados"><div class="cs-wrap" id="ufBox"></div></section>
   <section class="tela cons" id="telaRes" data-nome="Resultado"><div class="cs-wrap" id="resBox"></div></section>
   <section class="tela cons" id="telaFicha" data-nome="Candidatura"><div class="cs-wrap" id="fichaBox"></div></section>
   <section class="tela cons" id="telaCmp" data-nome="Comparar"><div class="cs-wrap" id="cmpBox"></div></section>
@@ -4761,6 +4774,9 @@ const IA = (()=>{
 
 
 
+
+
+
 /* ==== CONS INÍCIO ==== */
 /* ============ CONSULTA DE RESULTADOS 2018–2026 ============
    Dados históricos: TSE, dados abertos (votação por seção + eleitorado por local de votação), já somados por bairro e zona
@@ -4779,7 +4795,7 @@ const CONS = (()=>{
   const J = new Map();
   const getJ = u => { if (!J.has(u)) J.set(u, fetch(BASE + u).then(r=>{ if (!r.ok) throw new Error(`${r.status} em ${u}`); return r.json(); }).catch(e=>{ J.delete(u); throw e; })); return J.get(u); };
   const CAP = '60011';
-  const munNome = cd => titulo((RJB.mun[cd] || {}).nm || cd);
+  const munNome = cd => titulo((RJB.mun[cd] || {}).nm || (typeof MUNN !== 'undefined' && MUNN[cd]) || cd);
   const eleito = s => /^ELEITO/.test(s || '') || s === 'ELEITO';
   const sitCurta = s => !s ? '' : /^ELEITO POR QP/.test(s) ? 'Eleito (QP)' : /^ELEITO POR M/.test(s) ? 'Eleito (média)' : s === 'ELEITO' ? 'Eleito' : s === '2º TURNO' ? '2º turno' : /SUPLENTE/.test(s) ? 'Suplente' : /N[ÃA]O ELEITO/.test(s) ? 'Não eleito' : /#NULO/.test(s) ? 'Votos anulados' : titulo(s);
 
@@ -4794,27 +4810,59 @@ const CONS = (()=>{
   }
 
   /* ---- índice de cada eleição ---- */
+  // RJ: hist/ANO/idx.json (com bairros). Demais UFs: br/ANO/UF.json.gz (municípios e zonas).
+  const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
+  const NOME_UF = {AC:'Acre',AL:'Alagoas',AM:'Amazonas',AP:'Amapá',BA:'Bahia',CE:'Ceará',DF:'Distrito Federal',ES:'Espírito Santo',GO:'Goiás',MA:'Maranhão',MG:'Minas Gerais',MS:'Mato Grosso do Sul',MT:'Mato Grosso',PA:'Pará',PB:'Paraíba',PE:'Pernambuco',PI:'Piauí',PR:'Paraná',RJ:'Rio de Janeiro',RN:'Rio Grande do Norte',RO:'Rondônia',RR:'Roraima',RS:'Rio Grande do Sul',SC:'Santa Catarina',SE:'Sergipe',SP:'São Paulo',TO:'Tocantins'};
+  const BASE_BR = BASE.replace(/hist\/$/, 'br/');
+  const getGz = u => { const k = 'gz:' + u; if (!J.has(k)) J.set(k, fetch(BASE_BR + u).then(async r=>{ if (!r.ok) throw new Error(`${r.status} em ${u}`);
+      if (typeof DecompressionStream === 'undefined') throw new Error('navegador sem suporte a arquivos compactados; atualize o navegador');
+      return new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json(); }).catch(e=>{ J.delete(k); throw e; })); return J.get(k); };
+  const MUNN = {};                       // nomes dos municípios fora do RJ (código TSE -> nome)
   const IDX = {};
-  function prep(ano, I){
-    const cands = I.cands.map(([c, t, ue, nr, nome, sig, sit, pid, ali, v])=>({ ano, c, t, ue, nr, nome, sig, sit, pid, ali, v, leg: nome === 'LEGENDA' }));
-    const grupos = {};
+  const ranquear = cands => { const grupos = {};
     cands.forEach(x=>{ if (!x.leg) (grupos[x.c + '|' + x.t + '|' + x.ue] ||= []).push(x); });
     for (const L of Object.values(grupos)) { L.sort((a,b)=>b.v-a.v); L.forEach((x,i)=>{ x.pos = i + 1; x.nc = L.length; }); }
-    // no 2º turno, situação do 1º turno vira "2º turno"
-    cands.forEach(x=>{ if (x.t === 1 && !x.leg && (x.c === 1 || x.c === 3 || x.c === 11) && cands.some(y=>y.t === 2 && y.c === x.c && y.ue === x.ue && y.nr === x.nr)) x.sit1 = '2º TURNO'; });
+    cands.forEach(x=>{ if (x.t === 1 && !x.leg && (x.c === 1 || x.c === 3 || x.c === 11) && cands.some(y=>y.t === 2 && y.c === x.c && y.ue === x.ue && y.nr === x.nr)) x.sit1 = '2º TURNO'; }); };
+  function prep(ano, I){
+    const cands = I.cands.map(([c, t, ue, nr, nome, sig, sit, pid, ali, v])=>({ ano, uf:'RJ', c, t, ue, nr, nome, sig, sit, pid, ali, v, leg: nome === 'LEGENDA' }));
+    ranquear(cands);
     const cargos = {};
     for (const cg of I.cargos) { const tot = {}; for (const k of ['comp','val','br','nu','valZ']) tot[k] = new Map(cg.tot[k]); cargos[cg.c + '|' + cg.t] = { ...cg, tot }; }
     const ab = {}; for (const t in (I.ab || {})) ab[t] = new Map(I.ab[t].map(([g, a, c])=>[g, [a, c]]));
     const az = {}; for (const t in (I.az || {})) az[t] = new Map(I.az[t].map(([z, a, c])=>[z, [a, c]]));
-    return { ano, cands, cargos, z: I.z, reg: I.reg, ab, az, key: new Map(cands.map(x=>[chave(x), x])) };
+    return { ano, uf:'RJ', cands, cargos, z: I.z, reg: I.reg, ab, az, key: new Map(cands.map(x=>[chave(x), x])) };
   }
-  const chave = x => `${x.ano}|${x.c}|${x.t}|${x.ue}|${x.nr}`;
-  async function idx(ano){
-    if (ano === 2026) return idx26();
-    if (!IDX[ano]) { const P = Promise.all([getJ(`${ano}/idx.json`), geo()]).then(([I])=>{ const r = prep(ano, I); P.v = r; return r; }).catch(e=>{ delete IDX[ano]; throw e; }); IDX[ano] = P; }
-    return IDX[ano];
+  // arquivo de uma UF (fora do RJ): candidaturas, votos por zona e totais por zona
+  function prepBR(ano, F){
+    const uf = F.uf;
+    F.mun.forEach(([cd, nm])=>MUNN[cd] = nm);
+    const cands = F.cands.map(([c, t, ue, nr, nome, sig, sit, pid, ali, v])=>({ ano, uf, c, t, ue, nr, nome, sig, sit, pid, ali, v, leg:false }));
+    ranquear(cands);
+    const cargos = {}, ab = {};
+    for (const [ct, rows] of Object.entries(F.tot)) {
+      const tot = { comp:new Map(), val:new Map(), br:new Map(), nu:new Map(), apt:new Map() };
+      for (const [zi, apt, comp, val, br, nu] of rows) { tot.apt.set(zi, apt); tot.comp.set(zi, comp); tot.val.set(zi, val); tot.br.set(zi, br); tot.nu.set(zi, nu); }
+      const [c, t] = ct.split('|').map(Number); cargos[ct] = { c, t, nome: CN[c], tot };
+      if (!ab[t] || [6, 13, 3, 1].includes(c)) ab[t] = new Map(rows.map(([zi, apt, comp])=>[zi, [apt, comp]]));
+    }
+    return { ano, uf, br:true, cands, cargos, z: F.z, ab, az: ab, F, key: new Map(cands.map(x=>[chave(x), x])) };
   }
-  // 2026: candidaturas lidas do TSE pelo painel (deputados); a identidade da pessoa vem pelo nome de urna
+  const chave = x => `${x.ano}|${x.c}|${x.t}|${x.ue}|${x.nr}` + (x.uf && x.uf !== 'RJ' ? '|' + x.uf : '');
+  let TEM26 = null;     // hist/2026 (RJ por seção) já publicado?
+  async function idx(ano, uf){
+    uf = uf || 'RJ'; const k = ano + '|' + uf;
+    if (ano === 2026 && uf === 'RJ') {
+      if (TEM26 === null) TEM26 = getJ('2026/idx.json').then(()=>true, ()=>false);
+      if (!(await TEM26)) return idx26();
+    }
+    if (!IDX[k]) {
+      const P = (uf === 'RJ' ? Promise.all([getJ(`${ano}/idx.json`), geo()]).then(([I])=>prep(ano, I)) : getGz(`${ano}/${uf}.json.gz`).then(F=>prepBR(ano, F)))
+        .then(r=>{ P.v = r; return r; }).catch(e=>{ delete IDX[k]; throw e; });
+      IDX[k] = P;
+    }
+    return IDX[k];
+  }
+  // 2026 ao vivo (enquanto o TSE não publicava os arquivos por seção): deputados do RJ lidos pelo painel
   let I26 = null, I26_G = -1;
   async function idx26(){
     const g = (ULTIMO ? 1 : 0) + (EST ? 2 : 0) + (typeof GERACAO === 'number' ? GERACAO * 4 : 0);
@@ -4824,23 +4872,29 @@ const CONS = (()=>{
     if (EST && EST.calc) EST.calc.eleitos.forEach(e=>eleitos.add('7|' + e.n));
     const cands = [];
     for (const [c, L] of [[6, ULTIMO ? ULTIMO.d.cands : []], [7, EST ? EST.d.cands : []]])
-      for (const x of L) if (x.n && x.n.length > 2) cands.push({ ano:2026, c, t:1, ue:'RJ', nr:+x.n, n:x.n, nome:x.nome, sig:x.partido, v:x.votos||0, sit: eleitos.has(c + '|' + x.n) ? 'ELEITO' : '', pid: null, ali: '' });
-    const grupos = {}; cands.forEach(x=>(grupos[x.c] ||= []).push(x));
-    for (const L of Object.values(grupos)) { L.sort((a,b)=>b.v-a.v); L.forEach((x,i)=>{ x.pos = i + 1; x.nc = L.length; }); }
-    I26 = { ano:2026, cands, cargos:{}, z:[], reg:[], ab:{}, az:{}, key: new Map(cands.map(x=>[chave(x), x])), vivo:true }; I26_G = g;
+      for (const x of L) if (x.n && x.n.length > 2) cands.push({ ano:2026, uf:'RJ', c, t:1, ue:'RJ', nr:+x.n, n:x.n, nome:x.nome, sig:x.partido, v:x.votos||0, sit: eleitos.has(c + '|' + x.n) ? 'ELEITO' : '', pid: null, ali: '' });
+    ranquear(cands);
+    I26 = { ano:2026, uf:'RJ', cands, cargos:{}, z:[], reg:[], ab:{}, az:{}, key: new Map(cands.map(x=>[chave(x), x])), vivo:true }; I26_G = g;
     ligarPessoas26();
     return I26;
   }
-  // liga 2026 às pessoas das eleições anteriores pelo nome de urna (já carregadas)
   function ligarPessoas26(){
     if (!I26) return;
     const porNome = new Map();
-    for (const a of [2018, 2020, 2022, 2024]) { const I = IDX[a] && IDX[a].v; if (!I) continue; for (const x of I.cands) if (x.pid && !x.leg) porNome.set(semAcento(x.nome), x.pid); }
-    for (const x of I26.cands) x.pid = porNome.get(semAcento(x.nome)) || ('n26:' + semAcento(x.nome));
+    for (const L of Object.values(BUSCA)) if (L && L.v) for (const x of L.v) if (x.uf === 'RJ' && x.pid) porNome.set(semAcento(x.nome), x.pid);
+    for (const x of I26.cands) { const b = BUSCA[2026] && BUSCA[2026].v && BUSCA[2026].v.find(y=>y.uf === 'RJ' && y.c === x.c && y.nr === x.nr); x.pid = (b && b.pid) || porNome.get(semAcento(x.nome)) || ('n26:' + semAcento(x.nome)); }
   }
-  // guarda o valor resolvido junto da promessa (para uso síncrono)
-  const resolver = async ano => { const I = await idx(ano); if (IDX[ano]) IDX[ano].v = I; return I; };
-  async function todosIdx(){ await Promise.all([2018, 2020, 2022, 2024].map(a=>resolver(a).catch(()=>null))); try { await idx26(); } catch(e){} ligarPessoas26(); }
+  const resolver = (ano, uf) => idx(ano, uf);
+  // índice nacional de busca (todas as candidaturas do Brasil, 1º turno), um arquivo por eleição
+  const BUSCA = {};
+  function busca(ano){
+    if (!BUSCA[ano]) { const P = getGz(`${ano}/busca.json.gz`).then(L=>{ const v = L.map(([uf, c, ue, nr, nome, sig, vv, sit, pid])=>({ ano, uf, c, t:1, ue, nr, nome, sig, v:vv, sit, pid, leg:false })); ranquear(v); P.v = v; return v; })
+      .catch(async e=>{ // sem o arquivo nacional: usa o índice do RJ
+        try { const I = await idx(ano, 'RJ'); const v = I.cands.filter(x=>x.t === 1 && !x.leg); P.v = v; return v; } catch(e2){ P.v = []; return []; } });
+      BUSCA[ano] = P; }
+    return BUSCA[ano];
+  }
+  async function todosIdx(){ await Promise.all([2018, 2020, 2022, 2024, 2026].map(a=>busca(a))); try { if (TEM26 === null) await idx(2026, 'RJ'); if (!(await TEM26)) await idx26(); } catch(e){} ligarPessoas26(); }
 
   /* ---- votos de uma candidatura por bairro, zona e município ---- */
   function arquivo(I, x){
@@ -4851,8 +4905,9 @@ const CONS = (()=>{
   const VALMUN = new Map();
   function porMun(mapaB, G){ const m = new Map(); for (const [g, v] of mapaB) { const cd = G.B[g].m; m.set(cd, (m.get(cd)||0) + v); } return m; }
   async function dados(x){
-    if (x.ano === 2026) return dados26(x);
-    const [I, G] = await Promise.all([idx(x.ano), geo()]);
+    if (x.uf && x.uf !== 'RJ') return dadosBR(x);
+    const [I, G] = await Promise.all([idx(x.ano, 'RJ'), geo()]);
+    if (I.vivo) return dados26(x);
     const cg = I.cargos[x.c + '|' + x.t];
     const F = await getJ(`${x.ano}/${arquivo(I, x)}.json`);
     const d = F[MUNIC(x.c) ? `${x.nr}@${x.ue}` : String(x.nr)] || {};
@@ -4864,6 +4919,19 @@ const CONS = (()=>{
     const valZ = new Map([...cg.tot.valZ].map(([zi, v])=>[I.z[zi], v]));
     const ab = I.ab[x.t] || I.ab[1], az = I.az[x.t] || I.az[1];
     return { x, b, z, mun: porMun(b, G), valB: cg.tot.val, valMun: VALMUN.get(kv), valZ, abB: ab, abZ: az ? new Map([...az].map(([zi, a])=>[I.z[zi], a])) : null, I, G };
+  }
+  // fora do RJ: zonas e municípios (sem bairros)
+  async function dadosBR(x){
+    const [I, G] = await Promise.all([idx(x.ano, x.uf), geo()]);
+    const d = I.F.v[`${x.c}|${x.t}|${x.nr}` + (MUNIC(x.c) ? '@' + x.ue : '')] || [];
+    const cg = I.cargos[x.c + '|' + x.t] || { tot:{ val:new Map() } };
+    const z = new Map(), mun = new Map(), valZ = new Map(), valMun = new Map(), abZ = new Map(), abMun = new Map();
+    const munDe = zi => I.z[zi].split(':')[0];
+    for (let i = 0; i < d.length; i += 2) { z.set(I.z[d[i]], d[i+1]); const m = munDe(d[i]); mun.set(m, (mun.get(m)||0) + d[i+1]); }
+    for (const [zi, v] of cg.tot.val) { valZ.set(I.z[zi], v); const m = munDe(zi); valMun.set(m, (valMun.get(m)||0) + v); }
+    const ab = I.ab[x.t] || I.ab[1];
+    if (ab) for (const [zi, [a, c]] of ab) { abZ.set(I.z[zi], [a, c]); const m = munDe(zi); const o = abMun.get(m) || [0, 0]; o[0] += a; o[1] += c; abMun.set(m, o); }
+    return { x, b:new Map(), z, mun, valB:new Map(), valMun, valZ, abB:null, abZ, abMun, I, G, br:true };
   }
   // 2026: municípios e zonas pelos arquivos do TSE; bairros só na capital (boletins de urna + estimativa)
   async function dados26(x){
@@ -4887,7 +4955,7 @@ const CONS = (()=>{
   function abPor(D, recorte, chaveDe){
     const m = new Map();
     if (D.abB) for (const [g, [a, c]] of D.abB) { const k = chaveDe(g); if (k == null) continue; const o = m.get(k) || [0, 0]; o[0] += a; o[1] += c; m.set(k, o); }
-    else if (D.abMun && (recorte === 'mun' || recorte === 'regEst' || recorte === 'est')) for (const [cd, [a, c]] of D.abMun) { const k = recorte === 'mun' ? cd : recorte === 'est' ? 'RJ' : (regiaoMun(cd) || 'Sem região'); const o = m.get(k) || [0, 0]; o[0] += a; o[1] += c; m.set(k, o); }
+    else if (D.abMun && (recorte === 'mun' || recorte === 'regEst' || recorte === 'est')) for (const [cd, [a, c]] of D.abMun) { const k = recorte === 'mun' ? cd : recorte === 'est' ? 'UF' : (regiaoMun(cd) || 'Sem região'); const o = m.get(k) || [0, 0]; o[0] += a; o[1] += c; m.set(k, o); }
     return m;
   }
   function agrupar(D, recorte){
@@ -4899,8 +4967,8 @@ const CONS = (()=>{
       for (const [z, v] of D.z) add(z, z.includes(':') ? `Zona ${z.split(':')[1]}` : z, z.includes(':') ? munNome(z.split(':')[0]) : '', v, 0);
       ab = new Map(); if (D.abZ) for (const [z, a] of D.abZ) ab.set(z, a);
     } else if (recorte === 'mun' || recorte === 'regEst' || recorte === 'est') {
-      const kOf = cd => recorte === 'mun' ? cd : recorte === 'est' ? 'RJ' : (regiaoMun(cd) || 'Sem região');
-      const nOf = cd => recorte === 'mun' ? munNome(cd) : recorte === 'est' ? 'Estado do RJ' : (regiaoMun(cd) || 'Sem região');
+      const kOf = cd => recorte === 'mun' ? cd : recorte === 'est' ? 'UF' : (regiaoMun(cd) || 'Sem região');
+      const nOf = cd => recorte === 'mun' ? munNome(cd) : recorte === 'est' ? 'Estado' : (regiaoMun(cd) || 'Sem região');
       for (const [cd, v] of D.valMun) add(kOf(cd), nOf(cd), recorte === 'mun' ? (regiaoMun(cd) || '') : '', 0, v);
       for (const [cd, v] of D.mun) add(kOf(cd), nOf(cd), recorte === 'mun' ? (regiaoMun(cd) || '') : '', v, 0);
       ab = abPor(D, recorte, g => kOf(G.B[g].m));
@@ -4918,43 +4986,50 @@ const CONS = (()=>{
   }
   const RECORTES = { regEst:'Regiões do estado', regCap:'Regiões da capital', mun:'Municípios', baiCap:'Bairros da capital', bai:'Bairros (todos os municípios)', zona:'Zonas eleitorais' };
 
-  /* ---- pessoas: todas as candidaturas de alguém, 2018–2026 ---- */
+  /* ---- pessoas: todas as candidaturas de alguém, 2018–2026, em qualquer UF ---- */
   function candidaturas(pid){
     const L = [];
-    for (const a of [2018, 2020, 2022, 2024]) { const I = IDX[a] && IDX[a].v; if (I) for (const x of I.cands) if (x.pid === pid && !x.leg && x.t === 1) L.push(x); }
-    if (I26) for (const x of I26.cands) if (x.pid === pid) L.push(x);
+    for (const a of [2018, 2020, 2022, 2024, 2026]) { const B = BUSCA[a] && BUSCA[a].v; if (B) for (const x of B) if (x.pid === pid) L.push(x); }
+    if (!L.some(x=>x.ano === 2026) && I26) for (const x of I26.cands) if (x.pid === pid) L.push(x);
     return L.sort((a,b)=>a.ano-b.ano || a.c-b.c);
   }
   async function porChave(k){
-    const [ano] = k.split('|'); const I = await idx(+ano); if (+ano !== 2026 && IDX[+ano]) IDX[+ano].v = I;
-    return I.key.get(k) || null;
+    const p = k.split('|'), ano = +p[0], uf = p[5] || 'RJ';
+    const I = await idx(ano, uf);
+    let x = I.key.get(k) || null;
+    if (!x && I.vivo) x = I.key.get(p.slice(0,5).join('|')) || null;
+    return x;
   }
-  // busca por nome ou número (todas as eleições carregadas)
-  function buscar(q, anos){
+  // busca por nome ou número em todas as eleições (Brasil inteiro); uf opcional restringe
+  function buscar(q, anos, uf){
     q = semAcento(q || '').trim(); if (q.length < 2) return [];
     const num = /^\d+$/.test(q), out = [];
     for (const a of anos) {
-      const I = a === 2026 ? I26 : (IDX[a] && IDX[a].v); if (!I) continue;
-      for (const x of I.cands) {
-        if (x.leg || x.t !== 1) continue;
+      const B = BUSCA[a] && BUSCA[a].v; if (!B) continue;
+      for (const x of B) {
+        if (uf && x.uf !== uf && !(x.c === 1)) continue;
         if (num ? String(x.nr).startsWith(q) : semAcento(x.nome).includes(q)) out.push(x);
       }
     }
-    return out.sort((a,b)=>(semAcento(a.nome).startsWith(q) ? 0 : 1) - (semAcento(b.nome).startsWith(q) ? 0 : 1) || b.v - a.v).slice(0, 40);
+    return out.sort((a,b)=>(semAcento(a.nome).startsWith(q) ? 0 : 1) - (semAcento(b.nome).startsWith(q) ? 0 : 1) || b.v - a.v).slice(0, 60);
   }
   const rotCand = x => `${titulo(x.nome)} · ${x.nr} · ${x.sig || ''}`;
-  const rotCargo = x => `${CNC[x.c]}${MUNIC(x.c) ? ' · ' + munNome(x.ue) : ''} ${x.ano}`;
+  const rotCargo = x => `${CNC[x.c]}${MUNIC(x.c) ? ' · ' + munNome(x.ue) + (x.uf && x.uf !== 'RJ' ? '/' + x.uf : '') : (x.c !== 1 && x.uf ? ' · ' + x.uf : '')} ${x.ano}`;
 
-  return { ANOS, CN, CNC, geral, cargosDoAno, PROP, MUNIC, getJ, geo, idx, resolver, todosIdx, dados, agrupar, RECORTES, candidaturas, porChave, buscar, chave, rotCand, rotCargo, munNome, eleito, sitCurta, CAP, ligarPessoas26, IDX, get I26(){ return I26; } };
+  return { UFS, NOME_UF, MUNN, busca, getGz, ANOS, CN, CNC, geral, cargosDoAno, PROP, MUNIC, getJ, geo, idx, resolver, todosIdx, dados, agrupar, RECORTES, candidaturas, porChave, buscar, chave, rotCand, rotCargo, munNome, eleito, sitCurta, CAP, ligarPessoas26, IDX, BUSCA, get I26(){ return I26; } };
 })();
 
 /* ---- telas da consulta ---- */
 const CUI = (()=>{
   const C = CONS;
   const CORES = ['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)'];
-  const PADRAO = { ano:2026, cargo:6, ue:'60011', sel:'2026|6|1|RJ|4013', series:[{tipo:'p', pid:'eb49485ba', nome:'Tatiana Roque', k:'2026|6|1|RJ|4013'}], anosVis:[2018,2020,2022,2024,2026], medida:'v', recorte:'regEst', terr:{tipo:'mun', k:'60011'}, mapaM:'pct' };
+  const PADRAO = { uf:'RJ', ano:2026, cargo:6, ue:'60011', sel:'2026|6|1|RJ|4013', series:[{tipo:'p', pid:'eb49485ba', nome:'Tatiana Roque', k:'2026|6|1|RJ|4013'}], anosVis:[2018,2020,2022,2024,2026], medida:'v', recorte:'regEst', terr:{tipo:'mun', k:'60011'}, mapaM:'pct' };
   let G = JSON.parse(JSON.stringify(PADRAO));
   try { const s = JSON.parse(localStorage.getItem('consG') || 'null'); if (s && s.ano) G = { ...G, ...s }; } catch(e){}
+  if (!G.uf) G.uf = 'RJ';
+  // municípios de uma UF (RJ: base própria; demais: arquivo da UF)
+  async function munsDaUF(uf, ano){ if (uf === 'RJ') return Object.entries(RJB.mun).map(([cd,m])=>[cd, titulo(m.nm)]).sort((a,b)=>a[1].localeCompare(b[1],'pt-BR'));
+    for (const a of [ano, 2024, 2022, 2026, 2020, 2018].filter(Boolean)) { try { const I = await C.idx(a, uf); if (I.F) return I.F.mun.map(([cd,nm])=>[cd, titulo(nm)]).sort((a,b)=>a[1].localeCompare(b[1],'pt-BR')); } catch(e){} } return []; }
   const salvar = () => { try { localStorage.setItem('consG', JSON.stringify(G)); } catch(e){} };
   const pctTxt = (v, t, d=1) => t > 0 ? fmtP(100*v/t, d) : '—';
   const sinal = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(Math.round(n)));
@@ -5037,12 +5112,15 @@ const CUI = (()=>{
   /* ---- barra global: eleição, cargo, município, busca ---- */
   function montarBarra(){
     $('cbAno').innerHTML = C.ANOS.map(a=>`<option value="${a}">${a}${a===2026 ? ' (atual)' : ''}</option>`).join('');
-    $('cbMun').innerHTML = Object.entries(RJB.mun).sort((a,b)=>a[1].nm.localeCompare(b[1].nm,'pt-BR')).map(([cd,m])=>`<option value="${cd}">${esc(titulo(m.nm))}</option>`).join('');
+    $('cbUF').innerHTML = C.UFS.map(u=>`<option value="${u}">${u} · ${esc(C.NOME_UF[u])}</option>`).join('');
+    $('cbUF').onchange = async ()=>{ G.uf = $('cbUF').value; const L = await munsDaUF(G.uf, G.ano); G.ue = G.uf === 'RJ' ? '60011' : ((L.find(([,n])=>semAcento(n) === semAcento(C.NOME_UF[G.uf])) || L.find(([,n])=>/capital/i.test(n)) || L[0] || [''])[0]);
+      if (G.terr && G.uf !== 'RJ') G.terr = { tipo:'est', k:G.uf }; else if (G.uf === 'RJ' && G.terr && !['est','regEst','mun','regCap','bai'].includes(G.terr.tipo)) G.terr = { tipo:'mun', k:'60011' };
+      salvar(); await sincBarra(); NAV.render(); };
     sincBarra();
     $('cbAno').onchange = async ()=>{ G.ano = +$('cbAno').value; if (!C.cargosDoAno(G.ano).includes(G.cargo)) G.cargo = C.cargosDoAno(G.ano)[0];
       // a candidatura escolhida acompanha a eleição: mesma pessoa, se ela disputou naquele ano
       try { const x = await C.porChave(G.sel); if (x && x.ano !== G.ano && x.pid) { if (!IDX_TODOS) IDX_TODOS = C.todosIdx(); await IDX_TODOS;
-        const y = C.candidaturas(x.pid).filter(c=>c.ano === G.ano).sort((a,b)=>b.v-a.v)[0]; if (y) { G.sel = C.chave(y); G.cargo = y.c; if (C.MUNIC(y.c)) G.ue = y.ue; } } } catch(e){}
+        const y = C.candidaturas(x.pid).filter(c=>c.ano === G.ano).sort((a,b)=>b.v-a.v)[0]; if (y) { G.sel = C.chave(y); G.cargo = y.c; if (y.uf) G.uf = y.uf; if (C.MUNIC(y.c)) G.ue = y.ue; } } } catch(e){}
       salvar(); sincBarra(); NAV.anoMudou(); };
     $('cbCargo').onchange = ()=>{ G.cargo = +$('cbCargo').value; salvar(); sincBarra(); NAV.render(); };
     $('cbMun').onchange = ()=>{ G.ue = $('cbMun').value; salvar(); NAV.render(); };
@@ -5051,11 +5129,13 @@ const CUI = (()=>{
     $('cbBusca').addEventListener('focus', ()=>{ if ($('cbBusca').value) busca($('cbBusca').value, $('cbRes')); });
     document.addEventListener('click', e=>{ if (!e.target.closest('.cb-busca, .cs-add')) document.querySelectorAll('.cb-res').forEach(r=>r.hidden = true); });
   }
-  function sincBarra(){
-    $('cbAno').value = G.ano;
+  async function sincBarra(){
+    $('cbAno').value = G.ano; if ($('cbUF')) $('cbUF').value = G.uf;
     $('cbCargo').innerHTML = C.cargosDoAno(G.ano).map(c=>`<option value="${c}">${C.CN[c]}</option>`).join('');
     $('cbCargo').value = G.cargo;
-    $('cbMunL').hidden = !C.MUNIC(G.cargo); $('cbMun').value = G.ue;
+    $('cbMunL').hidden = !C.MUNIC(G.cargo);
+    if (C.MUNIC(G.cargo) && $('cbMun').dataset.uf !== G.uf + G.ano) { const L = await munsDaUF(G.uf, G.ano); $('cbMun').innerHTML = L.map(([cd,n])=>`<option value="${cd}">${esc(n)}</option>`).join(''); $('cbMun').dataset.uf = G.uf + G.ano; if (!L.some(([cd])=>cd === G.ue) && L[0]) { const cap = L.find(([,n])=>/^(rio branco|maceió|manaus|macapá|salvador|fortaleza|brasília|vitória|goiânia|são luís|campo grande|cuiabá|belém|joão pessoa|recife|teresina|curitiba|rio de janeiro|natal|porto velho|boa vista|porto alegre|florianópolis|aracaju|são paulo|palmas|belo horizonte)$/i.test(n)); G.ue = (cap || L[0])[0]; } }
+    $('cbMun').value = G.ue;
     document.body.classList.toggle('ano-hist', G.ano !== 2026);
   }
   let IDX_TODOS = null;
@@ -5063,8 +5143,8 @@ const CUI = (()=>{
     box.hidden = false;
     if (!IDX_TODOS) { box.innerHTML = '<div class="cb-r cs-mut">Carregando as candidaturas de 2018 a 2026…</div>'; IDX_TODOS = C.todosIdx(); }
     await IDX_TODOS;
-    const L = C.buscar(q, [2026, 2024, 2022, 2020, 2018]);
-    box.innerHTML = L.length ? L.map(x=>`<div class="cb-r" data-k="${esc(C.chave(x))}" data-pid="${esc(x.pid||'')}"><div><b>${esc(titulo(x.nome))}</b> <span class="cs-mut">${x.nr} · ${esc(x.sig||'')}</span><br><small>${esc(C.rotCargo(x))} · ${fmt(x.v)} votos${x.sit ? ' · ' + esc(C.sitCurta(x.sit)) : ''}</small></div><span class="cb-acts"><button type="button" data-a="ver">Ver</button><button type="button" data-a="cmp" title="Adicionar à comparação">+ Comparar</button></span></div>`).join('')
+    const L = C.buscar(q, [2026, 2024, 2022, 2020, 2018], box.dataset.soUF ? G.uf : null);
+    box.innerHTML = L.length ? L.map(x=>`<div class="cb-r" data-k="${esc(C.chave(x))}" data-pid="${esc(x.pid||'')}"><div><b>${esc(titulo(x.nome))}</b> <span class="cs-mut">${x.nr} · ${esc(x.sig||'')}</span><br><small>${x.c === 1 ? 'Brasil · ' : ''}${esc(C.rotCargo(x))} · ${fmt(x.v)} votos${x.sit ? ' · ' + esc(C.sitCurta(x.sit)) : ''}</small></div><span class="cb-acts"><button type="button" data-a="ver">Ver</button><button type="button" data-a="cmp" title="Adicionar à comparação">+ Comparar</button></span></div>`).join('')
       : `<div class="cb-r cs-mut">Nenhuma candidatura encontrada para “${esc(q)}”.</div>`;
     box.dataset.modo = modo || '';
   }
@@ -5076,7 +5156,7 @@ const CUI = (()=>{
     if (a === 'cmp') { addSerie(x); NAV.ir('Comparar'); }
     else { abrirFicha(x); }
   });
-  function abrirFicha(x){ G.sel = C.chave(x); G.ano = x.ano; G.cargo = x.c; if (C.MUNIC(x.c)) G.ue = x.ue; salvar(); sincBarra(); NAV.ir('Candidatura'); }
+  function abrirFicha(x){ G.sel = C.chave(x); G.ano = x.ano; G.cargo = x.c; if (x.uf) G.uf = x.uf; if (C.MUNIC(x.c)) G.ue = x.ue; salvar(); sincBarra(); NAV.ir('Candidatura'); }
   function addSerie(x, soEsta){
     if (G.series.length >= 5) G.series.shift();
     const s = x.pid && !soEsta ? { tipo:'p', pid:x.pid, nome:titulo(x.nome), k:C.chave(x) } : { tipo:'c', k:C.chave(x), nome:`${titulo(x.nome)} ${x.ano}` };
@@ -5101,16 +5181,17 @@ const CUI = (()=>{
 
   /* ================= TELA: CANDIDATURA ================= */
   let seqF = 0, VISTA_F = 'regEst';
-  async function renderFicha(){
-    const box = $('fichaBox'); if (!box) return; const meu = ++seqF;
+  async function renderFicha(boxId, key){
+    boxId = boxId || 'fichaBox'; key = key || G.sel;
+    const box = $(boxId); if (!box) return; const meu = ++seqF;
     box.innerHTML = msg('Carregando a candidatura…');
     try {
-      let x = await C.porChave(G.sel);
-      if (!x && G.sel.startsWith('2026|') && !ULTIMO) { box.innerHTML = msg('Aguardando os dados de 2026 do TSE…'); setTimeout(()=>{ if (meu === seqF && (TELAS[telaAtual]||{}).id === 'telaFicha') renderFicha(); }, 3000); return; }
+      let x = await C.porChave(key);
+      if (!x && key.startsWith('2026|') && !ULTIMO) { box.innerHTML = msg('Aguardando os dados de 2026 do TSE…'); setTimeout(()=>{ if (meu === seqF && box.closest('.tela.ativa')) renderFicha(boxId, key); }, 3000); return; }
       if (!x) { box.innerHTML = `<div class="cs-vazio"><h2>Escolha uma candidatura</h2><p>Use a busca no alto (nome ou número) para abrir a ficha de qualquer candidatura de 2018 a 2026.</p></div>`; return; }
       const D = await C.dados(x); if (meu !== seqF) return;
       if (!IDX_TODOS) IDX_TODOS = C.todosIdx(); await IDX_TODOS; if (meu !== seqF) return;
-      C.ligarPessoas26(); if (x.ano === 2026) x = await C.porChave(G.sel) || x;
+      C.ligarPessoas26(); if (x.ano === 2026) x = await C.porChave(key) || x;
       const traj = x.pid ? C.candidaturas(x.pid) : [x];
       const ant = [...traj].filter(y=>y.ano < x.ano && y.c === x.c).pop() || [...traj].filter(y=>y.ano < x.ano).pop();
       const DA = ant ? await C.dados(ant).catch(()=>null) : null; if (meu !== seqF) return;
@@ -5118,16 +5199,16 @@ const CUI = (()=>{
       const cor = corPartido(x.sig || '');
       // cabeçalho
       let h = `<div class="cs-head"><div class="cs-id"><span class="cs-sw" style="background:${cor}"></span><div><h2>${esc(titulo(x.nome))} <span class="cs-nr">${x.nr}</span></h2>
-        <div class="cs-sub">${esc(x.sig||'')}${x.ali ? ' · ' + esc(x.ali) : ''} · ${esc(C.CN[x.c])}${C.MUNIC(x.c) ? ' · ' + esc(C.munNome(x.ue)) : ' · RJ'} · ${x.ano}${x.sit ? ` · <b>${esc(C.sitCurta(x.sit1 || x.sit))}</b>` : ''}</div></div></div>
+        <div class="cs-sub">${esc(x.sig||'')}${x.ali ? ' · ' + esc(x.ali) : ''} · ${esc(C.CN[x.c])}${C.MUNIC(x.c) ? ' · ' + esc(C.munNome(x.ue)) + ' (' + (x.uf||'RJ') + ')' : ' · ' + esc(x.c === 1 ? 'Brasil (votos no ' + (x.uf||'RJ') + ')' : C.NOME_UF[x.uf||'RJ'])} · ${x.ano}${x.sit ? ` · <b>${esc(C.sitCurta(x.sit1 || x.sit))}</b>` : ''}</div></div></div>
         <div class="cs-kpis"><div><b>${fmt(tot)}</b><span>votos</span></div><div><b>${pctTxt(tot, val, 2)}</b><span>dos válidos</span></div><div><b>${x.pos ? x.pos + 'º' : '—'}</b><span>de ${fmt(x.nc)} candidaturas</span></div>${ant ? `<div><b>${varHtml(tot, ant.v)}</b><span>vs. ${ant.ano} (${esc(C.CNC[ant.c])})</span></div>` : ''}</div>
-        <div class="cs-acts"><button type="button" class="det-link" data-cs="cmp">+ Comparar</button><button type="button" class="det-link" data-cs="mapa">Ver no mapa</button></div></div>`;
+        <div class="cs-acts"><button type="button" class="det-link" data-cs="cmp" data-k="${esc(key)}">+ Comparar</button>${(x.uf || 'RJ') === 'RJ' ? '<button type="button" class="det-link" data-cs="mapa" data-k="${esc(key)}">Ver no mapa</button>' : ''}</div></div>`;
       if (D.vivo) h += `<p class="cs-nota">2026: votos lidos agora do TSE${D.parcial ? ' (apuração ainda não concluída)' : ''}. Bairros só da capital, pelos boletins de urna e estimativa pelo eleitorado da zona.</p>`;
       // trajetória
       if (traj.length > 1 || x.pid) {
         const pts = traj.map(y=>({ x:y.ano, y:y.v, rot:C.CNC[y.c], vazio: y.ano === 2026 && D.parcial, tip:[[`${titulo(y.nome)} · ${y.ano}`, ''], [fmt(y.v) + ' votos', C.CNC[y.c] + (C.MUNIC(y.c) ? ' · ' + C.munNome(y.ue) : '')], [C.sitCurta(y.sit1 || y.sit), y.sig||'']] }));
         h += `<section class="box cs-sec"><div class="box-head"><h2>Trajetória 2018–2026</h2><span class="eyebrow">todas as candidaturas desta pessoa no RJ</span></div>
           <div class="cs-2"><div>${grafLinhas([{ nome:titulo(x.nome), cor:'var(--s1)', pts }], { anos:[2018,2020,2022,2024,2026], aria:'Votos por eleição', pr:30 })}</div>
-          <div>${tabela([{t:'Eleição'},{t:'Cargo'},{t:'Partido'},{t:'Votos',n:1},{t:'Posição',n:1},{t:'Situação'}], traj.map(y=>({ attrs:`data-csk="${esc(C.chave(y))}" class="${C.chave(y)===C.chave(x)?'cs-atual':''}"`, s:[y.ano, y.c, y.sig, y.v, y.pos, y.sit], cells:[y.ano, esc(C.CNC[y.c]) + (C.MUNIC(y.c) ? `<span class="zmun">${esc(C.munNome(y.ue))}</span>` : ''), esc(y.sig||''), fmt(y.v), y.pos ? y.pos + 'º' : '—', esc(C.sitCurta(y.sit1 || y.sit))] })))}</div></div></section>`;
+          <div>${tabela([{t:'Eleição'},{t:'Cargo'},{t:'Partido'},{t:'Votos',n:1},{t:'Posição',n:1},{t:'Situação'}], traj.map(y=>({ attrs:`data-csk="${esc(C.chave(y))}" class="${C.chave(y)===C.chave(x)?'cs-atual':''}"`, s:[y.ano, y.c, y.sig, y.v, y.pos, y.sit], cells:[y.ano, esc(C.CNC[y.c]) + (C.MUNIC(y.c) ? `<span class="zmun">${esc(C.munNome(y.ue))}${y.uf && y.uf !== 'RJ' ? '/' + y.uf : ''}</span>` : (y.uf && y.uf !== 'RJ' && y.c !== 1 ? `<span class="zmun">${y.uf}</span>` : '')), esc(y.sig||''), fmt(y.v), y.pos ? y.pos + 'º' : '—', esc(C.sitCurta(y.sit1 || y.sit))] })))}</div></div></section>`;
       }
       // indicadores
       const B = [...D.b.entries()].sort((a,b)=>b[1]-a[1]), M = [...D.mun.entries()].sort((a,b)=>b[1]-a[1]);
@@ -5140,8 +5221,9 @@ const CUI = (()=>{
       if (!C.MUNIC(x.c) && D.mun.get(C.CAP)) ind.push([pctTxt(D.mun.get(C.CAP), tot, 0), 'dos votos vêm da capital']);
       h += `<div class="cs-ind">${ind.map(([a,b])=>`<div><b>${a}</b><span>${b}</span></div>`).join('')}</div>`;
       // territórios (abas)
-      const rec = C.MUNIC(x.c) ? ['regCap','baiCap','zona'].filter(r=>x.ue === C.CAP || r !== 'regCap') : ['regEst','regCap','mun','baiCap','bai','zona'];
-      if (C.MUNIC(x.c) && x.ue !== C.CAP) rec.splice(0, rec.length, 'bai', 'zona');
+      const temB = D.b.size > 0 || (x.uf || 'RJ') === 'RJ';
+      const rec = !temB ? (C.MUNIC(x.c) ? ['zona'] : ['mun','zona']) : C.MUNIC(x.c) ? ['regCap','baiCap','zona'].filter(r=>x.ue === C.CAP || r !== 'regCap') : ['regEst','regCap','mun','baiCap','bai','zona'];
+      if (temB && C.MUNIC(x.c) && x.ue !== C.CAP) rec.splice(0, rec.length, 'bai', 'zona');
       if (!rec.includes(VISTA_F)) VISTA_F = rec[0];
       const geralPct = val ? tot/val : 0;
       const tabTerr = r => {
@@ -5153,7 +5235,7 @@ const CUI = (()=>{
           const cells = [k+1, `<div class="zname">${esc(o.nome)}</div>${o.sub ? `<span class="zmun">${esc(o.sub)}</span>` : ''}`, (D.vivo && r.startsWith('bai') ? '≈ ' : '') + fmt(o.v), pctTxt(o.v, o.val), pctTxt(o.v, tot), isNaN(forca) ? '—' : `<span class="cs-forca" style="--f:${Math.min(100, forca/3).toFixed(0)}%">${fmt(forca)}</span>`, o.abst != null ? fmtP(o.abst,1) : '—'];
           const s = [k+1, o.nome, o.v, pl, o.v/tot, forca, o.abst];
           if (AA) { cells.push(varHtml(o.v, a ? a.v : 0)); s.push(a ? o.v - a.v : null); }
-          const loc = r === 'mun' ? `data-csloc="m:${esc(o.k)}"` : (r === 'baiCap' || r === 'bai') ? `data-csloc="b:${esc(o.k)}"` : r.startsWith('reg') ? `data-csloc="${r}:${esc(o.k)}"` : '';
+          const loc = r === 'mun' ? `data-csloc="m:${esc(o.k)}" data-uf="${x.uf||'RJ'}"` : (r === 'baiCap' || r === 'bai') ? `data-csloc="b:${esc(o.k)}"` : r.startsWith('reg') ? `data-csloc="${r}:${esc(o.k)}"` : '';
           return { cells, s, attrs: loc };
         });
         return tabela(cols, rows, 'Sem votos neste recorte.');
@@ -5163,50 +5245,51 @@ const CUI = (()=>{
         ${rec.map(r=>`<div class="cs-fv${r===VISTA_F?'':' oculta'}" data-fv="${r}">${r===VISTA_F ? tabTerr(r) : ''}</div>`).join('')}
         <p class="cs-nota">${ant ? `Comparação com ${ant.ano} (${C.CN[ant.c]}${C.MUNIC(ant.c) ? ', ' + C.munNome(ant.ue) : ''}). ` : ''}Abstenção: % dos eleitores aptos que não votaram no local (TSE; nos bairros, eleitorado do local de votação ajustado ao total oficial do município).</p></section>`;
       // redutos e ganhos/perdas
-      const AB = C.agrupar(D, C.MUNIC(x.c) ? 'bai' : 'bai');
+      const uRed = D.b.size ? 'bai' : (C.MUNIC(x.c) ? 'zona' : 'mun'), nRed = uRed === 'bai' ? 'bairros' : uRed === 'mun' ? 'municípios' : 'zonas';
+      const AB = C.agrupar(D, uRed);
       const red = [...AB.values()].filter(o=>o.v >= Math.max(30, tot*0.003) && o.val).map(o=>({...o, f: geralPct ? 100*(o.v/o.val)/geralPct : 0})).sort((a,b)=>b.f-a.f).slice(0, 12);
-      let h2 = `<section class="box cs-sec"><div class="box-head"><h2>Redutos</h2><span class="eyebrow">bairros onde o desempenho é mais acima da própria média</span></div>${barras(red.map(o=>({ nome:o.nome + (o.sub ? ' · ' + o.sub : ''), v:o.f, sub: `${fmt(o.v)} votos · ${pctTxt(o.v,o.val)} do bairro`, cor:'var(--s1)' })), v=>fmt(v))}</section>`;
+      let h2 = `<section class="box cs-sec"><div class="box-head"><h2>Redutos</h2><span class="eyebrow">${nRed} onde o desempenho é mais acima da própria média</span></div>${barras(red.map(o=>({ nome:o.nome + (o.sub ? ' · ' + o.sub : ''), v:o.f, sub: `${fmt(o.v)} votos · ${pctTxt(o.v,o.val)} do local`, cor:'var(--s1)' })), v=>fmt(v))}</section>`;
       if (DA) {
-        const AA = C.agrupar(DA, 'bai'); const ks = new Set([...AB.keys(), ...AA.keys()]);
+        const AA = C.agrupar(DA, DA.b.size && D.b.size ? 'bai' : uRed); const ks = new Set([...AB.keys(), ...AA.keys()]);
         const dif = [...ks].map(k=>{ const a = AA.get(k), b = AB.get(k); return { nome:(b||a).nome, sub:(b||a).sub, d:(b?b.v:0)-(a?a.v:0), a:a?a.v:0, b:b?b.v:0 }; });
         const up = [...dif].sort((p,q)=>q.d-p.d).filter(o=>o.d>0).slice(0,8), dn = [...dif].sort((p,q)=>p.d-q.d).filter(o=>o.d<0).slice(0,8);
-        h2 += `<section class="box cs-sec"><div class="box-head"><h2>Ganhos e perdas</h2><span class="eyebrow">bairros · ${ant.ano} → ${x.ano}</span></div><div class="cs-2">
+        h2 += `<section class="box cs-sec"><div class="box-head"><h2>Ganhos e perdas</h2><span class="eyebrow">${nRed} · ${ant.ano} → ${x.ano}</span></div><div class="cs-2">
           <div><h3 class="cs-h3 up">▲ Onde mais cresceu</h3>${barras(up.map(o=>({nome:o.nome + (o.sub?' · '+o.sub:''), v:o.d, sub:`${fmt(o.a)} → ${fmt(o.b)}`, cor:'var(--s3)'})), v=>'+'+fmt(v))}</div>
           <div><h3 class="cs-h3 dn">▼ Onde mais perdeu</h3>${barras(dn.map(o=>({nome:o.nome + (o.sub?' · '+o.sub:''), v:-o.d, sub:`${fmt(o.a)} → ${fmt(o.b)}`, cor:'var(--s4)'})), v=>'−'+fmt(v))}</div></div>
           <p class="cs-nota">Cargos diferentes de um ano para outro (ex.: vereadora e deputada) mudam o tamanho da disputa; compare com cautela.</p></section>`;
       }
       // metas
-      const regs = C.agrupar(D, C.MUNIC(x.c) ? (x.ue === C.CAP ? 'regCap' : 'bai') : 'regEst');
+      const regs = C.agrupar(D, !temB ? (C.MUNIC(x.c) ? 'zona' : 'mun') : C.MUNIC(x.c) ? (x.ue === C.CAP ? 'regCap' : 'bai') : 'regEst');
       h2 += `<section class="box cs-sec"><div class="box-head"><h2>Metas por região</h2><span class="eyebrow">quanto seria preciso em cada região para chegar a uma meta</span></div>
-        <label class="cs-meta">Meta de votos <input type="number" id="csMeta" min="0" step="1000" value="${Math.round((tot*1.3)/1000)*1000}"></label>
-        <div id="csMetaT" data-k="${esc(G.sel)}"></div><p class="cs-nota">Distribui a meta pela participação atual de cada região nos votos (mantém o perfil da votação). "Crescer" = votos a mais em relação a hoje.</p></section>`;
+        <label class="cs-meta">Meta de votos <input type="number" class="cs-metain" min="0" step="1000" value="${Math.round((tot*1.3)/1000)*1000}"></label>
+        <div class="cs-metat"></div><p class="cs-nota">Distribui a meta pela participação atual de cada região nos votos (mantém o perfil da votação). "Crescer" = votos a mais em relação a hoje.</p></section>`;
       box.innerHTML = h + `<div class="cs-2">${h2}</div>`;
       box._metas = { regs:[...regs.values()].filter(o=>o.v>0).sort((a,b)=>b.v-a.v).slice(0,30), tot };
-      metas();
+      metas(box);
       box._tabTerr = tabTerr;
     } catch(e) { if (meu === seqF) box.innerHTML = erro(e); console.error(e); }
   }
-  function metas(){
-    const box = $('fichaBox'), M = box && box._metas; if (!M || !$('csMeta')) return;
-    const meta = +$('csMeta').value || 0, f = M.tot ? meta / M.tot : 0;
-    $('csMetaT').innerHTML = tabela([{t:'Região / local'},{t:'Hoje',n:1},{t:'Meta',n:1},{t:'Crescer',n:1}], M.regs.map(o=>({ s:[o.nome, o.v, o.v*f, o.v*f-o.v], cells:[esc(o.nome), fmt(o.v), fmt(o.v*f), sinal(o.v*f - o.v)] })));
+  function metas(box){
+    const M = box && box._metas, inp = box && box.querySelector('.cs-metain'); if (!M || !inp) return;
+    const meta = +inp.value || 0, f = M.tot ? meta / M.tot : 0;
+    box.querySelector('.cs-metat').innerHTML = tabela([{t:'Região / local'},{t:'Hoje',n:1},{t:'Meta',n:1},{t:'Crescer',n:1}], M.regs.map(o=>({ s:[o.nome, o.v, o.v*f, o.v*f-o.v], cells:[esc(o.nome), fmt(o.v), fmt(o.v*f), sinal(o.v*f - o.v)] })));
   }
-  document.addEventListener('input', e=>{ if (e.target.id === 'csMeta') metas(); });
+  document.addEventListener('input', e=>{ if (e.target.classList.contains('cs-metain')) metas(e.target.closest('.cs-wrap')); });
   document.addEventListener('click', e=>{
-    const b = e.target.closest('[data-fv]'); if (b && b.tagName === 'BUTTON') { VISTA_F = b.dataset.fv; const box = $('fichaBox');
+    const b = e.target.closest('[data-fv]'); if (b && b.tagName === 'BUTTON') { VISTA_F = b.dataset.fv; const box = b.closest('.cs-wrap');
       box.querySelectorAll('button[data-fv]').forEach(x=>x.classList.toggle('on', x===b));
       box.querySelectorAll('div.cs-fv').forEach(d=>{ const on = d.dataset.fv === VISTA_F; d.classList.toggle('oculta', !on); if (on && !d.innerHTML && box._tabTerr) d.innerHTML = box._tabTerr(VISTA_F); }); return; }
     const t = e.target.closest('tr[data-csk]'); if (t) { C.porChave(t.dataset.csk).then(x=>x && abrirFicha(x)); return; }
-    const a = e.target.closest('[data-cs]'); if (a) { C.porChave(G.sel).then(x=>{ if (!x) return; if (a.dataset.cs === 'cmp') { addSerie(x); NAV.ir('Comparar'); } else NAV.ir('Mapa histórico'); }); return; }
+    const a = e.target.closest('[data-cs]'); if (a) { C.porChave(a.dataset.k || G.sel).then(x=>{ if (!x) return; if (a.dataset.cs === 'cmp') { addSerie(x); NAV.ir('Comparar'); } else { G.sel = C.chave(x); salvar(); NAV.ir('Mapa histórico'); } }); return; }
     const l = e.target.closest('tr[data-csloc]'); if (l) { const [tp, ...r] = l.dataset.csloc.split(':'); const k = r.join(':');
-      G.terr = { tipo: tp === 'm' ? 'mun' : tp === 'b' ? 'bai' : tp, k }; salvar(); NAV.ir('Território'); }
+      if (l.dataset.uf) G.uf = l.dataset.uf; G.terr = { tipo: tp === 'm' ? 'mun' : tp === 'b' ? 'bai' : tp, k }; salvar(); sincBarra(); NAV.ir('Território'); }
   });
 
   /* ================= TELA: COMPARAR e REGIÕES ================= */
   let seqC = 0;
-  async function carregarSeries(){
+  async function carregarSeries(series){
     const out = [];
-    for (const [i, s] of G.series.entries()) {
+    for (const [i, s] of (series || G.series).entries()) {
       const L = await candsSerie(s);
       const por = porAno(L);
       const anos = [...por.keys()].filter(a=>G.anosVis.includes(a)).sort();
@@ -5216,30 +5299,35 @@ const CUI = (()=>{
     return out;
   }
   const agr = (se, a, r) => { if (!se.D[a]) return null; return (se.A[a + r] ||= C.agrupar(se.D[a], r)); };
+  const chipsFixo = () => `<div class="cs-anos">Eleições: ${[2018,2020,2022,2024,2026].map(a=>`<label><input type="checkbox" data-ano="${a}"${G.anosVis.includes(a)?' checked':''}> ${a}</label>`).join('')}<span class="cs-seg" role="group" aria-label="Medida"><button type="button" data-med="v" aria-pressed="${G.medida==='v'}">Votos</button><button type="button" data-med="p" aria-pressed="${G.medida==='p'}">% válidos</button></span></div>`;
+  const chips0 = () => chips();
   function chips(){
     return `<div class="cs-chips">${G.series.map((s,i)=>`<span class="cs-chip" style="--c:${CORES[i%CORES.length]}"><i></i>${esc(s.nome)}<small>${s.tipo==='p' ? 'trajetória' : 'uma eleição'}</small><button type="button" data-rm="${i}" aria-label="Remover ${esc(s.nome)}">✕</button></span>`).join('')}
       <span class="cs-add cb-busca"><input type="search" class="cs-addq" placeholder="+ adicionar candidatura (nome ou número)" autocomplete="off"><div class="cb-res" hidden></div></span></div>
       <div class="cs-pick">Ou escolha: <select data-pk="ano">${C.ANOS.map(a=>`<option value="${a}"${a===PICK.ano?' selected':''}>${a}</option>`).join('')}</select>
         <select data-pk="c">${C.cargosDoAno(PICK.ano).map(c=>`<option value="${c}"${c===PICK.c?' selected':''}>${C.CN[c]}</option>`).join('')}</select>
-        ${C.MUNIC(PICK.c) ? `<select data-pk="ue">${Object.entries(RJB.mun).sort((a,b)=>a[1].nm.localeCompare(b[1].nm,'pt-BR')).map(([cd,m])=>`<option value="${cd}"${cd===PICK.ue?' selected':''}>${esc(titulo(m.nm))}</option>`).join('')}</select>` : ''}
+        ${C.MUNIC(PICK.c) ? `<select data-pk="ue"><option value="${PICK.ue}">${esc(C.munNome(PICK.ue))}</option></select>` : ''}
         <select data-pk="cand"><option value="">carregando…</option></select><button type="button" class="det-link" data-pkadd="1">Adicionar</button></div>
       <div class="cs-anos">Eleições: ${[2018,2020,2022,2024,2026].map(a=>`<label><input type="checkbox" data-ano="${a}"${G.anosVis.includes(a)?' checked':''}> ${a}</label>`).join('')}
       <span class="cs-seg" role="group" aria-label="Medida"><button type="button" data-med="v" aria-pressed="${G.medida==='v'}">Votos</button><button type="button" data-med="p" aria-pressed="${G.medida==='p'}">% válidos</button></span></div>`;
   }
   // seletor rápido: eleição › cargo › (município) › candidatura
-  const PICK = { ano: 2022, c: 6, ue: '60011' };
+  const PICK = { ano: 2022, c: 6, ue: '60011', uf: 'RJ' };
   async function preencherPick(){
     const sels = document.querySelectorAll('select[data-pk="cand"]'); if (!sels.length) return;
     try {
-      const I = await C.idx(PICK.ano); if (PICK.ano !== 2026) await C.resolver(PICK.ano);
-      const ue = C.MUNIC(PICK.c) ? PICK.ue : (PICK.c === 1 ? 'BR' : 'RJ');
+      const I = await C.idx(PICK.ano, PICK.uf);
+      if (C.MUNIC(PICK.c)) { const L = await munsDaUF(PICK.uf, PICK.ano); if (!L.some(([cd])=>cd === PICK.ue) && L[0]) PICK.ue = L[0][0];
+        document.querySelectorAll('select[data-pk="ue"]').forEach(s=>{ s.innerHTML = L.map(([cd,n])=>`<option value="${cd}"${cd===PICK.ue?' selected':''}>${esc(n)}</option>`).join(''); }); }
+      const ue = C.MUNIC(PICK.c) ? PICK.ue : (PICK.c === 1 ? 'BR' : PICK.uf);
       const L = I.cands.filter(x=>x.c === PICK.c && x.t === 1 && x.ue === ue && !x.leg).sort((a,b)=>b.v-a.v).slice(0, 400);
       const html = L.length ? L.map(x=>`<option value="${esc(C.chave(x))}">${esc(titulo(x.nome))} · ${x.nr} · ${esc(x.sig||'')} · ${fmt(x.v)}</option>`).join('') : '<option value="">sem candidaturas</option>';
       sels.forEach(s=>s.innerHTML = html);
     } catch(e){ sels.forEach(s=>s.innerHTML = '<option value="">não foi possível carregar</option>'); }
   }
   document.addEventListener('change', e=>{ const s = e.target.closest('select[data-pk]'); if (!s || s.dataset.pk === 'cand') return;
-    if (s.dataset.pk === 'ano') { PICK.ano = +s.value; if (!C.cargosDoAno(PICK.ano).includes(PICK.c)) PICK.c = C.cargosDoAno(PICK.ano)[0]; }
+    if (s.dataset.pk === 'uf') { PICK.uf = s.value; }
+    else if (s.dataset.pk === 'ano') { PICK.ano = +s.value; if (!C.cargosDoAno(PICK.ano).includes(PICK.c)) PICK.c = C.cargosDoAno(PICK.ano)[0]; }
     else if (s.dataset.pk === 'c') PICK.c = +s.value; else PICK.ue = s.value;
     const box = s.closest('.cs-pick'); const novo = document.createElement('div'); novo.innerHTML = chips(); box.replaceWith(novo.querySelector('.cs-pick')); preencherPick(); });
   document.addEventListener('click', async e=>{ const b = e.target.closest('[data-pkadd]'); if (!b) return; const s = b.parentElement.querySelector('select[data-pk="cand"]'); if (!s || !s.value) return;
@@ -5294,12 +5382,13 @@ const CUI = (()=>{
     } catch(e) { if (meu === seqC) box.innerHTML = chips() + erro(e); console.error(e); }
   }
   let seqR = 0;
-  async function renderRegioes(){
-    const box = $('regBox'); if (!box) return; const meu = ++seqR;
-    if (!G.series.length) { box.innerHTML = chips() + `<div class="cs-vazio"><h2>Escolha as candidaturas</h2><p>Adicione uma ou mais candidaturas de qualquer eleição e cargo para ver a votação por região do estado e da capital.</p></div>`; return; }
+  async function renderRegioes(boxId, fixo, semCab){
+    const box = $(boxId || 'regBox'); if (!box) return; const meu = ++seqR;
+    const chips = semCab ? (()=>'') : fixo ? chipsFixo : chips0;
+    if (!fixo && !G.series.length) { box.innerHTML = chips() + `<div class="cs-vazio"><h2>Escolha as candidaturas</h2><p>Adicione uma ou mais candidaturas de qualquer eleição e cargo para ver a votação por região do estado e da capital.</p></div>`; return; }
     box.innerHTML = chips() + msg('Carregando…');
     try {
-      const SE = await carregarSeries(); if (meu !== seqR) return;
+      const SE = await carregarSeries(fixo); if (meu !== seqR) return;
       const anos = [...new Set(SE.flatMap(s=>s.anos))].sort();
       const bloco = (r, tit) => {
         const ks = new Map(); SE.forEach(se=>se.anos.forEach(a=>{ const M = agr(se, a, r); if (M) M.forEach((u,k)=>{ if (u.v >= 0.5 || r === 'regEst') ks.set(k, u.nome); }); }));
@@ -5316,15 +5405,95 @@ const CUI = (()=>{
           pares.forEach(([se, a], j)=>{ const M = agr(se, a, r), o = M && M.get(u.k), v = medida(o); const prev = j > 0 && pares[j-1][0] === se ? medida((agr(se, pares[j-1][1], r)||new Map()).get(u.k)) : null;
             cells.push(v == null ? '—' : `${fyMed(v)}${G.medida==='v' && o && o.val ? `<span class="rg-pt">${pctTxt(o.v,o.val,2)}</span>` : ''}${prev != null && v != null ? varHtml(v, prev) : ''}`); s.push(v); });
           const ab = u.extra.replace('abstenção ', ''); cells.push(ab || '—'); s.push(parseFloat(ab.replace(',', '.')) || null); return { cells, s, attrs:`data-csloc="${r}:${esc(u.k)}"` }; });
-        return `<section class="box cs-sec"><div class="box-head"><h2>${tit}</h2><span class="eyebrow">${G.medida==='p' ? '% dos votos válidos na região' : 'votos'} · clique para abrir o território</span></div>${legenda(ser)}${multiplos(uni, ser, anos, fyMed)}${tabela(cols, rows)}</section>`;
+        // linha de total (soma das regiões) em cada eleição
+        { const cells = ['<b>Total</b>'], sv = ['~'];
+          pares.forEach(([se, a], j)=>{ const M = agr(se, a, r); let v = 0, val = 0; if (M) for (const o of M.values()) { v += o.v; val += o.val; } const o = M ? { v, val } : null, m = medida(o);
+            const prevM = j > 0 && pares[j-1][0] === se ? agr(se, pares[j-1][1], r) : null; let pv = null; if (prevM) { let v2 = 0, val2 = 0; for (const o2 of prevM.values()) { v2 += o2.v; val2 += o2.val; } pv = medida({ v:v2, val:val2 }); }
+            cells.push(m == null || !v ? '—' : `<b>${fyMed(m)}</b>${G.medida==='v' && val ? `<span class="rg-pt">${pctTxt(v,val,2)}</span>` : ''}${pv ? varHtml(m, pv) : ''}`); sv.push(null); });
+          cells.push(''); sv.push(null); rows.unshift({ cells, s: sv, attrs:'class="cs-totl"' }); }
+        return `<section class="box cs-sec"><div class="box-head"><h2>${tit}</h2><span class="eyebrow">${G.medida==='p' ? '% dos votos válidos na região' : 'votos'} · clique para abrir o território</span></div>${legenda(ser)}${fixo && !semCab ? tabela(cols, rows) + multiplos(uni, ser, anos, fyMed) : multiplos(uni, ser, anos, fyMed) + tabela(cols, rows)}</section>`;
       };
       box.innerHTML = chips() + bloco('regCap', 'Capital · regiões') + bloco('regEst', 'Estado · regiões') + `<p class="cs-nota">Regiões da capital: divisão usada pela campanha (8 regiões); estado: 10 regiões. Votos por bairro pelo local de votação (TSE). 2026 na capital: boletins de urna + estimativa. Abstenção da eleição mais recente marcada.</p>`;
     } catch(e) { if (meu === seqR) box.innerHTML = chips() + erro(e); console.error(e); }
   }
-  document.addEventListener('click', e=>{ const m = e.target.closest('.cs-mc[data-uk]'); if (!m) return; const sec = m.closest('#regBox'); if (!sec) return;
+  document.addEventListener('click', e=>{ const m = e.target.closest('.cs-mc[data-uk]'); if (!m) return; const sec = m.closest('#regBox, #tatRegBox, #cmpRegBox'); if (!sec) return;
     const r = m.closest('.cs-sec').querySelector('tr[data-csloc]'); const tipo = r ? r.dataset.csloc.split(':')[0] : 'regEst'; G.terr = { tipo, k: m.dataset.uk }; salvar(); NAV.ir('Território'); });
 
-  return { preencherPick, G, salvar, sincBarra, montarBarra, renderFicha, renderComparar, renderRegioes, tabela, grafLinhas, barras, legenda, multiplos, msg, erro, pctTxt, varHtml, sinal, abrirFicha, addSerie, CORES, IDX_TODOS: () => IDX_TODOS || (IDX_TODOS = C.todosIdx()) };
+  return { munsDaUF, preencherPick, G, salvar, sincBarra, montarBarra, renderFicha, renderComparar, renderRegioes, tabela, grafLinhas, barras, legenda, multiplos, msg, erro, pctTxt, varHtml, sinal, abrirFicha, addSerie, CORES, IDX_TODOS: () => IDX_TODOS || (IDX_TODOS = C.todosIdx()) };
+})();
+
+/* ============ OUTROS ESTADOS: deputados estaduais e federais (2022 e 2026) ============
+   Lê do TSE (resultados oficiais) o arquivo de cada UF: candidaturas, votos, situação e cadeiras por partido. */
+const UFE = (()=>{
+  const C = CONS, { tabela, barras, msg, erro, pctTxt } = CUI;
+  let UF = 'SP', ANO = 2026, CG = 7, FILTRO = '', seq = 0;
+  try { const s = JSON.parse(localStorage.getItem('ufeSel') || 'null'); if (s) ({ UF, ANO, CG } = { UF, ANO, CG, ...s }); } catch(e){}
+  const salvar = () => { try { localStorage.setItem('ufeSel', JSON.stringify({ UF, ANO, CG })); } catch(e){} };
+  const CAMARA = {AC:8,AL:9,AM:8,AP:8,BA:39,CE:22,DF:8,ES:10,GO:17,MA:18,MG:53,MS:8,MT:8,PA:17,PB:12,PE:25,PI:10,PR:30,RJ:46,RN:8,RO:8,RR:8,RS:31,SC:16,SE:8,SP:70,TO:8};
+  const cargoDe = (uf, cg) => cg === 7 && uf === 'DF' ? 8 : cg;            // DF: deputados distritais
+  function url(uf, ano, cg){
+    const u = uf.toLowerCase(), c = pad4(cargoDe(uf, cg));
+    if (ano === 2022) return `https://resultados.tse.jus.br/oficial/ele2022/546/dados/${u}/${u}-c${c}-e000546-u.json`;
+    return CONG.urlUF(uf, cargoDe(uf, cg));
+  }
+  const CACHE = new Map();
+  async function dados(uf, ano, cg){
+    const k = `${uf}|${ano}|${cg}`;
+    if (!CACHE.has(k)) CACHE.set(k, (async()=>{
+      // RJ em 2026: já carregado pelo painel
+      if (uf === CFG.uf.toUpperCase() && ano === 2026 && CFG.ambiente !== '2022') { const R = cg === 6 ? ULTIMO : EST; if (R) return { d:R.d, calc:R.calc, vagas: cg === 6 ? VAGAS : R.vagas }; }
+      const d = extrair(await getJSON(url(uf, ano, cg), { limite:25000, recuo404:true }));
+      if (!d.cands.length) throw new Error('o TSE ainda não publicou este arquivo');
+      const vagas = d.meta && d.meta.nv ? +d.meta.nv : (cg === 6 ? CAMARA[uf] : ALE[uf]);
+      return { d, vagas, calc: aplicarOficial(calcularCadeiras(d.agrs, d.cands, vagas), d, vagas) };
+    })().catch(e=>{ CACHE.delete(k); throw e; }));
+    return CACHE.get(k);
+  }
+  const NOME_CG = { 7:'Deputado Estadual', 6:'Deputado Federal' };
+  function cabecalho(){
+    const sel = (id, L, v) => `<select id="${id}">${L.map(([k,n])=>`<option value="${k}"${String(k)===String(v)?' selected':''}>${esc(n)}</option>`).join('')}</select>`;
+    return `<div class="cs-tsel"><label>Estado ${sel('ufeUF', C.UFS.map(u=>[u, `${u} · ${C.NOME_UF[u]}`]), UF)}</label>
+      <label>Eleição ${sel('ufeAno', [[2026,'2026'],[2022,'2022']], ANO)}</label>
+      <span class="cs-seg" role="group" aria-label="Cargo">${[[7,'Deputados estaduais'],[6,'Deputados federais']].map(([c,n])=>`<button type="button" data-ufecg="${c}" aria-pressed="${c===CG}">${n}</button>`).join('')}</span></div>`;
+  }
+  async function render(){
+    const box = $('ufBox'); if (!box) return; const meu = ++seq;
+    box.innerHTML = cabecalho() + msg(`Lendo ${NOME_CG[CG].toLowerCase()} de ${C.NOME_UF[UF]} (${ANO}) no TSE…`);
+    try {
+      const { d, calc, vagas } = await dados(UF, ANO, CG); if (meu !== seq) return;
+      const cands = d.cands.filter(c=>!c.soLegenda).sort((a,b)=>b.votos-a.votos);
+      const validos = calc.validos || cands.reduce((s,c)=>s+c.votos,0);
+      const eleitos = new Set(calc.eleitos.map(e=>e.n));
+      const P = partidosDe(d, calc);
+      const nEl = calc.eleitos.length, nConf = calc.eleitos.filter(e=>e.conf).length;
+      const casa = CG === 7 ? (UF === 'DF' ? 'Câmara Legislativa' : 'Assembleia Legislativa') : 'Câmara dos Deputados';
+      // cadeiras por partido (federação conta como um partido)
+      const porPart = new Map(); calc.eleitos.forEach(e=>porPart.set(e.partido, (porPart.get(e.partido)||0) + 1));
+      const filtro = semAcento(FILTRO);
+      const lista = cands.filter(c=>!filtro || semAcento(c.nome).includes(filtro) || String(c.n).startsWith(filtro) || semAcento(c.partido).includes(filtro));
+      box.innerHTML = cabecalho()
+        + `<div class="cs-head"><div class="cs-id"><div><h2>${esc(C.NOME_UF[UF])} · ${NOME_CG[CG]}${CG===7 && UF==='DF' ? ' (distrital)' : ''} · ${ANO}</h2><div class="cs-sub">${casa} · ${vagas} vagas · TSE${ANO === 2026 && !(d.tot && d.tot.pctApurado >= 99.95) ? ` · ${fmtP(d.tot.pctApurado,1)} apurado` : ''}</div></div></div>
+          <div class="cs-kpis"><div><b>${fmt(validos)}</b><span>votos válidos</span></div><div><b>${calc.QE_TSE || calc.QE ? fmt(calc.QE_TSE || calc.QE) : '—'}</b><span>quociente eleitoral</span></div><div><b>${nEl}</b><span>eleitos${nConf < nEl ? ` (${nConf} confirmados)` : ''}</span></div><div><b>${fmt(cands.length)}</b><span>candidaturas</span></div></div></div>`
+        + `<div class="cs-2"><section class="box cs-sec"><div class="box-head"><h2>Cadeiras por partido</h2><span class="eyebrow">federação conta como um partido</span></div>`
+        + barras([...porPart].sort((a,b)=>b[1]-a[1]).map(([p, n])=>({ nome:p, v:n, sub:`${pctTxt(n, vagas, 0)} da casa`, cor:corPartido(p) })), v=>fmt(v) + (v === 1 ? ' cadeira' : ' cadeiras'))
+        + tabela([{t:'Partido / federação'},{t:'Votos',n:1},{t:'% válidos',n:1},{t:'Quocientes',n:1},{t:'Eleitos',n:1}], P.map(p=>({ s:[p.rot, p.a.votos, p.a.votos/validos, p.cad, p.el], cells:[`<i class="cs-dot" style="background:${corPartido(p.rot)}"></i>${esc(p.rot)}`, fmt(p.a.votos), pctTxt(p.a.votos, validos, 2), isNaN(p.cad) ? '—' : p.cad.toLocaleString('pt-BR',{maximumFractionDigits:2}), p.el || '—'] })))
+        + `</section><section class="box cs-sec"><div class="box-head"><h2>Eleitos (${nEl})</h2><span class="eyebrow">${nConf === nEl ? 'confirmados pelo TSE' : 'cor cheia = confirmado pelo TSE'}</span></div>`
+        + tabela([{t:'#',n:1},{t:'Candidatura'},{t:'Votos',n:1},{t:'% válidos',n:1},{t:'Como'}], calc.eleitos.slice().sort((a,b)=>b.votos-a.votos).map((e,i)=>({ s:[i+1, e.nome, e.votos, e.votos/validos, e.via], cells:[i+1, `<div class="nm">${esc(titulo(e.nome))}</div><span class="pt">${esc(e.partido)} · ${esc(e.n)}</span>`, fmt(e.votos), pctTxt(e.votos, validos, 2), esc(e.via === 'QP' ? 'Quociente partidário' : e.via === 'media' || e.via === 'MD' ? 'Média (sobras)' : (e.via || (e.conf ? 'Eleito' : 'Eleito na parcial')))] })))
+        + `</section></div><section class="box cs-sec"><div class="box-head"><h2>Todas as candidaturas</h2><span class="eyebrow">${fmt(lista.length)} de ${fmt(cands.length)}</span></div>
+          <input type="search" id="ufeFiltro" class="cs-filtro" placeholder="Filtrar por nome, número ou partido" value="${esc(FILTRO)}">`
+        + tabela([{t:'#',n:1},{t:'Candidatura'},{t:'Partido'},{t:'Votos',n:1},{t:'% válidos',n:1},{t:'Situação'}], lista.slice(0, 800).map(c=>{ const pos = cands.indexOf(c) + 1;
+            return { s:[pos, c.nome, c.partido, c.votos, c.votos/validos, eleitos.has(c.n) ? 0 : 1], cells:[pos, `${esc(titulo(c.nome))} <span class="cs-mut">${esc(c.n)}</span>`, esc(c.partido), fmt(c.votos), pctTxt(c.votos, validos, 2), eleitos.has(c.n) ? '<b>Eleito</b>' : (c.st ? esc(titulo(c.st)) : '')] }; }), 'Nenhuma candidatura com esse filtro.')
+        + `<p class="cs-nota">Fonte: TSE, resultado oficial por estado. Disponível para 2022 e 2026; para 2018 o TSE não publica neste formato.</p></section>`;
+    } catch(e) { if (meu === seq) box.innerHTML = cabecalho() + erro(e); }
+  }
+  document.addEventListener('change', e=>{
+    if (e.target.id === 'ufeUF') { UF = e.target.value; FILTRO = ''; salvar(); render(); }
+    else if (e.target.id === 'ufeAno') { ANO = +e.target.value; salvar(); render(); }
+  });
+  document.addEventListener('click', e=>{ const b = e.target.closest('[data-ufecg]'); if (b) { CG = +b.dataset.ufecg; salvar(); render(); } });
+  let tm = 0;
+  document.addEventListener('input', e=>{ if (e.target.id !== 'ufeFiltro') return; FILTRO = e.target.value; clearTimeout(tm); tm = setTimeout(()=>{ const p = e.target.selectionStart; render().then(()=>{ const i = $('ufeFiltro'); if (i) { i.focus(); try { i.setSelectionRange(p, p); } catch(err){} } }); }, 250); });
+  return { render };
 })();
 
 /* ---- território, resultado, mapa, partidos, navegação ---- */
@@ -5371,7 +5540,14 @@ const CUI2 = (()=>{
     }
     return out;
   }
-  const candDeChave = (I, c, t, k) => { const [nr, ue] = k.split('@'); return I.key.get(`${I.ano}|${c}|${t}|${ue || (c === 1 ? 'BR' : 'RJ')}|${nr}`); };
+  const candDeChave = (I, c, t, k) => { const [nr, ue] = k.split('@'); const uf = I.uf || 'RJ'; return I.key.get(`${I.ano}|${c}|${t}|${ue || (c === 1 ? 'BR' : uf)}|${nr}` + (uf !== 'RJ' ? '|' + uf : '')); };
+  // fora do RJ: territórios são o estado ou um município (zonas eleitorais)
+  const zonasDe = (I, terr) => { const s = new Set(); I.z.forEach((z, i)=>{ if (terr.tipo === 'est' || z.startsWith(terr.k + ':')) s.add(i); }); return s; };
+  function todosNoTerrBR(I, c, t, set){
+    const out = new Map(), pre = `${c}|${t}|`;
+    for (const [k, d] of Object.entries(I.F.v)) { if (!k.startsWith(pre)) continue; let v = 0; for (let i = 0; i < d.length; i += 2) if (set.has(d[i])) v += d[i+1]; if (v) out.set(k.slice(pre.length), v); }
+    return out;
+  }
   const SUCESSOR = { PRB:'REPUBLICANOS', PR:'PL', PPS:'CIDADANIA', DEM:'UNIÃO', PSL:'UNIÃO', PATRIOTA:'PRD', PTB:'PRD', PRP:'PRD', PROS:'SOLIDARIEDADE', PHS:'PODE', PSC:'PODE', PPL:'PC do B', PTC:'AGIR', PMN:'MOBILIZA', PODEMOS:'PODE', 'PCDOB':'PC do B', 'PC DO B':'PC do B' };
   const normSig = (s, junta) => { s = String(s || '?'); const u = s.toUpperCase(); if (u === 'PCDOB' || u === 'PC DO B') s = 'PC do B'; if (u === 'PODEMOS') s = 'PODE'; if (u === 'UNIAO') s = 'UNIÃO'; return junta ? (SUCESSOR[s] || SUCESSOR[u] || s) : s; };
 
@@ -5401,6 +5577,7 @@ const CUI2 = (()=>{
     const box = $('terrBox'); if (!box) return; const meu = ++seqT;
     box.innerHTML = msg('Carregando o território…');
     try {
+      if (G.uf !== 'RJ') return await renderTerrBR(box, meu);
       const Geo = await C.geo(); if (meu !== seqT) return;
       // normaliza chaves vindas de outras telas (ex.: bairro da capital por nome, região como "regEst")
       if (G.terr.tipo === 'baiCap') G.terr.tipo = 'bai';
@@ -5409,15 +5586,15 @@ const CUI2 = (()=>{
       let h = seletorTerr(Geo) + `<div class="cs-head"><div class="cs-id"><div><h2>${esc(nomeTerr(terr, Geo))}</h2><div class="cs-sub">${esc(TIPOS[terr.tipo])}${terr.tipo==='mun' && regiaoMun(terr.k) ? ' · Região ' + esc(regiaoMun(terr.k)) : ''}${terr.tipo==='bai' && Geo.B[+terr.k] && Geo.B[+terr.k].rc ? ' · ' + esc(Geo.B[+terr.k].rc) : ''} · ${esc(C.CN[G.cargo])} ${G.ano}</div></div></div></div>`;
       // evolução do comparecimento / abstenção (todas as eleições)
       const ptsA = [], linhasA = [];
-      for (const a of [2018, 2020, 2022, 2024]) { try { const I = await C.resolver(a); const c0 = C.cargosDoAno(a)[0]; const T = totais(I, c0, 1, gids); if (T && T.apt) { ptsA.push({ x:a, y:T.abst, tip:[[`${a}`, '1º turno'], [fmtP(T.abst,1), 'de abstenção'], [fmt(T.apt) + ' aptos', fmt(T.compAb) + ' votaram']] }); linhasA.push([a, T]); } } catch(e){} }
-      if (['est','regEst','mun'].includes(terr.tipo) && ESTADO.ab && ESTADO.ab.mun) { let ap = 0, cc = 0; for (const cd of muns) { const o = ESTADO.ab.mun[cd]; if (o && o.est) { ap += o.est; cc += o.c; } } if (ap) { ptsA.push({ x:2026, y:100*(1-cc/ap), vazio: !(PCT_EST >= 99.95), tip:[['2026', PCT_EST >= 99.95 ? '' : 'seções já apuradas'], [fmtP(100*(1-cc/ap),1), 'de abstenção']] }); linhasA.push([2026, { apt:ap, compAb:cc, abst:100*(1-cc/ap) }]); } }
+      for (const a of [2018, 2020, 2022, 2024, 2026]) { try { const I = await C.idx(a, 'RJ'); if (I.vivo) continue; const c0 = C.cargosDoAno(a)[0]; const T = totais(I, c0, 1, gids); if (T && T.apt) { ptsA.push({ x:a, y:T.abst, tip:[[`${a}`, '1º turno'], [fmtP(T.abst,1), 'de abstenção'], [fmt(T.apt) + ' aptos', fmt(T.compAb) + ' votaram']] }); linhasA.push([a, T]); } } catch(e){} }
+      if (!ptsA.some(p=>p.x === 2026) && ['est','regEst','mun'].includes(terr.tipo) && ESTADO.ab && ESTADO.ab.mun) { let ap = 0, cc = 0; for (const cd of muns) { const o = ESTADO.ab.mun[cd]; if (o && o.est) { ap += o.est; cc += o.c; } } if (ap) { ptsA.push({ x:2026, y:100*(1-cc/ap), vazio: !(PCT_EST >= 99.95), tip:[['2026', PCT_EST >= 99.95 ? '' : 'seções já apuradas'], [fmtP(100*(1-cc/ap),1), 'de abstenção']] }); linhasA.push([2026, { apt:ap, compAb:cc, abst:100*(1-cc/ap) }]); } }
       if (meu !== seqT) return;
       h += `<div class="cs-2"><section class="box cs-sec"><div class="box-head"><h2>Abstenção</h2><span class="eyebrow">% dos aptos que não votaram · 1º turno</span></div>${grafLinhas([{ nome:'Abstenção', cor:'var(--s2)', pts: ptsA }], { anos:[2018,2020,2022,2024,2026], fy:v=>fmtP(v,1), pr:30, aria:'Abstenção por eleição' })}
         ${tabela([{t:'Eleição'},{t:'Aptos',n:1},{t:'Votaram',n:1},{t:'Abstenção',n:1}], linhasA.map(([a,T])=>({ s:[a, T.apt, T.compAb, T.abst], cells:[a, fmt(T.apt), fmt(T.compAb), fmtP(T.abst,1)] })))}
         <p class="cs-nota">Fonte: TSE (comparecimento e eleitorado oficiais por zona; bairros pelo eleitorado dos locais de votação, ajustado ao total oficial do município). 2026: só municípios, pelas seções já apuradas.</p></section>`;
       // resultado do cargo no território
       let res = '';
-      if (G.ano === 2026) {
+      if (G.ano === 2026 && (await C.idx(2026, 'RJ')).vivo) {
         res = await rank26(terr, muns);
       } else {
         const I = await C.resolver(G.ano); if (meu !== seqT) return;
@@ -5439,7 +5616,7 @@ const CUI2 = (()=>{
       }
       h += `<section class="box cs-sec"><div class="box-head"><h2>${esc(C.CN[G.cargo])} · ${G.ano}</h2><span class="eyebrow">mais votados no território · clique para abrir a ficha</span></div>${res}</section></div>`;
       // subdivisões do território (abstenção e eleitorado)
-      if (terr.tipo !== 'bai' && G.ano !== 2026) {
+      if (terr.tipo !== 'bai' && !(G.ano === 2026 && (await C.idx(2026, 'RJ')).vivo)) {
         const I = await C.resolver(G.ano); const sub = terr.tipo === 'est' ? 'regEst' : (terr.tipo === 'regEst' ? 'mun' : 'bai');
         const grupos = new Map();
         for (const g of gids) { const b = Geo.B[g]; const k = sub === 'regEst' ? b.re : sub === 'mun' ? b.m : g; (grupos.get(k) || grupos.set(k, new Set()).get(k)).add(g); }
@@ -5451,6 +5628,48 @@ const CUI2 = (()=>{
       box.innerHTML = h;
     } catch(e) { if (meu === seqT) box.innerHTML = erro(e); console.error(e); }
   }
+  async function renderTerrBR(box, meu){
+    const uf = G.uf;
+    if (!(G.terr.tipo === 'est' && G.terr.k === uf) && !(G.terr.tipo === 'mun' && C.MUNN[G.terr.k] !== undefined)) G.terr = { tipo:'est', k:uf };
+    const muns = await U.munsDaUF(uf, G.ano); if (meu !== seqT) return;
+    if (G.terr.tipo === 'mun' && !muns.some(([cd])=>cd === G.terr.k)) G.terr = { tipo:'est', k:uf };
+    const terr = G.terr, nome = terr.tipo === 'est' ? C.NOME_UF[uf] : C.munNome(terr.k);
+    const opts = (L, v) => L.map(([k, n])=>`<option value="${esc(k)}"${String(k)===String(v)?' selected':''}>${esc(n)}</option>`).join('');
+    let h = `<div class="cs-tsel"><label>Recorte <select id="trTipoBR">${opts([['est','Estado'],['mun','Município']], terr.tipo)}</select></label>${terr.tipo==='mun' ? `<label>Município <select id="trKBR">${opts(muns, terr.k)}</select></label>` : ''}<span class="cs-mut">Fora do RJ os dados vão até município e zona eleitoral.</span></div>`
+      + `<div class="cs-head"><div class="cs-id"><div><h2>${esc(nome)}</h2><div class="cs-sub">${terr.tipo === 'est' ? 'Estado' : 'Município · ' + uf} · ${esc(C.CN[G.cargo])} ${G.ano}</div></div></div></div>`;
+    const ptsA = [], linhasA = [];
+    for (const a of [2018, 2020, 2022, 2024, 2026]) { try { const I = await C.idx(a, uf); const c0 = C.cargosDoAno(a).find(c=>I.cargos[c + '|1']); if (!c0) continue; const T = totais(I, c0, 1, zonasDe(I, terr)); if (T && T.apt) { ptsA.push({ x:a, y:T.abst, tip:[[`${a}`, '1º turno'], [fmtP(T.abst,1), 'de abstenção'], [fmt(T.apt) + ' aptos', fmt(T.compAb) + ' votaram']] }); linhasA.push([a, T]); } } catch(e){} }
+    if (meu !== seqT) return;
+    h += `<div class="cs-2"><section class="box cs-sec"><div class="box-head"><h2>Abstenção</h2><span class="eyebrow">% dos aptos que não votaram · 1º turno</span></div>${grafLinhas([{ nome:'Abstenção', cor:'var(--s2)', pts: ptsA }], { anos:[2018,2020,2022,2024,2026], fy:v=>fmtP(v,1), pr:30, aria:'Abstenção por eleição' })}
+      ${tabela([{t:'Eleição'},{t:'Aptos',n:1},{t:'Votaram',n:1},{t:'Abstenção',n:1}], linhasA.map(([a,T])=>({ s:[a, T.apt, T.compAb, T.abst], cells:[a, fmt(T.apt), fmt(T.compAb), fmtP(T.abst,1)] })))}<p class="cs-nota">Fonte: TSE, comparecimento por município e zona.</p></section>`;
+    let res;
+    try {
+      const I = await C.idx(G.ano, uf), set = zonasDe(I, terr), T = totais(I, G.cargo, 1, set);
+      if (!T || !T.comp) res = msg(`Não houve eleição para ${C.CN[G.cargo]} neste território em ${G.ano}.`);
+      else {
+        const V = todosNoTerrBR(I, G.cargo, 1, set);
+        const L = [...V].map(([k, v])=>({ v, x: candDeChave(I, G.cargo, 1, k) })).filter(o=>o.x).sort((a,b)=>b.v-a.v);
+        const part = new Map(); L.forEach(o=>{ const sg = normSig(o.x.sig); part.set(sg, (part.get(sg)||0) + o.v); });
+        res = `<div class="cs-kpis cs-kpis-s"><div><b>${fmt(T.apt)}</b><span>aptos</span></div><div><b>${fmtP(T.abst,1)}</b><span>abstenção</span></div><div><b>${fmt(T.val)}</b><span>votos válidos</span></div><div><b>${pctTxt(T.br, T.comp)}</b><span>brancos</span></div><div><b>${pctTxt(T.nu, T.comp)}</b><span>nulos</span></div></div>`
+          + tabela([{t:'#',n:1},{t:'Candidatura'},{t:'Votos',n:1},{t:'% válidos',n:1},{t:'Situação'}], L.slice(0, 150).map((o,i)=>({ attrs:`data-csk="${esc(C.chave(o.x))}"`, s:[i+1, o.x.nome, o.v, o.v/T.val, o.x.sit], cells:[i+1, `<div class="nm">${esc(titulo(o.x.nome))}</div><span class="pt">${esc(o.x.sig||'')} · ${o.x.nr}${C.MUNIC(G.cargo) && terr.tipo === 'est' ? ' · ' + esc(C.munNome(o.x.ue)) : ''}</span>`, fmt(o.v), pctTxt(o.v, T.val, 2), esc(C.sitCurta(o.x.sit1 || o.x.sit))] })))
+          + `<h3 class="cs-h3">Partidos no território (votos nominais)</h3>` + barras([...part].sort((a,b)=>b[1]-a[1]).slice(0, 15).map(([sg, v])=>({ nome:sg, v, sub:pctTxt(v, T.val, 1), cor:corPartido(sg) })), fmt);
+        const T2 = totais(I, G.cargo, 2, set);
+        if (T2 && T2.comp) { const L2 = [...todosNoTerrBR(I, G.cargo, 2, set)].map(([k,v])=>({ v, x:candDeChave(I, G.cargo, 2, k) })).filter(o=>o.x).sort((a,b)=>b.v-a.v);
+          res += `<h3 class="cs-h3">2º turno</h3>` + barras(L2.map(o=>({ nome:titulo(o.x.nome) + ' · ' + o.x.sig, v:o.v, sub:pctTxt(o.v, T2.val, 1), cor:corPartido(o.x.sig) })), fmt); }
+        // subdivisões: municípios do estado ou zonas do município
+        const grupos = new Map(); for (const zi of set) { const [m] = I.z[zi].split(':'); const k = terr.tipo === 'est' ? m : I.z[zi]; (grupos.get(k) || grupos.set(k, new Set()).get(k)).add(zi); }
+        const LS = [...grupos].map(([k, st])=>({ k, nome: terr.tipo === 'est' ? C.munNome(k) : 'Zona ' + k.split(':')[1], T: totais(I, G.cargo, 1, st) })).filter(o=>o.T && o.T.apt).sort((a,b)=>b.T.apt-a.T.apt);
+        res += `<h3 class="cs-h3">${terr.tipo === 'est' ? 'Municípios' : 'Zonas eleitorais'}</h3>` + tabela([{t: terr.tipo === 'est' ? 'Município' : 'Zona'},{t:'Aptos',n:1},{t:'Votaram',n:1},{t:'Abstenção',n:1},{t:'Brancos',n:1},{t:'Nulos',n:1}],
+          LS.map(o=>({ attrs: terr.tipo === 'est' ? `data-csloc="m:${esc(o.k)}" data-uf="${uf}"` : '', s:[o.nome, o.T.apt, o.T.compAb, o.T.abst, o.T.br/o.T.comp, o.T.nu/o.T.comp], cells:[esc(o.nome), fmt(o.T.apt), fmt(o.T.compAb), fmtP(o.T.abst,1), pctTxt(o.T.br,o.T.comp), pctTxt(o.T.nu,o.T.comp)] })));
+      }
+    } catch(e) { res = erro(e); }
+    if (meu !== seqT) return;
+    box.innerHTML = h + `<section class="box cs-sec"><div class="box-head"><h2>${esc(C.CN[G.cargo])} · ${G.ano}</h2><span class="eyebrow">mais votados · clique para abrir a ficha</span></div>${res}</section></div>`;
+  }
+  document.addEventListener('change', e=>{
+    if (e.target.id === 'trTipoBR') { G.terr = e.target.value === 'est' ? { tipo:'est', k:G.uf } : { tipo:'mun', k: G.ue && C.MUNN[G.ue] !== undefined ? G.ue : (Object.keys(C.MUNN).find(cd=>true) || '') }; U.salvar(); renderTerr(); }
+    else if (e.target.id === 'trKBR') { G.terr = { tipo:'mun', k:e.target.value }; U.salvar(); renderTerr(); }
+  });
   // 2026: ranking por município/região/estado com os dados do TSE lidos pelo painel
   async function rank26(terr, muns){
     if (!['est','regEst','mun'].includes(terr.tipo)) return msg('Em 2026, por enquanto, os resultados por território estão disponíveis para estado, regiões e municípios. Para bairros, use a ficha da candidatura ou as abas de 2026.');
@@ -5469,14 +5688,14 @@ const CUI2 = (()=>{
   let seqRes = 0;
   async function renderRes(){
     const box = $('resBox'); if (!box) return; const meu = ++seqRes;
-    if (G.ano === 2026) { box.innerHTML = msg('Para 2026, use as telas Totalização, Eleitos, Estaduais e Majoritárias desta seção.'); return; }
+    if (G.ano === 2026 && G.uf === 'RJ' && (await C.idx(2026, 'RJ')).vivo) { box.innerHTML = msg('Para 2026, use as telas Totalização, Eleitos, Estaduais e Majoritárias desta seção.'); return; }
     box.innerHTML = msg('Carregando o resultado…');
     try {
-      const [I, Geo] = await Promise.all([C.resolver(G.ano), C.geo()]); if (meu !== seqRes) return;
-      const c = G.cargo, ue = C.MUNIC(c) ? G.ue : (c === 1 ? 'BR' : 'RJ');
-      const gids = C.MUNIC(c) ? gidsDe({tipo:'mun', k:ue}, Geo) : gidsDe({tipo:'est'}, Geo);
+      const [I, Geo] = await Promise.all([C.idx(G.ano, G.uf), C.geo()]); if (meu !== seqRes) return;
+      const c = G.cargo, ue = C.MUNIC(c) ? G.ue : (c === 1 ? 'BR' : G.uf);
+      const gids = I.br ? zonasDe(I, C.MUNIC(c) ? {tipo:'mun', k:ue} : {tipo:'est'}) : C.MUNIC(c) ? gidsDe({tipo:'mun', k:ue}, Geo) : gidsDe({tipo:'est'}, Geo);
       const T = totais(I, c, 1, gids);
-      const nomeUE = C.MUNIC(c) ? C.munNome(ue) : 'Rio de Janeiro';
+      const nomeUE = C.MUNIC(c) ? C.munNome(ue) + ' (' + G.uf + ')' : C.NOME_UF[G.uf];
       let h = `<div class="cs-head"><div class="cs-id"><div><h2>${esc(C.CN[c])} · ${G.ano}</h2><div class="cs-sub">${esc(nomeUE)} · resultado oficial do TSE</div></div></div>
         ${T ? `<div class="cs-kpis"><div><b>${fmt(T.apt)}</b><span>eleitores aptos</span></div><div><b>${fmt(T.compAb)}</b><span>votaram</span></div><div><b>${fmtP(T.abst,1)}</b><span>abstenção</span></div><div><b>${fmt(T.val)}</b><span>válidos</span></div><div><b>${pctTxt(T.br,T.comp)}</b><span>brancos</span></div><div><b>${pctTxt(T.nu,T.comp)}</b><span>nulos</span></div></div>` : ''}</div>`;
       const cs = I.cands.filter(x=>x.c === c && x.ue === ue && x.t === 1);
@@ -5500,12 +5719,31 @@ const CUI2 = (()=>{
         h += `<div class="cs-2">${bloco(1)}${bloco(2)}</div>`;
       }
       // abstenção por região
-      const sub = C.MUNIC(c) ? (ue === C.CAP ? 'regCap' : null) : 'regEst';
+      const sub = I.br ? null : C.MUNIC(c) ? (ue === C.CAP ? 'regCap' : null) : 'regEst';
+      if (c === 1) h += await presBrasil(G.ano);
       if (sub) { const grupos = new Map(); for (const g of gids) { const b = Geo.B[g]; const k = sub === 'regEst' ? b.re : b.rc; (grupos.get(k) || grupos.set(k, new Set()).get(k)).add(g); }
         const L = [...grupos].map(([k, s])=>({ k, T: totais(I, c, 1, s) })).filter(o=>o.T && o.T.apt).sort((a,b)=>b.T.apt-a.T.apt);
         h += `<section class="box cs-sec"><div class="box-head"><h2>Comparecimento por região</h2><span class="eyebrow">1º turno · clique para abrir o território</span></div>` + tabela([{t:'Região'},{t:'Aptos',n:1},{t:'Votaram',n:1},{t:'Abstenção',n:1},{t:'Brancos',n:1},{t:'Nulos',n:1}], L.map(o=>({ attrs:`data-csloc="${sub}:${esc(o.k)}"`, s:[o.k, o.T.apt, o.T.compAb, o.T.abst, o.T.br/o.T.comp, o.T.nu/o.T.comp], cells:[esc(o.k), fmt(o.T.apt), fmt(o.T.compAb), fmtP(o.T.abst,1), pctTxt(o.T.br,o.T.comp), pctTxt(o.T.nu,o.T.comp)] }))) + '</section>'; }
       box.innerHTML = h;
     } catch(e) { if (meu === seqRes) box.innerHTML = erro(e); console.error(e); }
+  }
+
+  // presidente: resultado no Brasil (soma das UFs) e por UF
+  async function presBrasil(ano){
+    try {
+      const B = await C.getGz(`${ano}/BR.json.gz`); let out = '';
+      for (const t of [1, 2]) {
+        const U2 = B.uf[t]; if (!U2) continue;
+        const tot = {}, totUF = {}; for (const [uf, d] of Object.entries(U2)) { totUF[uf] = 0; for (const [nr, v] of Object.entries(d)) { tot[nr] = (tot[nr]||0) + v; totUF[uf] += v; } }
+        const val = Object.values(tot).reduce((s,v)=>s+v,0);
+        const cs = B.cands.filter(x=>x[0] === t).sort((a,b)=>(tot[b[1]]||0)-(tot[a[1]]||0));
+        const top = cs.slice(0, 4);
+        out += `<section class="box cs-sec"><div class="box-head"><h2>Presidente · Brasil · ${t}º turno</h2><span class="eyebrow">soma das 27 UFs (sem votos no exterior)</span></div>`
+          + barras(cs.map(x=>({ nome:`${titulo(x[2])} · ${x[3]}`, v: tot[x[1]]||0, sub: pctTxt(tot[x[1]]||0, val, 2), cor: corPartido(x[3]) })), fmt)
+          + tabela([{t:'UF'}, ...top.map(x=>({t: esc(titulo(x[2]).split(' ')[0]), n:1}))], Object.keys(U2).sort().map(uf=>({ s:[uf, ...top.map(x=>(U2[uf][x[1]]||0)/(totUF[uf]||1))], cells:[`${uf} · ${esc(C.NOME_UF[uf])}`, ...top.map(x=>pctTxt(U2[uf][x[1]]||0, totUF[uf], 1))] }))) + '</section>';
+      }
+      return out;
+    } catch(e) { return ''; }
   }
 
   /* ================= TELA: MAPA HISTÓRICO ================= */
@@ -5516,6 +5754,7 @@ const CUI2 = (()=>{
     try {
       const x = await C.porChave(G.sel);
       if (!x) { box.innerHTML = msg('Escolha uma candidatura na busca, no alto, para ver o mapa.'); return; }
+      if ((x.uf || 'RJ') !== 'RJ') { box.innerHTML = msg(`Os mapas, por enquanto, cobrem só o Rio de Janeiro. Para ${esc(titulo(x.nome))} (${x.uf}), veja a ficha da candidatura: ela traz a votação por município e por zona.`); return; }
       const D = await C.dados(x); if (meu !== seqM) return;
       const escuro = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark';
       const rampa = RAMPA[escuro ? 'escuro' : 'claro'], modo = G.mapaM;
@@ -5560,18 +5799,18 @@ const CUI2 = (()=>{
     const box = $('phBox'); if (!box) return; const meu = ++seqP;
     box.innerHTML = msg('Carregando…');
     try {
-      const F = FAMS[FAM], ue = F.c === 11 || F.c === 13 ? G.ue : 'RJ';
+      const F = FAMS[FAM], ue = F.c === 11 || F.c === 13 ? G.ue : G.uf;
       const porAno = {};
       for (const a of F.anos) {
         const P = new Map(); let val = 0;
-        if (a === 2026) {
+        if (a === 2026 && G.uf === 'RJ' && (await C.idx(2026, 'RJ')).vivo) {
           const d = F.c === 6 ? ULTIMO && ULTIMO.d : EST && EST.d; if (!d) continue;
           for (const x of d.cands) { const s = normSig(x.partido, JUNTA); P.set(s, (P.get(s)||0) + (x.votos||0)); val += x.votos||0; }
           for (const [s, v] of Object.entries(d.legPart || {})) { const k = normSig(s, JUNTA); P.set(k, (P.get(k)||0) + v); val += v; }
           const el = new Map(); (F.c === 6 ? ULTIMO.calc.eleitos : (EST && EST.calc ? EST.calc.eleitos : [])).forEach(e=>{ const k = normSig(e.partido, JUNTA); el.set(k, (el.get(k)||0) + 1); });
           porAno[a] = { P, val, el, parcial: !(PCT_EST >= 99.95) };
         } else {
-          const I = await C.resolver(a); const el = new Map();
+          let I; try { I = await C.idx(a, G.uf); } catch(e){ continue; } const el = new Map();
           for (const x of I.cands) if (x.c === F.c && x.t === 1 && x.ue === ue) { const s = normSig(x.sig, JUNTA); P.set(s, (P.get(s)||0) + x.v); if (!(x.sit||'').startsWith('#NULO')) val += x.v; if (C.eleito(x.sit)) el.set(s, (el.get(s)||0) + 1); }
           porAno[a] = { P, val, el };
         }
@@ -5589,8 +5828,8 @@ const CUI2 = (()=>{
         return { cells, s: sv }; }).sort((a,b)=>(b.s[b.s.length-2-(anos.length>1?1:0)]||0) - (a.s[a.s.length-2-(anos.length>1?1:0)]||0));
       box.innerHTML = `<div class="cs-tsel"><span class="cs-seg" role="group" aria-label="Cargo">${Object.entries(FAMS).map(([k,f])=>`<button type="button" data-fam="${k}" aria-pressed="${k===FAM}">${f.nome}</button>`).join('')}</span>
           <label class="cs-chk"><input type="checkbox" id="phJunta"${JUNTA?' checked':''}> Somar partidos que se fundiram (ex.: DEM + PSL = União; PR = PL; PRB = Republicanos)</label>${F.c === 11 || F.c === 13 ? `<span class="cs-mut">Município: ${esc(C.munNome(ue))} (mude na barra do alto)</span>` : ''}</div>
-        <section class="box cs-sec"><div class="box-head"><h2>${esc(F.nome)} · % dos votos válidos por partido</h2><span class="eyebrow">${F.c===13||F.c===11 ? esc(C.munNome(ue)) : 'estado do RJ'} · os 8 maiores na última eleição</span></div>${legenda(series)}${grafLinhas(series, { anos, fy:v=>fmtP(v,1), aria:'Votos por partido' })}</section>
-        <section class="box cs-sec">${tabela(cols, rows)}<p class="cs-nota">Votos nominais + legenda (TSE). ${anos.includes(2026) && porAno[2026] && porAno[2026].parcial ? '2026 ainda em apuração. ' : ''}${JUNTA ? 'Siglas antigas somadas à sucessora atual.' : ''}</p></section>`;
+        <section class="box cs-sec"><div class="box-head"><h2>${esc(F.nome)} · % dos votos válidos por partido</h2><span class="eyebrow">${F.c===13||F.c===11 ? esc(C.munNome(ue)) : esc(C.NOME_UF[G.uf])} · os 8 maiores na última eleição</span></div>${legenda(series)}${grafLinhas(series, { anos, fy:v=>fmtP(v,1), aria:'Votos por partido' })}</section>
+        <section class="box cs-sec">${tabela(cols, rows)}<p class="cs-nota">${G.uf === 'RJ' ? 'Votos nominais + legenda (TSE).' : 'Votos nominais (TSE; fora do RJ ainda sem os votos de legenda).'} ${anos.includes(2026) && porAno[2026] && porAno[2026].parcial ? '2026 ainda em apuração. ' : ''}${JUNTA ? 'Siglas antigas somadas à sucessora atual.' : ''}</p></section>`;
     } catch(e) { if (meu === seqP) box.innerHTML = erro(e); console.error(e); }
   }
   document.addEventListener('click', e=>{ const b = e.target.closest('[data-fam]'); if (b) { FAM = b.dataset.fam; renderPartH(); } });
@@ -5604,17 +5843,15 @@ const NAV = (()=>{
   const C = CONS, G = CUI.G;
   // [id da tela, rótulo, anos: 'h' só eleições anteriores, 26 só 2026, '*' todas]
   const SECOES = [
-    { id:'geral', nome:'Visão geral', ic:'▦', telas:[['telaRes','Resultado','h'], ['telaTot','Totalização',26], ['telaEleitos','Eleitos federais',26], ['telaEst','Eleitos estaduais',26], ['telaMaj','Majoritárias',26]] },
-    { id:'cand', nome:'Candidaturas', ic:'◉', telas:[['telaFicha','Ficha','*'], ['telaTat','Destaque',26], ['telaEvo','Apuração',26], ['telaFichas1','Fichas 1–3',26], ['telaFichas2','Fichas 4–5',26], ['telaComp','2022 × 2026',26], ['telaHist','Evolução 22·24·26',26]] },
-    { id:'cmp', nome:'Comparar', ic:'⇄', telas:[['telaCmp','Comparar','*'], ['telaP5','Top 5 do partido',26]] },
-    { id:'terr', nome:'Territórios', ic:'⌖', telas:[['telaTerr','Território','*'], ['telaReg','Regiões','*'], ['telaCid','Cidades',26], ['telaMun','Município',26]] },
-    { id:'mapa', nome:'Mapas', ic:'◫', telas:[['telaMapaH','Mapa','*'], ['telaMapa','Bairros (apuração)',26], ['telaMapaRJ','Municípios (apuração)',26]] },
-    { id:'part', nome:'Partidos', ic:'◧', telas:[['telaPartH','Evolução','*'], ['telaPSB','Partido em destaque',26], ['telaPart','Quociente',26], ['telaCong','Congresso',26]] },
+    { id:'tat', nome:'Tatiana', ic:'★', telas:[['telaTatReg','Regiões 2018·22·24·26','*'], ['telaTatFicha','Ficha completa','*'], ['telaHist','Bairros e municípios','*'], ['telaTat','Apuração 2026','*']] },
+    { id:'rj', nome:'Rio de Janeiro', ic:'RJ', telas:[['telaRes','Resultado','*'], ['telaFicha','Candidaturas','*'], ['telaCmp','Comparar','*'], ['telaTerr','Territórios','*'], ['telaPartH','Partidos','*'], ['telaMapaH','Mapa','*']] },
+    { id:'br', nome:'Brasil e Congresso', ic:'BR', telas:[['telaCong','Congresso','*'], ['telaMaj','Presidente, governo e Senado','*']] },
+    { id:'uf', nome:'Outros estados', ic:'UF', telas:[['telaUF','Deputados estaduais e federais','*']] },
   ];
   const idxDe = id => TELAS.findIndex(t=>t.id === id);
   const permitida = ([, , a]) => a === '*' || (a === 'h' ? G.ano !== 2026 : G.ano === 2026);
-  let SEC = 'cand';
-  try { SEC = localStorage.getItem('consSec') || 'cand'; } catch(e){}
+  let SEC = 'tat';
+  try { SEC = localStorage.getItem('consSec2') || 'tat'; } catch(e){}
   const visiveis = () => SECOES.flatMap(s=>s.telas.filter(permitida).map(t=>idxDe(t[0]))).filter(i=>i >= 0);
   function secDe(i){ const id = TELAS[i] && TELAS[i].id; return SECOES.find(s=>s.telas.some(t=>t[0] === id)); }
   function montar(){
@@ -5623,17 +5860,23 @@ const NAV = (()=>{
     $('subnav').onclick = e=>{ const b = e.target.closest('button[data-tid]'); if (b) mostrarTela(idxDe(b.dataset.tid)); };
   }
   function marcar(){
-    const s = secDe(telaAtual); if (s) { SEC = s.id; try { localStorage.setItem('consSec', SEC); } catch(e){} }
+    const s = secDe(telaAtual); if (s) { SEC = s.id; try { localStorage.setItem('consSec2', SEC); } catch(e){} }
+    document.body.dataset.sec = SEC;
     document.querySelectorAll('#secnav button').forEach(b=>b.setAttribute('aria-current', b.dataset.sec === SEC));
     const sc = SECOES.find(x=>x.id === SEC);
     $('subnav').innerHTML = sc ? sc.telas.filter(permitida).map(t=>`<button type="button" data-tid="${t[0]}" aria-current="${TELAS[telaAtual] && TELAS[telaAtual].id === t[0]}">${esc(t[1])}${t[2]===26 ? ' <small>2026</small>' : ''}</button>`).join('') : '';
     $('subnav').hidden = !sc || sc.telas.filter(permitida).length < 2;
   }
+  const TATI = { tipo:'p', pid:'eb49485ba', nome:'Tatiana Roque', k:'2026|6|1|RJ|4013' };
   function render(){
     const id = TELAS[telaAtual] && TELAS[telaAtual].id;
     if (id === 'telaFicha') CUI.renderFicha();
-    else if (id === 'telaCmp') Promise.resolve(CUI.renderComparar()).then(CUI.preencherPick);
+    else if (id === 'telaCmp') Promise.resolve(CUI.renderComparar()).then(()=>{ CUI.preencherPick(); const b = $('cmpBox'); if (b && G.series.length && !$('cmpRegBox')) { b.insertAdjacentHTML('beforeend', '<div class="cs-wrap" id="cmpRegBox"></div>'); CUI.renderRegioes('cmpRegBox', G.series, true); } });
     else if (id === 'telaReg') Promise.resolve(CUI.renderRegioes()).then(CUI.preencherPick);
+    else if (id === 'telaTatReg') CUI.renderRegioes('tatRegBox', [TATI]);
+    else if (id === 'telaTatFicha') CUI.renderFicha('tatFichaBox', TATI.k);
+    else if (id === 'telaUF') UFE.render();
+    else if (id === 'telaCong' && window.CONG) CONG.atualizar();
     else if (id === 'telaTerr') CUI2.renderTerr();
     else if (id === 'telaRes') CUI2.renderRes();
     else if (id === 'telaMapaH') CUI2.renderMapaH();
@@ -5683,7 +5926,7 @@ ajustarEscala = function(){
 ajustarEscala();
 try { new ResizeObserver(es=>{ if (document.body.classList.contains('mob')) document.documentElement.style.setProperty('--tabH', es[0].target.getBoundingClientRect().height+'px'); }).observe($('secnav')); } catch(e){}
 // abre na seção guardada (ou na ficha da candidatura)
-{ let sv = 'cand'; try { sv = localStorage.getItem('consSec') || 'cand'; } catch(e){} const s = NAV.SECOES.find(x=>x.id === sv) || NAV.SECOES[1]; const t = s.telas.find(NAV.permitida); mostrarTela(NAV.idxDe(t ? t[0] : 'telaFicha')); }
+{ let sv = 'tat'; try { sv = localStorage.getItem('consSec2') || 'tat'; } catch(e){} const s = NAV.SECOES.find(x=>x.id === sv) || NAV.SECOES[0]; const t = s.telas.find(NAV.permitida); mostrarTela(NAV.idxDe(t ? t[0] : 'telaFicha')); }
 // quando chegam dados novos de 2026, atualiza a tela da consulta aberta
 setInterval(()=>{ if (CUI.G.ano === 2026 && ['telaFicha','telaTerr'].includes((TELAS[telaAtual]||{}).id) && !document.hidden && (window.__consG !== GERACAO)) { window.__consG = GERACAO; NAV.render(); } }, 30000);
 /* ==== CONS FIM ==== */
