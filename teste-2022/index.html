@@ -847,6 +847,54 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 }
 @media (max-width:899px){ body.mob .tabbar button{font-size:9.5px} body.mob .tabbar button b{font-size:12px} }
 @media (max-width:380px){ body.mob table{font-size:11.5px} body.mob td, body.mob th{padding:3px 2px} body.mob .rkp{font-size:9px} }
+/* ==== CRUZ CSS ==== */
+.crz{display:flex;flex-direction:column;gap:12px}
+.crz-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.crz-corpo{display:flex;flex-direction:column;gap:10px;min-height:0}
+.crz-lado{display:flex;flex-direction:column;gap:8px;min-width:0}
+.crz-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px}
+.crz .box-head{align-items:center}
+.crz-chip{border:1px solid var(--line);border-top:4px solid var(--c);border-radius:8px;padding:6px 8px 4px 10px;background:var(--panel);min-width:0}
+.crz-ch{display:flex;align-items:flex-start;gap:6px}
+.crz-ch span{display:flex;flex-direction:column;min-width:0;flex:1}
+.crz-chip svg{display:block;width:100%;height:auto;margin-top:2px}
+.crz-chip b{font-size:14px;color:var(--ink)}
+.crz-chip small{font-size:11px;color:var(--muted);white-space:normal}
+.crz-chip button{border:0;background:none;color:var(--muted);font-size:14px;cursor:pointer;padding:2px 6px;border-radius:6px}
+.crz-chip button:hover{background:var(--accent-soft);color:var(--ink)}
+.crz-add{position:relative;align-self:flex-start}
+#crzMais{font-weight:800;border:1px dashed var(--accent);color:var(--accent-ink);background:var(--accent-soft);border-radius:8px;padding:9px 14px;cursor:pointer;font-size:14px}
+.crz-busca{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:min(520px,86vw);background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px}
+.crz-busca[hidden]{display:none}
+.crz-busca input{width:100%;font:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg,var(--panel));color:var(--ink)}
+#crzRes{max-height:340px;overflow:auto;margin-top:6px}
+#crzRes button{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;border:0;background:none;padding:7px 8px;border-radius:7px;cursor:pointer;color:var(--ink)}
+#crzRes button:hover,#crzRes button:focus{background:var(--accent-soft)}
+#crzRes small{font-size:11px;color:var(--muted)}
+.crz-r0{padding:8px;color:var(--muted);font-size:13px}
+.crz-modo{display:flex;margin-left:auto;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.crz-modo button{border:0;background:none;padding:8px 12px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}
+.crz-modo button[aria-pressed="true"]{background:var(--accent);color:#2a1600}
+.crz-t td{vertical-align:top}
+.crz-t .crz-g1 td{border-top:1px solid var(--line)}
+.crz-t td.crz-un{min-width:140px}
+.crz-t tr[data-crz]{cursor:pointer}
+.crz-t tr[data-crz]:hover td{background:var(--accent-soft)}
+.crz-t .crz-tot td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.crz-t .crz-pn{white-space:nowrap;font-size:13px}
+.crz-t .crz-pn i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.crz-t .crz-vz{color:var(--muted)}
+.crz-t .crz-var .rg-dv{font-size:12px}
+.crz-varh select{font:inherit;font-size:11px;padding:1px 2px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--ink)}
+body.apres #telaCrz > .box{overflow:hidden}
+body.apres #telaCrz .crz-corpo{flex:1;display:grid;grid-template-columns:330px minmax(0,1fr);gap:14px;min-height:0}
+body.apres #telaCrz .crz-lado{min-height:0;overflow:auto;padding-right:2px}
+body.apres #telaCrz .crz-chips{grid-template-columns:1fr}
+body.apres #telaCrz .tbl-wrap{min-height:0;overflow:auto}
+body.apres #telaCrz .crz-t thead th{position:sticky;top:0;z-index:2;background:var(--panel)}
+body.apres #telaCrz #crzNota{display:none}
+body.mob .crz-modo{margin-left:0}
+/* ==== /CRUZ CSS ==== */
 </style>
 
 <header class="top">
@@ -1205,6 +1253,19 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
       <p class="legend-proj rg-nota">2018 e 2022: Deputada Federal · 2024: Vereadora (capital) · 2026: apuração em andamento. Regiões da capital e votos de 2018 e 2024 por bairro: planilha da campanha (Votação TR 2024-22-18). Percentuais = parte da votação total dela naquele ano. Gráficos: escala própria em cada região; ponto vazado = 2024 (vereadora); tracejado = 2026 ainda em apuração. Regiões do estado: regiões de governo do RJ, com a Metropolitana dividida em Capital, Baixada Fluminense e Leste Metropolitano.</p>
     </div>
   </section>
+  <section class="tela" id="telaCrz" data-nome="Cruzamento">
+    <div class="box crz">
+      <div class="box-head"><h2>Capital · cruzamento de eleições</h2><div class="crz-modo" role="group" aria-label="Mostrar"><button type="button" data-m="v" aria-pressed="true">Votos</button><button type="button" data-m="p" aria-pressed="false">% dos válidos</button></div></div>
+      <div class="crz-corpo">
+        <div class="crz-lado">
+          <div class="crz-chips" id="crzChips"></div>
+          <div class="crz-add"><button type="button" id="crzMais">+ Adicionar candidatura</button><div class="crz-busca" id="crzBusca" hidden><input id="crzQ" type="search" placeholder="Nome ou número da candidatura" autocomplete="off" aria-label="Buscar candidatura"><div id="crzRes"></div></div></div>
+        </div>
+        <div class="tbl-wrap scroll"><table class="crz-t"><thead id="crzH"></thead><tbody id="crzB"><tr><td class="empty">Carregando…</td></tr></tbody></table></div>
+      </div>
+      <p class="legend-proj" id="crzNota"></p>
+    </div>
+  </section>
 </div>
 
 <div class="ticker" id="ticker" aria-label="Apuração presidente, governador e senado">
@@ -1233,6 +1294,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <button type="button" data-tela="16"><b>BR</b>Congresso</button>
   <button type="button" data-tela="17"><b>22·26</b>Evolução</button>
   <button type="button" data-tela="18"><b>REG</b>Regiões</button>
+  <button type="button" data-tela="19"><b>CRZ</b>Cruzamento</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -3412,7 +3474,7 @@ const TELAS = [...document.querySelectorAll('.tela')];
 const IDX_MUN = TELAS.findIndex(t=>t.id==='telaMun'), IDX_EST = TELAS.findIndex(t=>t.id==='telaEst');
 let telaAtual = 0, tocando = true, fimTela = Date.now()+DUR_TELA, restante = DUR_TELA;
 const mqApres = matchMedia('(min-width: 900px)');
-const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','2022 × 2026':'22×26','Top 5 PSB':'Top 5','Partidos':'Partidos','Congresso':'Congresso','Evolução 22·24·26':'Evolução 22·26','Regiões':'Regiões','Município':'Município'};
+const CURTO = {'Mapa bairros':'Bairros','Totalização':'Total','Eleitos':'Federais','Dep. estaduais':'Estaduais','Fichas 1–3':'Fichas 1','Fichas 4–5':'Fichas 2','Majoritárias':'Pres/Gov/Sen','2022 × 2026':'22×26','Top 5 PSB':'Top 5','Partidos':'Partidos','Congresso':'Congresso','Evolução 22·24·26':'Evolução 22·26','Regiões':'Regiões','Cruzamento':'Cruzamento','Município':'Município'};
 $('dots').innerHTML = TELAS.map((t,k)=>`<button type="button" data-tela="${k}" title="${k+1}. ${esc(t.dataset.nome)}">${esc(CURTO[t.dataset.nome]||t.dataset.nome)}</button>`).join('');
 function mostrarTela(i){
   telaAtual = (i + TELAS.length) % TELAS.length;
@@ -3426,6 +3488,7 @@ function mostrarTela(i){
   if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && PT_ESC !== CFG.uf.toUpperCase()) { if (window.CONG) Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); }
   if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
   if (telaAtual === window.IDX_REG && window.REG) REG.atualizar();
+  if (telaAtual === window.IDX_CRUZ && window.CRUZ) CRUZ.atualizar();
   if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && window.CONG) { Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); }
   if (TELAS[telaAtual] && TELAS[telaAtual].id==='telaEvo') renderGrafico();
   restante = DUR_TELA; fimTela = Date.now()+DUR_TELA;
@@ -3600,6 +3663,7 @@ const DET = (()=>{
   const numDe = td => { const m = (td ? td.textContent : '').replace(/\s+/g,' ').match(/-?\d[\d.]*(?:,\d+)?/); return m ? parseFloat(m[0].replace(/\./g,'').replace(',','.')) : NaN; };
   function ordDet(){
     $('detCorpo').querySelectorAll('table').forEach(t=>{
+      if (t.classList.contains('crz-t')) return;
       const ths = [...t.querySelectorAll('thead th')], tb = t.tBodies[0]; if (!ths.length || !tb) return;
       const k = chaveT(t), e = DORD[k];
       ths.forEach((th,i)=>{ if (!th.querySelector('.seta')) { th.classList.add('ord'); th.insertAdjacentHTML(th.classList.contains('r') ? 'afterbegin' : 'beforeend', '<span class="seta" aria-hidden="true">⇅</span>'); th.title = 'Ordenar por esta coluna'; }
@@ -4587,6 +4651,158 @@ const IA = (()=>{
   $('iaSug').addEventListener('click', e=>{ const b = e.target.closest('button'); if (b) $('iaPerg').value = b.textContent; });
   return { abrir, montar };
 })();
+/* ==== CRUZ INÍCIO ==== */
+// Capital · cruzamento: votos de qualquer candidatura na cidade do Rio em 2018, 2020, 2022, 2024 e 2026 (TSE), por região e bairro.
+const CRUZ = (()=>{
+  const CAP = '60011', ANOS = [2018, 2020, 2022, 2024, 2026];
+  const RAW = 'https://raw.githubusercontent.com/eduvaldoski2/apuracao-4013/main/hist/';
+  const LOCAL = /github\.io$/.test(location.hostname) ? new URL((location.pathname.includes('/teste-2022/') ? '../' : './') + 'hist/', location.href).href : null;
+  const CARGO = {1:'Presidente', 3:'Governador', 5:'Senado', 6:'Dep. Federal', 7:'Dep. Estadual', 11:'Prefeito', 13:'Vereador'};
+  const CORES = ['#e8770a', '#2a78d6', '#1baf7a', '#8a5cd6', '#d6457a', '#8a6d1f', '#0f8a9c', '#5a6472'];
+  const J = new Map();
+  const pegar = u => { if (!J.has(u)) J.set(u, (async()=>{ let r = LOCAL ? await fetch(LOCAL + u).catch(()=>null) : null;
+      if (!r || !r.ok) r = await fetch(RAW + u); if (!r.ok) throw new Error(r.status + ' em ' + u); return r.json(); })().catch(e=>{ J.delete(u); throw e; }));
+    return J.get(u); };
+  const norm = t => String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+  const ano2 = a => String(a).slice(2);
+  const sinal = n => (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(Math.round(n)));
+  const pp = n => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1}) + ' p.p.';
+  const pc = n => n.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1}) + '%';
+  // regiões da capital (mesma divisão da tela Regiões)
+  const REGS = (typeof REG_DADOS === 'object') ? REG_DADOS.capRegs : [];
+  const REG_B = new Map((typeof REG_DADOS === 'object') ? Object.entries(REG_DADOS.cap).map(([nm, x])=>[norm(nm), x[0]]) : []);
+  let IDX = null, GEO = null, SEL = [], MODO = 'v', DE = null, ATE = null, seq = 0, iniciado = false;
+  try { const s = JSON.parse(localStorage.getItem('crzSel') || 'null'); if (Array.isArray(s) && s.length) SEL = s; } catch(e){}
+  if (!SEL.length) SEL = ['eb49485ba'];
+  const salvar = () => { try { localStorage.setItem('crzSel', JSON.stringify(SEL)); } catch(e){} };
+  async function base(){
+    if (!IDX) { const [d, g] = await Promise.all([pegar('cap_busca.json'), pegar('geo.json')]);
+      GEO = g.b; const P = new Map(d.p.map(([pid, n, e])=>[pid, {pid, n, e:e.map(([ano, c, nr, sig, ue, v, sit])=>({ano, c, nr, sig, ue, v, sit}))}]));
+      // votos válidos por bairro da capital em cada eleição/cargo → por região
+      const VB = {}; for (const [a, cs] of Object.entries(d.vb)) for (const [c, l] of Object.entries(cs)) { const m = new Map(); for (let k=0; k<l.length; k+=2) m.set(l[k], l[k+1]); VB[a+'|'+c] = m; }
+      IDX = {P, val:d.val, VB, lista:[...P.values()].map(p=>({p, k:norm(p.n), max:Math.max(...p.e.map(x=>x.v))}))}; }
+    return IDX;
+  }
+  const arq = x => x.c === 6 || x.c === 7 ? `c${x.c}t1b${x.nr % 8}` : x.c === 13 ? 'c13t1r2' : `c${x.c}t1`;
+  // votos da candidatura por bairro da capital: Map(gid → votos)
+  async function votos(x){
+    const d = await pegar(`${x.ano}/${arq(x)}.json`), r = d[x.ue === CAP ? `${x.nr}@${CAP}` : String(x.nr)] || {}, b = r.b || [], m = new Map();
+    for (let k=0; k<b.length; k+=2) if (GEO[b[k]] && GEO[b[k]][0] === CAP) m.set(b[k], b[k+1]);
+    return m;
+  }
+  const regDe = gid => { const r = REG_B.get(norm(GEO[gid][1])); return r == null ? REGS.length : r; };
+  // monta, para cada pessoa, os votos (e válidos) por região e bairro em cada ano
+  async function montar(){
+    const I = await base(), pessoas = [];
+    for (const [i, pid] of SEL.entries()) { const p = I.P.get(pid); if (!p) continue;
+      const anos = {};
+      await Promise.all(p.e.map(async x=>{ const m = await votos(x), vb = I.VB[x.ano+'|'+x.c] || new Map();
+        const reg = REGS.map(()=>({v:0, val:0})).concat([{v:0, val:0}]), bai = new Map();
+        for (const [gid, val] of vb) { const r = regDe(gid); reg[r].val += val; bai.set(gid, {v:0, val}); }
+        for (const [gid, v] of m) { reg[regDe(gid)].v += v; const o = bai.get(gid) || {v:0, val:0}; o.v += v; bai.set(gid, o); }
+        anos[x.ano] = {x, tot:{v:x.v, val:I.val[x.ano][x.c] || 0}, reg, bai}; }));
+      pessoas.push({p, cor:CORES[i % CORES.length], anos}); }
+    return pessoas;
+  }
+  const valor = o => !o ? null : MODO === 'v' ? o.v : (o.val > 0 ? 100 * o.v / o.val : null);
+  const fmtV = v => v == null ? '—' : MODO === 'v' ? fmt(v) : pc(v);
+  function delta(a, b, rot){
+    if (a == null || b == null) return '';
+    if (MODO === 'p') { const d = b - a; if (Math.abs(d) < 0.05) return `<span class="rg-dv eq" title="${rot}">▬ 0 p.p.</span>`;
+      return `<span class="rg-dv ${d > 0 ? 'up' : 'dn'}" title="${rot}">${d > 0 ? '▲' : '▼'} ${pp(d)}</span>`; }
+    if (!(a > 0)) return '';
+    const d = b - a, p = 100 * d / a; if (Math.abs(p) < 0.5) return `<span class="rg-dv eq" title="${rot}">▬ ${sinal(d)}</span>`;
+    return `<span class="rg-dv ${d > 0 ? 'up' : 'dn'}" title="${rot}">${d > 0 ? '▲' : '▼'} ${sinal(d)} · ${p > 0 ? '+' : ''}${p.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</span>`;
+  }
+  const cargoAno = (P, a) => { const o = P.anos[a]; return o ? `${CARGO[o.x.c] || o.x.c} · ${o.x.sig}` : ''; };
+  // linhas de uma unidade (total, região ou bairro): uma por pessoa
+  function linhas(pessoas, colunas, rotulo, sub, pega, attrs){
+    return pessoas.map((P, j)=>{
+      let ant = null, antA = null;
+      const tds = colunas.map(a=>{ const o = P.anos[a]; if (!o) return '<td class="r num crz-vz">·</td>';
+        const v = valor(pega(o)); const d = delta(ant, v, `${ano2(antA)}→${ano2(a)}`); ant = v; antA = a;
+        return `<td class="r num" title="${a} · ${esc(cargoAno(P, a))}">${fmtV(v)}${d}</td>`; }).join('');
+      const vDe = P.anos[DE] ? valor(pega(P.anos[DE])) : null, vAte = P.anos[ATE] ? valor(pega(P.anos[ATE])) : null;
+      const cab = j === 0 ? `<td rowspan="${pessoas.length}" class="crz-un"><div class="zname">${rotulo}</div>${sub ? `<span class="zmun">${sub}</span>` : ''}</td>` : '';
+      return `<tr${j === 0 ? ' class="crz-g1"' : ''}${attrs || ''}>${cab}${pessoas.length > 1 ? `<td class="crz-pn"><i style="background:${P.cor}"></i>${esc(titulo(P.p.n))}</td>` : ''}${tds}<td class="r num crz-var">${DE && ATE ? (delta(vDe, vAte, `${ano2(DE)}→${ano2(ATE)}`) || '—') : '—'}</td></tr>`;
+    }).join('');
+  }
+  function cabecalho(pessoas, colunas, rot){
+    const opc = sel => colunas.map(a=>`<option value="${a}"${a === sel ? ' selected' : ''}>${a}</option>`).join('');
+    return `<tr><th>${rot}</th>${pessoas.length > 1 ? '<th>Candidatura</th>' : ''}${colunas.map(a=>`<th class="r">${a}</th>`).join('')}<th class="r crz-varh">Var. <select class="crz-de" aria-label="De">${opc(DE)}</select>→<select class="crz-ate" aria-label="Até">${opc(ATE)}</select></th></tr>`;
+  }
+  // mini gráfico da pessoa: total na capital por eleição, escala própria
+  function mini(P, colunas){
+    const W = 300, H = 74, pl = 14, pr = 14, pt = 15, pb = 14;
+    const pts = colunas.map((a,k)=>P.anos[a] ? [k, valor(P.anos[a].tot), a] : null).filter(Boolean);
+    const max = Math.max(1e-9, ...pts.map(p=>p[1]));
+    const X = k => colunas.length === 1 ? W / 2 : pl + (W - pl - pr) * k / (colunas.length - 1), Y = v => pt + (H - pt - pb) * (1 - v / max);
+    let g = `<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--line)" stroke-width="1"/>`;
+    colunas.forEach((a,k)=>{ g += `<text x="${X(k).toFixed(1)}" y="${H-2}" text-anchor="${k===0 ? 'start' : k===colunas.length-1 ? 'end' : 'middle'}" font-size="9" fill="var(--muted)">${a}</text>`; });
+    if (pts.length > 1) g += `<polyline points="${pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="${P.cor}" stroke-width="2.2" stroke-linejoin="round"/>`;
+    for (const [k, v, a] of pts) g += `<g><title>${a} · ${esc(cargoAno(P, a))}: ${fmtV(v)}</title><circle cx="${X(k).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="3.8" fill="${P.cor}" stroke="var(--panel)" stroke-width="1.5"/><text x="${X(k).toFixed(1)}" y="${(Y(v)-6).toFixed(1)}" text-anchor="${k===0 ? 'start' : k===colunas.length-1 ? 'end' : 'middle'}" font-size="9.5" font-weight="700" fill="var(--ink)">${fmtV(v)}</text></g>`;
+    return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Votos de ${esc(titulo(P.p.n))} na capital por eleição">${g}</svg>`;
+  }
+  let ULT = null;
+  async function render(){
+    if (!$('crzB')) return;
+    const meu = ++seq;
+    if (!SEL.length) { $('crzChips').innerHTML = ''; $('crzH').innerHTML = ''; $('crzB').innerHTML = '<tr><td class="empty">Use “+ Adicionar” para escolher uma candidatura.</td></tr>'; return; }
+    $('crzB').innerHTML = '<tr><td class="empty">Carregando os dados do TSE…</td></tr>';
+    let pessoas; try { pessoas = await montar(); } catch(e) { if (meu === seq) $('crzB').innerHTML = `<tr><td class="empty">Não foi possível carregar os dados (${esc(e.message)}).</td></tr>`; return; }
+    if (meu !== seq) return;
+    ULT = pessoas;
+    const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a]));
+    $('crzChips').innerHTML = pessoas.map(P=>`<div class="crz-chip" style="--c:${P.cor}"><div class="crz-ch"><span><b>${esc(titulo(P.p.n))}</b><small>${ANOS.filter(a=>P.anos[a]).map(a=>`${ano2(a)} ${esc(cargoAno(P, a))}`).join(' · ')}</small></span><button type="button" data-tira="${P.p.pid}" title="Tirar da comparação" aria-label="Tirar ${esc(titulo(P.p.n))}">✕</button></div>${mini(P, colunas)}</div>`).join('');
+    if (!colunas.includes(ATE)) ATE = colunas[colunas.length - 1];
+    if (!colunas.includes(DE) || DE >= ATE) DE = colunas.includes(2022) && 2022 < ATE ? 2022 : colunas[Math.max(0, colunas.indexOf(ATE) - 1)];
+    $('crzH').innerHTML = cabecalho(pessoas, colunas, 'Região');
+    const ord = REGS.map((nome, i)=>({nome, i})).concat([{nome:'Outros bairros', i:REGS.length}]).filter(r=>pessoas.some(P=>Object.values(P.anos).some(o=>o.reg[r.i].v > 0)));
+    const ref = pessoas[0], ultA = colunas.filter(a=>ref.anos[a]).pop();
+    ord.sort((a,b)=>(ref.anos[ultA] ? ref.anos[ultA].reg[b.i].v - ref.anos[ultA].reg[a.i].v : 0));
+    $('crzB').innerHTML = linhas(pessoas, colunas, '<b>Capital · total</b>', '', o=>o.tot, ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
+      + ord.map(r=>linhas(pessoas, colunas, esc(r.nome), 'ver bairros ›', o=>o.reg[r.i], ` data-crz="${r.i}"`)).join('');
+    $('crzNota').textContent = `Votos na cidade do Rio de Janeiro, 1º turno, dados do TSE por seção agrupados por bairro do local de votação. ${MODO === 'p' ? '“% dos válidos” = parte dos votos válidos daquele cargo naquela região, o que permite comparar cargos diferentes (no Senado cada eleitor vota em 2 em 2018 e 2026). ' : ''}Abaixo de cada número: variação em relação à eleição anterior da mesma pessoa. Clique numa região para ver os bairros.`;
+  }
+  function abrirRegiao(i){
+    const pessoas = ULT; if (!pessoas) return;
+    const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a])), nome = i < REGS.length ? REGS[i] : 'Outros bairros';
+    const gids = new Set(); for (const P of pessoas) for (const o of Object.values(P.anos)) for (const [g, x] of o.bai) if (regDe(g) === i && x.v > 0) gids.add(g);
+    const ref = pessoas[0], ultA = colunas.filter(a=>ref.anos[a]).pop();
+    const L = [...gids].sort((a,b)=>((ref.anos[ultA] && ref.anos[ultA].bai.get(b) || {v:0}).v - (ref.anos[ultA] && ref.anos[ultA].bai.get(a) || {v:0}).v));
+    const corpo = `<div class="tbl-wrap"><table class="crz-t"><thead>${cabecalho(pessoas, colunas, 'Bairro').replace(/<select class="crz-de"[^]*?<\/select>→<select class="crz-ate"[^]*?<\/select>/, `${ano2(DE)}→${ano2(ATE)}`)}</thead><tbody>`
+      + linhas(pessoas, colunas, `<b>${esc(nome)} · total</b>`, '', o=>o.reg[i], ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
+      + L.map(g=>linhas(pessoas, colunas, esc(titulo(GEO[g][1])), '', o=>o.bai.get(g) || {v:0, val:0})).join('') + `</tbody></table></div><p class="det-nota">${MODO === 'p' ? '% dos votos válidos do cargo no bairro' : 'Votos'} na capital, 1º turno, TSE. Ponto (·) = não concorreu naquele ano.</p>`;
+    DET.abrir(esc(nome), `Capital · ${L.length} bairros · ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, corpo, false);
+  }
+  // busca
+  function buscar(q){
+    const box = $('crzRes'); q = norm(q);
+    if (q.length < 2 || !IDX) { box.innerHTML = q.length < 2 ? '' : '<div class="crz-r0">Carregando…</div>'; return; }
+    const num = /^\d+$/.test(q) ? +q : null, t = q.split(' ');
+    const R = IDX.lista.filter(x=>!SEL.includes(x.p.pid) && (num != null ? x.p.e.some(e=>e.nr === num) : t.every(w=>x.k.includes(w)))).sort((a,b)=>b.max-a.max).slice(0, 12);
+    box.innerHTML = R.length ? R.map(x=>`<button type="button" data-add="${x.p.pid}"><b>${esc(titulo(x.p.n))}</b><small>${x.p.e.map(e=>`${e.ano} ${CARGO[e.c]} ${e.sig} ${e.nr}: ${fmt(e.v)}`).join(' · ')}</small></button>`).join('') : '<div class="crz-r0">Nenhuma candidatura encontrada na capital.</div>';
+  }
+  function iniciar(){
+    if (iniciado || !$('telaCrz')) return; iniciado = true;
+    const T = $('telaCrz');
+    T.addEventListener('pointerdown', ()=>{ if (typeof tocando !== 'undefined' && tocando) setTocando(false); });
+    $('crzMais').onclick = ()=>{ const b = $('crzBusca'); b.hidden = !b.hidden; if (!b.hidden) { $('crzQ').value = ''; $('crzRes').innerHTML = ''; $('crzQ').focus(); base().catch(()=>{}); } };
+    $('crzQ').addEventListener('input', e=>buscar(e.target.value));
+    $('crzQ').addEventListener('keydown', e=>{ if (e.key === 'Escape') $('crzBusca').hidden = true; if (e.key === 'Enter') { const b = $('crzRes').querySelector('[data-add]'); if (b) b.click(); } });
+    $('crzRes').addEventListener('click', e=>{ const b = e.target.closest('[data-add]'); if (!b) return; SEL.push(b.dataset.add); salvar(); $('crzBusca').hidden = true; render(); });
+    $('crzChips').addEventListener('click', e=>{ const b = e.target.closest('[data-tira]'); if (!b) return; SEL = SEL.filter(p=>p !== b.dataset.tira); salvar(); render(); });
+    T.querySelector('.crz-modo').addEventListener('click', e=>{ const b = e.target.closest('[data-m]'); if (!b || b.dataset.m === MODO) return; MODO = b.dataset.m;
+      T.querySelectorAll('.crz-modo [data-m]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.m === MODO)); render(); });
+    $('crzH').addEventListener('change', e=>{ if (e.target.matches('.crz-de')) DE = +e.target.value; if (e.target.matches('.crz-ate')) ATE = +e.target.value; render(); });
+    $('crzB').addEventListener('click', e=>{ const r = e.target.closest('[data-crz]'); if (r) abrirRegiao(+r.dataset.crz); });
+    document.addEventListener('click', e=>{ const b = $('crzBusca'); if (!b.hidden && !e.target.closest('.crz-add')) b.hidden = true; });
+  }
+  function atualizar(){ iniciar(); render(); }
+  return { atualizar };
+})();
+window.IDX_CRUZ = TELAS.findIndex(t=>t.id==='telaCrz'); window.CRUZ = CRUZ;
+/* ==== CRUZ FIM ==== */
 </script>
 
 </body>
