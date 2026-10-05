@@ -174,6 +174,22 @@ th.ord .seta{display:inline-block;margin-left:3px;font-size:9px;opacity:.35;lett
 th.ord.r .seta{margin:0 3px 0 0}
 th.ord.ativa{color:var(--purple-ink)}
 th.ord.ativa .seta{opacity:1}
+/* Perguntar ao Claude */
+.ia-btn{background:#fff!important;color:var(--brand)!important;font-weight:800}
+dialog.det.ia{width:min(720px,calc(100vw - 24px))}
+.ia-l{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+#iaPerg{width:100%;font:inherit;font-size:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);resize:vertical}
+.ia-sug{display:flex;flex-wrap:wrap;gap:6px}
+.ia-sug button{border:1px dashed var(--line);background:var(--panel);color:var(--purple-ink);border-radius:999px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}
+.ia-f{border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.ia-f legend{font-size:12px;font-weight:800;color:var(--muted);padding:0 4px}
+#iaOpts{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:4px 14px}
+#iaOpts label{font-size:13px;display:flex;gap:6px;align-items:flex-start}
+#iaOpts small{color:var(--muted)}
+.ia-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ia-bt{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:9px 14px;font:inherit;font-weight:800;cursor:pointer}
+.ia-bt.prim{background:var(--brand);color:#fff;border-color:var(--brand)}
+.ia-st{font-size:12.5px;color:var(--ok);font-weight:700}
 /* detalhe ao clicar numa candidatura ou num local */
 tbody tr[data-n], tbody tr[data-loc]{cursor:pointer}
 tbody tr[data-n]:hover td, tbody tr[data-loc]:hover td{background:var(--hover, rgba(64,52,131,.07))}
@@ -817,7 +833,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <span class="spacer"></span>
   <span class="meta countdown" id="countdown"></span>
   <div class="acoes"><button id="btnAtualizar" type="button">Atualizar agora</button>
-  <button id="btnConfig" type="button">Configurações</button></div>
+  <button id="btnConfig" type="button">Configurações</button>
+  <button id="btnIA" type="button" class="ia-btn" title="Copia os dados do painel e abre o Claude">✦ Perguntar ao Claude</button></div>
 </header>
 <div class="progress apur-strip" id="apurStrip" role="progressbar" aria-label="Seções apuradas no estado" aria-valuemin="0" aria-valuemax="100"><i id="barApur" style="width:0%"></i><span class="as-marcas"></span><span class="as-txt" id="apurTxt">SEÇÕES APURADAS <b>—</b></span></div>
 <div class="t22bar" id="t22bar" hidden>
@@ -1199,6 +1216,21 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   <div class="telabar" aria-hidden="true"><i id="telaBar"></i></div>
 </nav>
 
+<dialog id="dlgIA" class="det ia" aria-labelledby="iaTit">
+  <div class="det-head"><div><h2 id="iaTit">✦ Perguntar ao Claude</h2><div class="det-sub">O painel junta os dados já carregados, copia tudo e abre o Claude numa aba nova. Lá, é só colar (Ctrl+V ou ⌘V) e enviar.</div></div><button type="button" class="det-x" id="iaX" aria-label="Fechar">✕</button></div>
+  <div class="det-corpo">
+    <label class="ia-l" for="iaPerg">Sua pergunta (opcional — dá para escrever no Claude também)</label>
+    <textarea id="iaPerg" rows="3" placeholder="Ex.: Compare a votação da Tatiana em 2022 e 2026 por bairro da Zona Sul e faça um gráfico dos que mais cresceram."></textarea>
+    <div class="ia-sug" id="iaSug"></div>
+    <fieldset class="ia-f"><legend>Dados que vão junto</legend><div id="iaOpts"></div></fieldset>
+    <div class="ia-acoes">
+      <button type="button" class="ia-bt prim" id="iaCopiar">Copiar dados e abrir o Claude</button>
+      <button type="button" class="ia-bt" id="iaBaixar">Baixar arquivo (.md)</button>
+      <span class="ia-st" id="iaSt"></span>
+    </div>
+    <p class="det-nota">Se a cópia não funcionar no seu navegador, use "Baixar arquivo" e anexe o arquivo na conversa do Claude. Os números são os do painel no momento da cópia.</p>
+  </div>
+</dialog>
 <dialog id="dlgDet" class="det" aria-labelledby="detTit">
   <div class="det-head"><div><h2 id="detTit"></h2><div class="det-sub" id="detSub"></div><div class="det-apur" id="detApur"></div></div><button type="button" class="det-x" id="detX" aria-label="Fechar">✕</button></div>
   <div class="det-corpo" id="detCorpo"></div>
@@ -4347,6 +4379,88 @@ const REG = (()=>{
   return { atualizar };
 })();
 window.IDX_REG = TELAS.findIndex(t=>t.id==='telaReg'); window.REG = REG;
+/* ============ PERGUNTAR AO CLAUDE ============
+   Junta os dados já carregados no painel num texto (tabelas CSV com ";"), copia para a área de transferência
+   e abre o Claude numa aba nova. Nada é enviado pelo painel: a pessoa cola na conversa dela. */
+const IA = (()=>{
+  const csv = (cab, linhas) => [cab.join(';'), ...linhas.map(l=>l.map(v=>v == null || (typeof v === 'number' && isNaN(v)) ? '' : (typeof v === 'number' ? String(Math.round(v*100)/100) : String(v).replace(/[;\n]/g,' '))).join(';'))].join('\n');
+  const bloco = (tit, desc, cab, linhas) => linhas.length ? `## ${tit}\n${desc ? desc + '\n' : ''}\n\`\`\`csv\n${csv(cab, linhas)}\n\`\`\`\n` : '';
+  const sitTxt = (c, calc) => { const s = calc && calc.sit && calc.sit.get(c.n); if (!s) return ''; return s.tipo==='eleito' ? 'eleito' + (s.conf ? ' (TSE)' : ' (parcial)') : s.tipo==='suplente' ? `${s.ord}º suplente` : 'fora'; };
+  const n = () => CFG.candidata;
+  const OPCOES = [
+    { id:'resumo', rot:'Resumo da apuração', on:true, f:()=>{ const c = ULTIMO && ULTIMO.d.cands.find(x=>x.n===n()); return `## Resumo\n- Ambiente: ${CFG.ambiente}\n- Totalização do TSE: ${(ULTIMO && ULTIMO.d.tot.hora) || '—'}\n- Seções apuradas no RJ: ${fmtP(PCT_EST,2)}\n- Candidata em foco: ${c ? c.nome + ' (' + c.n + ', ' + c.partido + ')' : n()} · ${c ? c.votos + ' votos' : ''}\n- Vagas de deputado federal no RJ: ${VAGAS} · quociente eleitoral: ${ULTIMO ? Math.round(ULTIMO.calc.QE_TSE || ULTIMO.calc.QE) : ''}\n`; } },
+    { id:'fed', rot:'Deputados federais RJ', sub:'todas as candidaturas, votos e situação', on:true, f:()=>{ if (!ULTIMO) return ''; const {d, calc} = ULTIMO;
+      return bloco('Deputado federal RJ — todas as candidaturas', 'votos = votos nominais na apuração; situação pelo cálculo de cadeiras (quociente e sobras) e confirmação do TSE.', ['numero','nome','partido','agremiacao','votos','pct_validos','situacao'],
+        [...d.cands].filter(c=>!c.soLegenda).sort((a,b)=>b.votos-a.votos).map(c=>[c.n, c.nome, c.partido, c.agr, c.votos, calc.validos ? 100*c.votos/calc.validos : NaN, sitTxt(c, calc)])); } },
+    { id:'part', rot:'Partidos RJ', sub:'votos, cadeiras e eleitos (federal e estadual)', on:true, f:()=>{ let t = '';
+      for (const [rot, X] of [['federal', ULTIMO && {d:ULTIMO.d, calc:ULTIMO.calc}], ['estadual', EST]]) { if (!X) continue;
+        const L = partidosDe(X.d, X.calc), QE = X.calc.QE_TSE || X.calc.QE;
+        t += bloco(`Partidos/federações RJ — deputado ${rot}`, `quociente eleitoral: ${Math.round(QE)}; cadeiras_qe = votos ÷ QE.`, ['partido_ou_federacao','votos','pct_validos','cadeiras_qe','eleitos','confirmados_tse'], L.map(x=>[x.rot, x.a.votos, 100*x.a.votos/X.calc.validos, x.cad, x.el, x.conf])); }
+      return t; } },
+    { id:'mun', rot:`${'Candidata'} por município`, sub:'2018, 2022 e 2026', on:true, f:()=>{ if (!CIDADES) return ''; const B = window.EVOL && EVOL.b22(), c = n();
+      const m18 = {}; if (typeof REG_DADOS === 'object') Object.entries(REG_DADOS.m18).forEach(([nm, v])=>m18[semAcento(nm)] = v);
+      const reg = {}; if (typeof REG_DADOS === 'object') Object.entries(REG_DADOS.est).forEach(([r, ms])=>ms.forEach(m=>reg[semAcento(m)] = r));
+      return bloco(`Votação de ${c} por município`, `regiao = regiões do estado usadas no painel. 2018 e 2022 só para a Tatiana (4013).`, ['codigo_tse','municipio','regiao','votos_2026','validos_2026','pct_2026','pct_apurado','votos_2022','votos_2018'],
+        CIDADES.map(z=>{ const k = semAcento(z.rotulo); return [z.mun, z.rotulo, reg[k]||'', z.votos[c]||0, z.validos, z.validos ? 100*(z.votos[c]||0)/z.validos : NaN, z.pctApurado, c==='4013' && B ? (B.mun[z.mun]||0) : '', c==='4013' ? m18[k] : '']; }).sort((a,b)=>b[3]-a[3])); } },
+    { id:'bai', rot:'Candidata por bairro da capital', sub:'2018, 2022, 2024 e 2026 + região', on:true, f:()=>{ if (!ZONAS) return ''; const c = n(), cap = {};
+      if (typeof REG_DADOS === 'object') Object.entries(REG_DADOS.cap).forEach(([nm, x])=>cap[semAcento(nm)] = {nm, reg: REG_DADOS.capRegs[x[0]], v18:x[1], v22:x[2], v24:x[3]});
+      const b26 = new Map(bairrosCap(c).map(b=>[semAcento(b.nome), b]));
+      const ks = [...new Set([...b26.keys(), ...(c==='4013' ? Object.keys(cap) : [])])];
+      return bloco(`Votação de ${c} por bairro do Rio de Janeiro`, '2026: boletins de urna já lidos + estimativa pelo eleitorado da zona (parcial_real = fração vinda dos boletins). 2018/2022/2024 (vereadora, 40123): planilha da campanha, só para a Tatiana.', ['bairro','regiao','votos_2026','pct_bairro_2026','parcial_real','votos_2024','votos_2022','votos_2018'],
+        ks.map(k=>{ const b = b26.get(k), x = cap[k] || {}; return [b ? b.nome : x.nm, x.reg||'', b ? Math.round(b.v) : 0, b ? b.pct : NaN, b ? b.parcialReal : NaN, c==='4013' ? x.v24 : '', c==='4013' ? x.v22 : '', c==='4013' ? x.v18 : '']; }).sort((a,b)=>b[2]-a[2])); } },
+    { id:'zon', rot:'Candidata por zona eleitoral', on:false, f:()=>{ if (!ZONAS) return ''; const c = n();
+      return bloco(`Votação de ${c} por zona eleitoral`, '', ['zona','municipios','votos','validos','pct','pct_apurado'], ZONAS.map(z=>[z.rotulo, z.sub||'', z.votos[c]||0, z.validos, z.validos ? 100*(z.votos[c]||0)/z.validos : NaN, z.pctApurado]).sort((a,b)=>b[2]-a[2])); } },
+    { id:'psb', rot:`Candidaturas do ${CFG.partidoFoco} por município`, sub:'os 10 mais votados do partido', on:false, f:()=>{ if (!CIDADES || !ULTIMO) return ''; const top = ULTIMO.d.cands.filter(c=>c.partido.toUpperCase()===CFG.partidoFoco.toUpperCase()).sort((a,b)=>b.votos-a.votos).slice(0,10);
+      return bloco(`${CFG.partidoFoco}: os 10 mais votados por município`, 'uma coluna por candidatura (número).', ['municipio', ...top.map(c=>c.n + ' ' + c.nome)], CIDADES.map(z=>[z.rotulo, ...top.map(c=>z.votos[c.n]||0)])); } },
+    { id:'est', rot:'Deputados estaduais RJ', sub:'todas as candidaturas', on:false, f:()=>{ if (!EST) return ''; const {d, calc} = EST;
+      return bloco('Deputado estadual RJ — todas as candidaturas', '', ['numero','nome','partido','votos','pct_validos','situacao'], [...d.cands].filter(c=>!c.soLegenda).sort((a,b)=>b.votos-a.votos).map(c=>[c.n, c.nome, c.partido, c.votos, calc.validos ? 100*c.votos/calc.validos : NaN, sitTxt(c, calc)])); } },
+    { id:'maj', rot:'Presidente, governador e senado', on:false, f:()=>{ if (!MAJ) return ''; let t = '';
+      for (const b of MAJ) t += bloco(b.rot, b.parc || '', ['nome','partido','votos','pct_validos','situacao'], (b.cands||[]).map(c=>[c.nome, c.partido, c.votos, c.pct, c.st])); return t; } },
+    { id:'br', rot:'Câmara e Senado no Brasil', sub:'eleitos por estado (tela Congresso)', on:false, f:()=>{ if (!window.CONG || !Object.keys(CONG.RES[6]).length) return ''; const gr = CONG.grupos(), L = [];
+      for (const [cg, casa] of [[5,'Senado'],[6,'Câmara']]) for (const [uf, r] of Object.entries(CONG.RES[cg])) r.eleitos.forEach(e=>L.push([uf, casa, e.nome, e.partido, gr(e.partido), e.votos, e.conf ? 'confirmado TSE' : 'parcial']));
+      return bloco('Eleitos no Brasil (Câmara e Senado)', 'Câmara pelo cálculo de cada estado; Senado: 2 mais votados por estado.', ['uf','casa','nome','partido','partido_ou_federacao','votos','status'], L); } },
+  ];
+  const SUG = ['Compare 2022 e 2026 por região da capital e explique onde ela ganhou e perdeu votos.', 'Quais municípios tiveram a maior queda em relação a 2022? Faça um gráfico.', 'Cruze a votação de 2024 (vereadora) com a de 2026 por bairro e aponte os bairros com melhor conversão.', 'Quantos votos faltaram para a Tatiana entrar e de onde poderiam ter vindo?'];
+  let sel = {}; try { sel = JSON.parse(localStorage.getItem('painelIA') || '{}'); } catch(e){}
+  const dlg = $('dlgIA');
+  function abrir(){
+    $('iaOpts').innerHTML = OPCOES.map(o=>`<label><input type="checkbox" data-ia="${o.id}"${(sel[o.id] ?? o.on) ? ' checked' : ''}> <span>${esc(o.rot)}${o.sub ? `<br><small>${esc(o.sub)}</small>` : ''}</span></label>`).join('');
+    $('iaSug').innerHTML = SUG.map(t=>`<button type="button">${esc(t)}</button>`).join('');
+    $('iaSt').textContent = '';
+    const z = parseFloat(document.documentElement.style.zoom) || 1; dlg.style.maxHeight = Math.floor(innerHeight * 0.9 / z) + 'px';
+    if (!dlg.open) dlg.showModal();
+    if (window.EVOL && !EVOL.b22()) EVOL.base22().catch(()=>{});
+  }
+  function montar(){
+    const ids = [...$('iaOpts').querySelectorAll('input[data-ia]')].filter(i=>i.checked).map(i=>i.dataset.ia);
+    sel = {}; $('iaOpts').querySelectorAll('input[data-ia]').forEach(i=>sel[i.dataset.ia] = i.checked); try { localStorage.setItem('painelIA', JSON.stringify(sel)); } catch(e){}
+    const perg = $('iaPerg').value.trim();
+    let txt = `# Dados do painel de apuração — Deputado Federal RJ (${new Date().toLocaleString('pt-BR')})\n\nVocê é um analista eleitoral. Use os dados abaixo (tabelas CSV separadas por ";", números sem separador de milhar) para responder. Quando fizer sentido, monte tabelas e gráficos.\n\n`;
+    txt += perg ? `**Pergunta:** ${perg}\n\n` : `**Pergunta:** (escreva aqui o que você quer saber)\n\n`;
+    for (const o of OPCOES) if (ids.includes(o.id)) { try { txt += o.f() + '\n'; } catch(e){ txt += `(não foi possível montar "${o.rot}": ${e.message})\n`; } }
+    return txt;
+  }
+  async function copiar(){
+    const txt = montar(); let ok = false;
+    try { await navigator.clipboard.writeText(txt); ok = true; } catch(e){
+      try { const ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.append(ta); ta.select(); ok = document.execCommand('copy'); ta.remove(); } catch(e2){} }
+    $('iaSt').textContent = ok ? `Copiado (${Math.round(txt.length/1024)} KB). Cole no Claude com Ctrl+V / ⌘V.` : 'Não consegui copiar: use "Baixar arquivo".';
+    if (ok) window.open('https://claude.ai/new', '_blank', 'noopener');
+  }
+  function baixar(){
+    const txt = montar(), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt], {type:'text/markdown;charset=utf-8'}));
+    a.download = `dados-apuracao-${new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')}.md`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    $('iaSt').textContent = 'Arquivo baixado: anexe na conversa do Claude.';
+  }
+  $('btnIA').addEventListener('click', abrir);
+  $('iaX').addEventListener('click', ()=>dlg.close());
+  dlg.addEventListener('click', e=>{ if (e.target === dlg) dlg.close(); });
+  $('iaCopiar').addEventListener('click', copiar);
+  $('iaBaixar').addEventListener('click', baixar);
+  $('iaSug').addEventListener('click', e=>{ const b = e.target.closest('button'); if (b) $('iaPerg').value = b.textContent; });
+  return { abrir, montar };
+})();
 </script>
 
 <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
