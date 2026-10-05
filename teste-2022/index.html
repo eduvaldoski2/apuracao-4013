@@ -677,6 +677,8 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .mj-lista li{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 6em;gap:10px;align-items:center}
 .mj-nm{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mj-nm .selo{margin-left:6px}
+.mj-lista li[data-n]{cursor:pointer;border-radius:6px}
+.mj-lista li[data-n]:hover{background:rgba(246,135,18,.08)}
 .mj-bar{height:12px;background:var(--bar);border-radius:0 4px 4px 0}
 .mj-bar i{display:block;height:100%;background:var(--brand);border-radius:0 4px 4px 0;min-width:2px}
 .sw-pt{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:0}
@@ -997,7 +999,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 
   <section class="tela" id="telaMaj" data-nome="Majoritárias">
     <div class="mj-wrap">
-      <div class="cards-head"><h2>Presidente, governador e senado</h2><span class="meta">% dos votos válidos · atualiza junto com a tarja</span></div>
+      <div class="cards-head"><h2>Presidente, governador e senado</h2><span class="meta">% dos votos válidos · atualiza junto com a tarja · clique num candidato para ver por estado, município e bairro</span></div>
       <div class="mj-grid" id="majCards"><p class="empty">Carregando…</p></div>
     </div>
   </section>
@@ -2153,7 +2155,7 @@ function candidatosCargo(json, cargo){
     if (Number(cg.cd) !== cargo) continue;
     for (const a of (cg.agr||[])) for (const p of (a.par||[])) for (const c of (p.cand||[])) {
       if (/anulad|indefer|cassad/i.test(c.dvt||'')) continue;
-      out.push({ nome: String(c.nmu||c.nm||'').toUpperCase(), partido: String(p.sg||''), votos: num(c.vap)||0, pct: pctNum(c.pvap), st: String(c.st||'') });
+      out.push({ n: String(c.n||''), nome: String(c.nmu||c.nm||'').toUpperCase(), partido: String(p.sg||''), votos: num(c.vap)||0, pct: pctNum(c.pvap), st: String(c.st||'') });
     }
   }
   return out.sort((x,y)=>y.votos-x.votos);
@@ -2179,7 +2181,7 @@ async function dadosTarjaReal(){
         ab(e, t.cargo===1 ? 'br' : t.abr).catch(()=>null),
       ]);
       const linha = acomp ? (acomp.abr||[]).find(a=>String(a.cdabr).toLowerCase()===t.abr) : null;
-      blocos.push(blocoTarja(t.rot, horaParcial(linha ? linha.ht : u.ht), linha ? pctNum(linha.s && linha.s.pst) : NaN, candidatosCargo(u, t.cargo)));
+      blocos.push({...blocoTarja(t.rot, horaParcial(linha ? linha.ht : u.ht), linha ? pctNum(linha.s && linha.s.pst) : NaN, candidatosCargo(u, t.cargo)), cargo: t.cargo, abr: t.abr});
     } catch(err) {
       blocos.push({ rot:t.rot, parc:'aguardando dados do TSE', lista:'<span class="tk-item">Os resultados aparecem aqui assim que o TSE publicar.</span>' });
     }
@@ -2711,7 +2713,7 @@ function renderMaj(){
     const cs = b.cands || [], max = Math.max(1, ...cs.map(c=>c.pct||0));
     const linhas = cs.map((c,i)=>{
       const selo = /2º turno|turno/i.test(c.st) ? '<span class="selo turno">2º TURNO</span>' : (/eleit/i.test(c.st) && !/n[ãa]o/i.test(c.st) ? '<span class="selo conf">✓ ELEITO</span>' : '');
-      return `<li><div class="mj-nm"><b>${esc(titulo(c.nome))}</b>${c.partido?` <span class="pt"><span class="sw-pt" style="background:${corPartido(c.partido)}"></span>${esc(c.partido)}</span>`:''}${selo}</div><div class="mj-bar"><i style="width:${(100*(c.pct||0)/max).toFixed(1)}%;background:${c.partido ? corPartido(c.partido) : 'var(--brand)'}"></i></div><div class="mj-v num"><b>${fmtP(c.pct,1)}</b>${c.votos?`<span>${fmt(c.votos)}</span>`:''}</div></li>`;
+      return `<li${c.n && b.cargo ? ` data-n="${esc(c.n)}" data-cargo="${b.cargo}" data-nome="${esc(c.nome)}" data-partido="${esc(c.partido||'')}" title="Clique para ver onde ${esc(titulo(c.nome))} foi votado(a)"` : ''}><div class="mj-nm"><b>${esc(titulo(c.nome))}</b>${c.partido?` <span class="pt"><span class="sw-pt" style="background:${corPartido(c.partido)}"></span>${esc(c.partido)}</span>`:''}${selo}</div><div class="mj-bar"><i style="width:${(100*(c.pct||0)/max).toFixed(1)}%;background:${c.partido ? corPartido(c.partido) : 'var(--brand)'}"></i></div><div class="mj-v num"><b>${fmtP(c.pct,1)}</b>${c.votos?`<span>${fmt(c.votos)}</span>`:''}</div></li>`;
     }).join('');
     return `<article class="box mj-card"><div class="box-head"><h2>${esc(titulo(b.rot).replace(/\((rj|br)\)/i, m=>m.toUpperCase()))}</h2><span class="eyebrow">${esc(b.parc || '')}</span></div><ol class="mj-lista">${linhas || '<li class="empty">Aguardando os primeiros votos.</li>'}</ol></article>`;
   }).join('');
@@ -3593,7 +3595,7 @@ const DET = (()=>{
       + `<section><h3>Zonas eleitorais</h3>${tabela(['#','Zona','Votos','% zona','% no município'], linhasZ)}</section>` + voltarBtn, true, AP);
   }
   document.addEventListener('click', e=>{
-    const bt = e.target.closest('button.det-link');
+    const bt = e.target.closest('button.det-link[data-n], button.det-link[data-loc]');
     if (bt) { const cg = +bt.dataset.cargo || 6; if (bt.dataset.n) abrirCand(bt.dataset.n, cg); else abrirLoc(bt.dataset.loc, cg); return; }
     const tr = e.target.closest('tbody tr[data-n], tbody tr[data-loc]'); if (!tr || e.target.closest('a,button,select,input')) return;
     const cargo = tr.dataset.cargo ? +tr.dataset.cargo : null;
@@ -3602,6 +3604,90 @@ const DET = (()=>{
     else abrirLoc(tr.dataset.loc, cargo, tr.dataset.parcial === '0');
   });
   return { abrirCand, abrirLoc, abrir };
+})();
+/* ============ MAJORITÁRIAS: clicar no candidato e descer ============
+   Presidente: estados > municípios > bairros (bairros só no RJ). Governador e Senado: municípios do RJ > bairros. */
+const MAJD = (()=>{
+  const UFS = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
+  const CARGO = {1:'Presidente', 3:'Governador(a)', 5:'Senador(a)'};
+  const cache = new Map(); let seq = 0, MUNS = {};
+  async function ler(url){ const c = cache.get(url); if (c && c.g === GERACAO && Date.now()-c.t < 120000) return c.d;
+    const d = extrair(await getJSON(url, {limite:20000, recuo404:true})); cache.set(url, {t:Date.now(), g:GERACAO, d}); return d; }
+  const url = (e, uf, mun, cargo) => `${urlBase()}/${e.ano}/${e.ele}/dados/${uf}/${uf}${mun||''}-c${pad4(cargo)}-e${pad6(e.ele)}-u.json`;
+  async function municipiosUF(e, uf){
+    if (uf === CFG.uf) return Object.entries(RJB.mun).map(([cd, m])=>({cd, nm:titulo(m.nm)}));
+    if (MUNS[e.ele+uf]) return MUNS[e.ele+uf];
+    const conf = await getJSON(`${urlBase()}/${e.ano}/${e.ele}/config/mun-e${pad6(e.ele)}-cm.json`);
+    const u = bfs(conf, o=>String(o.cd||'').toLowerCase()===uf && Array.isArray(o.mu));
+    return MUNS[e.ele+uf] = (u ? u.mu : []).map(m=>({cd:String(m.cd).padStart(5,'0'), nm:titulo(m.nm)}));
+  }
+  const linhaDe = (d, n) => { const c = d.cands.find(x=>x.n===n), val = baseValidos(d), ord = [...d.cands].sort((a,b)=>b.votos-a.votos);
+    return { v: c ? c.votos : 0, val, pct: val ? 100*(c ? c.votos : 0)/val : NaN, pos: c && c.votos ? ord.findIndex(x=>x.n===n)+1 : 0, ap: d.tot.pctApurado, lider: ord[0] }; };
+  const cab = (rot, extra) => `<table><thead><tr><th>#</th><th>${rot}</th><th class="r">Votos</th><th class="r">% válidos</th><th class="r">Posição</th>${extra||''}</tr></thead><tbody>`;
+  const voltar = (rot, acao) => `<button type="button" class="det-link" data-mjv="${acao}">← ${rot}</button>`;
+  let ATUAL = null;     // {cargo, n, nome, partido, e}
+  function cabecalho(sub, apur){ const c = ATUAL; return [`${esc(titulo(c.nome))}<span>${esc(c.n)}</span>`, `${CARGO[c.cargo]} · ${c.partido} · ${sub}`, apur]; }
+  // ---- estados (presidente) ----
+  async function estados(){
+    const meu = ++seq, c = ATUAL, L = new Map();
+    const pintar = (fim) => { if (meu !== seq) return;
+      const rows = [...L.entries()].filter(([,x])=>x).sort((a,b)=>b[1].v-a[1].v);
+      const tot = rows.reduce((s,[,x])=>s+x.v,0);
+      const [t, s] = cabecalho(`Brasil · por estado${fim ? '' : ` · lendo ${L.size} de ${UFS.length}…`}`);
+      DET.abrir(t, s, cab('Estado', '<th class="r">% do total</th>') + rows.map(([uf, x], k)=>`<tr data-mj-uf="${uf.toLowerCase()}"><td class="rk">${k+1}</td><td><div class="zname">${uf}</div>${apurTag(x.ap)}</td><td class="r num">${fmt(x.v)}</td><td class="r num">${fmtP(x.pct,1)}</td><td class="r num">${x.pos ? x.pos + 'º' : '—'}${x.pos > 1 && x.lider ? `<div class="zmun">1º ${esc(titulo(x.lider.nome).split(' ')[0])}</div>` : ''}</td><td class="r num">${tot ? fmtP(100*x.v/tot,1) : '—'}</td></tr>`).join('') + '</tbody></table>'
+        + `<p class="det-nota">Clique num estado para ver os municípios${'.'}${[...L.values()].some(x=>!x) ? ' Estados sem dados ainda ficam de fora.' : ''}</p>`, false, null); };
+    pintar(false);
+    await pool(UFS.map(uf=>async()=>{ try { L.set(uf, linhaDe(await ler(url(c.e, uf.toLowerCase(), '', c.cargo)), c.n)); } catch(err){ L.set(uf, null); } if (L.size % 5 === 0) pintar(false); }), 6);
+    pintar(true);
+  }
+  // ---- municípios de um estado ----
+  async function municipios(uf){
+    const meu = ++seq, c = ATUAL; let lista;
+    const [t0, s0] = cabecalho(`${uf.toUpperCase()} · carregando os municípios…`); DET.abrir(t0, s0, '<p class="det-msg">Carregando…</p>');
+    try { lista = await municipiosUF(c.e, uf); } catch(err){ lista = []; }
+    if (meu !== seq) return;
+    const L = new Map(), rj = uf === CFG.uf;
+    const pintar = (fim) => { if (meu !== seq) return;
+      const rows = [...L.entries()].filter(([,x])=>x && x.r).sort((a,b)=>b[1].r.v-a[1].r.v);
+      const tot = rows.reduce((s,[,x])=>s+x.r.v,0);
+      const [t, s] = cabecalho(`${uf.toUpperCase()} · ${fmt(tot)} votos${fim ? '' : ` · lendo ${L.size} de ${lista.length} municípios…`}`, null);
+      DET.abrir(t, s, (c.cargo === 1 ? `<p class="det-acoes" style="margin:0 0 8px">${voltar('Estados', 'estados')}</p>` : '')
+        + cab('Município', '<th class="r">% do total</th>') + rows.map(([cd, x], k)=>`<tr${rj ? ` data-mj-mun="${cd}"` : ''}><td class="rk">${k+1}</td><td><div class="zname">${esc(x.nm)}</div>${apurTag(x.r.ap)}</td><td class="r num">${fmt(x.r.v)}</td><td class="r num">${fmtP(x.r.pct,1)}</td><td class="r num">${x.r.pos ? x.r.pos + 'º' : '—'}</td><td class="r num">${tot ? fmtP(100*x.r.v/tot,1) : '—'}</td></tr>`).join('') + '</tbody></table>'
+        + `<p class="det-nota">${rj ? 'Clique num município para ver os bairros.' : 'Bairros só para os municípios do RJ.'}</p>`, false, null); };
+    pintar(false);
+    await pool(lista.map(m=>async()=>{ try { L.set(m.cd, {nm:m.nm, r: linhaDe(await ler(url(c.e, uf, m.cd, c.cargo)), c.n)}); } catch(err){ L.set(m.cd, null); } if (L.size % 12 === 0) pintar(false); }), 8);
+    pintar(true);
+  }
+  // ---- bairros de um município do RJ (votos da zona repartidos pelo eleitorado dos bairros) ----
+  async function bairros(mun){
+    const meu = ++seq, c = ATUAL, nomeMun = titulo((RJB.mun[mun]||{}).nm || mun);
+    const [t0, s0] = cabecalho(`${nomeMun} · carregando os bairros…`); DET.abrir(t0, s0, '<p class="det-msg">Carregando…</p>');
+    let D = null; try { D = CFG.ambiente === 'demo' ? municipioDemo(mun, c.cargo) : await carregarMunicipioReal(mun, c.cargo); } catch(err){}
+    if (meu !== seq) return;
+    const vB = `<p class="det-acoes" style="margin:0 0 8px">${voltar('Municípios', 'municipios')}</p>`;
+    if (!D) { const [t, s] = cabecalho(nomeMun); DET.abrir(t, s, vB + '<p class="det-msg">O TSE ainda não publicou os dados deste município.</p>'); return; }
+    const r = linhaDe(D.d, c.n);
+    const zs = D.zonas.map(z=>{ const x = z.d.cands.find(y=>y.n===c.n); return {zc:z.zc, v: x ? x.votos : 0, t: baseValidos(z.d), ap: z.d.tot.pctApurado, pos: (()=>{ const o = [...z.d.cands].sort((a,b)=>b.votos-a.votos); return x && x.votos ? o.findIndex(y=>y.n===c.n)+1 : 0; })()}; });
+    const comb = bairrosDoMunicipio(mun, zs.map(z=>({zc:z.zc, v:z.v, t:z.t})), c.n, null);
+    const bs = comb.lista.filter(b=>b.v >= 0.5).sort((a,b)=>b.v-a.v);
+    const [t, s] = cabecalho(`${nomeMun} · ${fmt(r.v)} votos · ${fmtP(r.pct,1)} dos válidos · ${r.pos ? r.pos + 'º' : '—'} no município`, {p: r.ap, rot:'neste município'});
+    DET.abrir(t, s, vB + `<section><h3>Bairros</h3><table><thead><tr><th>#</th><th>Bairro</th><th class="r">Votos</th><th class="r">% bairro</th><th class="r">% no município</th></tr></thead><tbody>${bs.map((b,k)=>`<tr data-loc="b:${mun}:${esc(b.nome)}" data-cargo="${c.cargo}"><td class="rk">${k+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro(mun, b.nome), true)}</td><td class="r num">≈ ${fmt(Math.round(b.v))}</td><td class="r num">${fmtP(b.pct,1)}</td><td class="r num">${r.v ? fmtP(100*b.v/r.v,1) : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Sem votos ainda.</td></tr>'}</tbody></table><p class="det-nota">Votos de cada zona repartidos pelo eleitorado dos bairros da zona ("≈").</p></section>`
+      + `<section><h3>Zonas eleitorais</h3><table><thead><tr><th>#</th><th>Zona</th><th class="r">Votos</th><th class="r">% zona</th><th class="r">Posição</th></tr></thead><tbody>${zs.filter(z=>z.v>0).sort((a,b)=>b.v-a.v).map((z,k)=>`<tr><td class="rk">${k+1}</td><td><div class="zname">Zona ${Number(z.zc)}</div>${apurTag(z.ap)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.t ? fmtP(100*z.v/z.t,1) : '—'}</td><td class="r num">${z.pos ? z.pos + 'º' : '—'}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">Sem votos ainda.</td></tr>'}</tbody></table></section>`, true, {p: r.ap, rot:'neste município'});
+  }
+  async function abrir(cargo, n, nome, partido){
+    let e; try { e = await eleicaoDoCargo(cargo); } catch(err){ return; }
+    ATUAL = { cargo, n, nome, partido, e };
+    if (cargo === 1) estados(); else municipios(CFG.uf);
+  }
+  document.addEventListener('click', ev=>{
+    const li = ev.target.closest('.mj-lista li[data-n]');
+    if (li) { abrir(+li.dataset.cargo, li.dataset.n, li.dataset.nome, li.dataset.partido); return; }
+    if (!ATUAL || !ev.target.closest('#dlgDet')) return;
+    const b = ev.target.closest('[data-mjv]'); if (b) { if (b.dataset.mjv === 'estados') estados(); else municipios(CFG.uf); return; }
+    const uf = ev.target.closest('tr[data-mj-uf]'); if (uf) { municipios(uf.dataset.mjUf); return; }
+    const m = ev.target.closest('tr[data-mj-mun]'); if (m) bairros(m.dataset.mjMun);
+  });
+  return { abrir };
 })();
 
 /* ============ COMPARATIVO 2022 × 2026 ============
