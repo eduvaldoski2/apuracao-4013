@@ -4779,6 +4779,7 @@ const IA = (()=>{
 
 
 
+
 /* ==== CONS INÍCIO ==== */
 /* ============ CONSULTA DE RESULTADOS 2018–2026 ============
    Dados históricos: TSE, dados abertos (votação por seção + eleitorado por local de votação), já somados por bairro e zona
@@ -4791,11 +4792,14 @@ const CONS = (()=>{
   const cargosDoAno = a => geral(a) ? [6, 7, 5, 3, 1] : [13, 11];
   const PROP = c => c === 6 || c === 7 || c === 13;
   const MUNIC = c => c === 11 || c === 13;
-  const BASE = document.documentElement.dataset.app
+  // dados: no site publicado, a pasta hist/ ao lado da página; fora dele (ou se o site ainda não atualizou), direto do repositório
+  const RAW = 'https://raw.githubusercontent.com/eduvaldoski2/apuracao-4013/main/hist/';
+  const BASE = document.documentElement.dataset.app && /github\.io$/.test(location.hostname)
     ? new URL((location.pathname.includes('/teste-2022/') ? '../' : './') + 'hist/', location.href).href
-    : 'https://eduvaldoski2.github.io/apuracao-4013/hist/';
+    : RAW;
   const J = new Map();
-  const getJ = u => { if (!J.has(u)) J.set(u, fetch(BASE + u).then(r=>{ if (!r.ok) throw new Error(`${r.status} em ${u}`); return r.json(); }).catch(e=>{ J.delete(u); throw e; })); return J.get(u); };
+  const pegar = async u => { let r = await fetch(BASE + u); if (!r.ok && BASE !== RAW) r = await fetch(RAW + u); if (!r.ok) throw new Error(`${r.status} em ${u}`); return r; };
+  const getJ = u => { if (!J.has(u)) J.set(u, pegar(u).then(r=>r.json()).catch(e=>{ J.delete(u); throw e; })); return J.get(u); };
   const CAP = '60011';
   const munNome = cd => titulo((RJB.mun[cd] || {}).nm || (typeof MUNN !== 'undefined' && MUNN[cd]) || cd);
   const eleito = s => /^ELEITO/.test(s || '') || s === 'ELEITO';
