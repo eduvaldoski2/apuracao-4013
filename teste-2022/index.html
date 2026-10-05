@@ -3624,9 +3624,10 @@ const CONG = (()=>{
   // ---- agrupamento nacional (federação = um partido, o mesmo rótulo em todos os estados) ----
   function grupos(){
     const votosP = {}, fed = {};
-    for (const cargo of [6,5]) for (const r of Object.values(RES[cargo])) {
-      r.d.cands.forEach(c=>votosP[c.partido] = (votosP[c.partido]||0) + c.votos);
-      (r.d.agrs||[]).forEach(a=>{ const ps = [...new Set(a.partidos||[])].filter(x=>x && x!=='?'); if (ps.length > 1) ps.forEach(x=>{ fed[x] = fed[x] || new Set(); ps.forEach(y=>fed[x].add(y)); }); });
+    for (const cargo of [6,5]) for (const r of Object.values(RES[cargo])) r.d.cands.forEach(c=>{ if (cargo===6) votosP[c.partido] = (votosP[c.partido]||0) + c.votos; });
+    // federações: só da eleição proporcional (no Senado as agremiações são coligações, que não contam como partido)
+    for (const r of Object.values(RES[6])) {
+      (r.d.agrs||[]).filter(a=>!/colig/i.test(a.tipo||'')).forEach(a=>{ const ps = [...new Set(a.partidos||[])].filter(x=>x && x!=='?'); if (ps.length > 1) ps.forEach(x=>{ fed[x] = fed[x] || new Set(); ps.forEach(y=>fed[x].add(y)); }); });
     }
     const rot = {}; for (const [sg, set] of Object.entries(fed)) rot[sg] = [...set].sort((a,b)=>(votosP[b]||0)-(votosP[a]||0)).join('/');
     return sg => rot[sg] || sg;
