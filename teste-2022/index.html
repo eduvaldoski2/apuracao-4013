@@ -4778,6 +4778,7 @@ const IA = (()=>{
 
 
 
+
 /* ==== CONS INÍCIO ==== */
 /* ============ CONSULTA DE RESULTADOS 2018–2026 ============
    Dados históricos: TSE, dados abertos (votação por seção + eleitorado por local de votação), já somados por bairro e zona
@@ -5454,13 +5455,14 @@ const UFE = (()=>{
   function cabecalho(){
     const sel = (id, L, v) => `<select id="${id}">${L.map(([k,n])=>`<option value="${k}"${String(k)===String(v)?' selected':''}>${esc(n)}</option>`).join('')}</select>`;
     return `<div class="cs-tsel"><label>Estado ${sel('ufeUF', C.UFS.map(u=>[u, `${u} · ${C.NOME_UF[u]}`]), UF)}</label>
-      <label>Eleição ${sel('ufeAno', [[2026,'2026'],[2022,'2022']], ANO)}</label>
+      <label>Eleição ${sel('ufeAno', [[2026,'2026'],[2022,'2022'],[2018,'2018']], ANO)}</label>
       <span class="cs-seg" role="group" aria-label="Cargo">${[[7,'Deputados estaduais'],[6,'Deputados federais']].map(([c,n])=>`<button type="button" data-ufecg="${c}" aria-pressed="${c===CG}">${n}</button>`).join('')}</span></div>`;
   }
   async function render(){
     const box = $('ufBox'); if (!box) return; const meu = ++seq;
     box.innerHTML = cabecalho() + msg(`Lendo ${NOME_CG[CG].toLowerCase()} de ${C.NOME_UF[UF]} (${ANO}) no TSE…`);
     try {
+      if (ANO !== 2026) return await renderAnterior(box, meu);
       const { d, calc, vagas } = await dados(UF, ANO, CG); if (meu !== seq) return;
       const cands = d.cands.filter(c=>!c.soLegenda).sort((a,b)=>b.votos-a.votos);
       const validos = calc.validos || cands.reduce((s,c)=>s+c.votos,0);
@@ -5484,8 +5486,26 @@ const UFE = (()=>{
           <input type="search" id="ufeFiltro" class="cs-filtro" placeholder="Filtrar por nome, número ou partido" value="${esc(FILTRO)}">`
         + tabela([{t:'#',n:1},{t:'Candidatura'},{t:'Partido'},{t:'Votos',n:1},{t:'% válidos',n:1},{t:'Situação'}], lista.slice(0, 800).map(c=>{ const pos = cands.indexOf(c) + 1;
             return { s:[pos, c.nome, c.partido, c.votos, c.votos/validos, eleitos.has(c.n) ? 0 : 1], cells:[pos, `${esc(titulo(c.nome))} <span class="cs-mut">${esc(c.n)}</span>`, esc(c.partido), fmt(c.votos), pctTxt(c.votos, validos, 2), eleitos.has(c.n) ? '<b>Eleito</b>' : (c.st ? esc(titulo(c.st)) : '')] }; }), 'Nenhuma candidatura com esse filtro.')
-        + `<p class="cs-nota">Fonte: TSE, resultado oficial por estado. Disponível para 2022 e 2026; para 2018 o TSE não publica neste formato.</p></section>`;
+        + `<p class="cs-nota">Fonte: TSE, resultado oficial por estado.</p></section>`;
     } catch(e) { if (meu === seq) box.innerHTML = cabecalho() + erro(e); }
+  }
+  // 2018 e 2022: eleitos pelo cadastro de candidaturas do TSE (situação final), sem os votos
+  async function renderAnterior(box, meu){
+    const L = (await C.getJ(`eleitos_${ANO}.json`)).filter(r=>r[0] === UF && r[1] === cargoDe(UF, CG)); if (meu !== seq) return;
+    const vagas = CG === 6 ? CAMARA[UF] : ALE[UF];
+    const porPart = new Map(); L.forEach(r=>porPart.set(r[5], (porPart.get(r[5])||0) + 1));
+    const porAli = new Map(); L.forEach(r=>{ const k = r[6] || r[5]; porAli.set(k, (porAli.get(k)||0) + 1); });
+    const casa = CG === 7 ? (UF === 'DF' ? 'Câmara Legislativa' : 'Assembleia Legislativa') : 'Câmara dos Deputados';
+    const via = s => /QP/.test(s) ? 'Quociente partidário' : /M[ÉE]DIA/.test(s) ? 'Média (sobras)' : 'Eleito';
+    box.innerHTML = cabecalho()
+      + `<div class="cs-head"><div class="cs-id"><div><h2>${esc(C.NOME_UF[UF])} · ${NOME_CG[CG]}${CG===7 && UF==='DF' ? ' (distrital)' : ''} · ${ANO}</h2><div class="cs-sub">${casa} · ${vagas} vagas · TSE (situação final das candidaturas)</div></div></div>
+        <div class="cs-kpis"><div><b>${L.length}</b><span>eleitos</span></div><div><b>${porPart.size}</b><span>partidos com cadeira</span></div></div></div>`
+      + `<div class="cs-2"><section class="box cs-sec"><div class="box-head"><h2>Cadeiras por partido</h2><span class="eyebrow">partido de cada eleito</span></div>`
+      + barras([...porPart].sort((a,b)=>b[1]-a[1]).map(([p, n])=>({ nome:p, v:n, sub:`${pctTxt(n, vagas, 0)} da casa`, cor:corPartido(p) })), v=>fmt(v) + (v === 1 ? ' cadeira' : ' cadeiras'))
+      + `<h3 class="cs-h3">${ANO === 2018 ? 'Por coligação' : 'Por federação'}</h3>` + tabela([{t: ANO === 2018 ? 'Coligação' : 'Federação / partido'},{t:'Eleitos',n:1}], [...porAli].sort((a,b)=>b[1]-a[1]).map(([k, n])=>({ s:[k, n], cells:[esc(k), n] })))
+      + `</section><section class="box cs-sec"><div class="box-head"><h2>Eleitos (${L.length})</h2></div>`
+      + tabela([{t:'Candidatura'},{t:'Partido'},{t: ANO === 2018 ? 'Coligação' : 'Federação'},{t:'Como'}], L.sort((a,b)=>a[5].localeCompare(b[5]) || a[4].localeCompare(b[4])).map(r=>({ s:[r[4], r[5], r[6], r[7]], cells:[`<div class="nm">${esc(titulo(r[4]))}</div><span class="pt">${r[3]}</span>`, esc(r[5]), `<small>${esc(r[6]||'')}</small>`, esc(via(r[7]))] })))
+      + `<p class="cs-nota">Para ${ANO}, o TSE não mantém mais os arquivos de resultados por estado; a lista vem do cadastro oficial de candidaturas (situação final), sem o número de votos.</p></section></div>`;
   }
   document.addEventListener('change', e=>{
     if (e.target.id === 'ufeUF') { UF = e.target.value; FILTRO = ''; salvar(); render(); }
