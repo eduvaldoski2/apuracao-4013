@@ -201,6 +201,9 @@ dialog.det[open]{display:flex}
 .det-head h2{margin:0;font-size:22px;color:var(--purple-ink)}
 .det-head h2 span{color:var(--accent);margin-left:6px}
 .det-sub{color:var(--muted);font-size:13.5px;margin-top:3px}
+.det-voltar{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--purple-ink);border-radius:8px;padding:0 12px;height:36px;font:inherit;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
+.det-voltar:hover{border-color:var(--purple-ink)}
+body.mob .det-head{flex-wrap:wrap}
 .det-x{border:1px solid var(--line);background:var(--panel);border-radius:8px;font-size:16px;width:36px;height:36px;cursor:pointer;color:var(--ink)}
 .det-corpo{overflow:auto;padding:12px 20px 18px;display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}
 @media (min-width:900px){ .det-corpo.duas{grid-template-columns:repeat(2,minmax(0,1fr))} .det-corpo .larga{grid-column:1/-1} }
@@ -1248,7 +1251,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   </div>
 </dialog>
 <dialog id="dlgDet" class="det" aria-labelledby="detTit">
-  <div class="det-head"><div><h2 id="detTit"></h2><div class="det-sub" id="detSub"></div><div class="det-apur" id="detApur"></div></div><button type="button" class="det-x" id="detX" aria-label="Fechar">✕</button></div>
+  <div class="det-head"><button type="button" class="det-voltar" id="detVoltar" hidden aria-label="Voltar para a tela anterior">← Voltar</button><div><h2 id="detTit"></h2><div class="det-sub" id="detSub"></div><div class="det-apur" id="detApur"></div></div><button type="button" class="det-x" id="detX" aria-label="Fechar">✕</button></div>
   <div class="det-corpo" id="detCorpo"></div>
 </dialog>
 <dialog id="dlg">
@@ -3555,14 +3558,30 @@ const DET = (()=>{
   const candsDe = cargo => cargo===7 ? (EST ? EST.d.cands : []) : (ULTIMO ? ULTIMO.d.cands : []);
   const info = (cargo, n) => candsDe(cargo).find(c=>c.n===n);
   const dlg = $('dlgDet');
+  // histórico do quadro: cada nova tela guarda a anterior; "← Voltar" (e o voltar do celular) retorna
+  const PILHA = []; let ATUAL_V = null, HIST_ON = false;
+  const chaveV = (tit, sub) => (tit + '|' + sub).replace(/<[^>]+>/g,'').replace(/lendo.*$|carregando.*$/i,'').replace(/[\d.,%·\s]+/g,' ').trim();
+  const foto = () => ({ k: ATUAL_V, tit: $('detTit').innerHTML, sub: $('detSub').textContent, apur: $('detApur').innerHTML, corpo: $('detCorpo').innerHTML, duas: $('detCorpo').classList.contains('duas'), top: $('detCorpo').scrollTop });
+  function marcarVoltar(){ $('detVoltar').hidden = !PILHA.length; }
+  function voltarDet(){
+    const v = PILHA.pop(); if (!v) return false;
+    ATUAL_V = v.k; $('detTit').innerHTML = v.tit; $('detSub').textContent = v.sub; $('detApur').innerHTML = v.apur; $('detCorpo').innerHTML = v.corpo; $('detCorpo').classList.toggle('duas', v.duas);
+    $('detCorpo').scrollTop = v.top; marcarVoltar(); return true;
+  }
   function abrir(tit, sub, corpo, duas, apur){
+    const k = chaveV(tit, sub), mesma = dlg.open && k === ATUAL_V;
+    const carregando = /^\s*<p class="det-msg">/.test($('detCorpo').innerHTML) && !$('detCorpo').querySelector('table');
+    if (dlg.open && !mesma && !carregando) { PILHA.push(foto()); if (PILHA.length > 30) PILHA.shift(); }
+    const topo = mesma ? $('detCorpo').scrollTop : 0;
+    ATUAL_V = k;
     $('detTit').innerHTML = tit; $('detSub').textContent = sub;
     $('detApur').innerHTML = apur && !isNaN(apur.p) ? apurTag(apur.p, apur.est, apur.rot) : ''; $('detCorpo').innerHTML = corpo; $('detCorpo').classList.toggle('duas', !!duas);
     // no projetor a página é ampliada (zoom): a altura máxima do quadro acompanha a escala
     const z = parseFloat(document.documentElement.style.zoom) || 1;
     dlg.style.maxHeight = Math.floor(innerHeight * 0.9 / z) + 'px'; dlg.style.width = `min(980px, ${Math.floor(innerWidth / z) - 24}px)`;
-    if (!dlg.open) { voltar = tocando; if (tocando) setTocando(false); dlg.showModal(); }
-    $('detCorpo').scrollTop = 0;
+    if (!dlg.open) { voltar = tocando; if (tocando) setTocando(false); PILHA.length = 0; dlg.showModal();
+      try { history.pushState({det:1}, ''); HIST_ON = true; } catch(e){} }
+    $('detCorpo').scrollTop = topo; marcarVoltar();
   }
   // setinhas para ordenar as tabelas do quadro de detalhe (a escolha vale para tabelas iguais, mesmo depois de atualizar)
   const DORD = {};
@@ -3596,6 +3615,11 @@ const DET = (()=>{
     ordDet();
   });
   function fechar(){ dlg.close(); }
+  $('detVoltar').addEventListener('click', ()=>voltarDet());
+  // botão voltar do celular/navegador: volta uma tela no quadro; sem histórico, fecha
+  addEventListener('popstate', ()=>{ if (!dlg.open) { HIST_ON = false; return; }
+    if (voltarDet()) { try { history.pushState({det:1}, ''); } catch(e){} } else { HIST_ON = false; dlg.close(); } });
+  dlg.addEventListener('close', ()=>{ PILHA.length = 0; ATUAL_V = null; marcarVoltar(); if (HIST_ON) { HIST_ON = false; try { history.back(); } catch(e){} } });
   dlg.addEventListener('close', ()=>{ if (voltar) setTocando(true); voltar = false; });
   $('detX').onclick = fechar;
   dlg.addEventListener('click', e=>{ if (e.target === dlg) fechar(); });   // clique fora fecha
