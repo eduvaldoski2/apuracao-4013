@@ -851,7 +851,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .crz-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .crz-corpo{display:flex;flex-direction:column;gap:10px;min-height:0}
 .crz-lado{display:flex;flex-direction:column;gap:8px;min-width:0}
-.crz-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:8px}
+.crz-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));gap:8px}
 .crz .box-head{align-items:center}
 .crz-chip{border:1px solid var(--line);border-top:4px solid var(--c);border-radius:8px;padding:6px 8px 4px 10px;background:var(--panel);min-width:0}
 .crz-ch{display:flex;align-items:flex-start;gap:6px}
@@ -871,7 +871,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 #crzRes button:hover,#crzRes button:focus{background:var(--accent-soft)}
 #crzRes small{font-size:11px;color:var(--muted)}
 .crz-r0{padding:8px;color:var(--muted);font-size:13px}
-.crz-modo{display:flex;margin-left:auto;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.crz-acoes{display:flex;gap:8px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.crz-pdf{font-weight:800;font-size:13px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.crz-pdf:hover{background:var(--accent-soft)}
+.crz-modo{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .crz-modo button{border:0;background:none;padding:8px 12px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}
 .crz-modo button[aria-pressed="true"]{background:var(--accent);color:#2a1600}
 .crz-t td{vertical-align:top}
@@ -892,7 +895,62 @@ body.apres #telaCrz .crz-chips{grid-template-columns:1fr}
 body.apres #telaCrz .tbl-wrap{min-height:0;overflow:auto}
 body.apres #telaCrz .crz-t thead th{position:sticky;top:0;z-index:2;background:var(--panel)}
 body.apres #telaCrz #crzNota{display:none}
-body.mob .crz-modo{margin-left:0}
+body.mob .crz-acoes{margin-left:0}
+#telaCrz,.crz,.crz-corpo,.crz-lado,.crz-corpo > .tbl-wrap{min-width:0;max-width:100%}
+.crz-corpo > .tbl-wrap{overflow-x:auto}
+.crz-varh{white-space:nowrap}
+.crz-t .rg-dv{white-space:nowrap}
+body.mob .crz-t{font-size:13px}
+body.mob .crz-t th,body.mob .crz-t td{padding:6px 4px}
+body.mob .crz-t td.crz-un{min-width:0}
+body.mob .crz-t td.crz-un .zname{font-size:13px}
+body.mob .crz-t td.crz-un .zmun{display:none}
+body.mob .crz-t .rg-dv{font-size:10px}
+body.mob .crz-t .rg-dv .abs{display:none}
+body.mob .crz-t .crz-var .rg-dv{font-size:12px}
+body.mob .crz-t td .rg-dv{white-space:nowrap}
+body.mob .crz-varh span{display:block}
+body.mob .crz-varh select{font-size:12px}
+body.mob .crz-t .crz-pn{white-space:normal;font-size:12px}
+html.crz-print, html.crz-print body{overflow:visible!important}
+body.mob{overflow-x:clip}
+#crzRel{display:none}
+@media print{
+  @page{size:A4;margin:12mm}
+  html.crz-print{zoom:1!important}
+  html.crz-print body{display:block!important;height:auto!important;min-height:0!important;padding:0!important;background:#fff!important;zoom:1!important}
+  html.crz-print body > *:not(#crzRel){display:none!important}
+  html.crz-print #crzRel{display:block!important;color:#111;font-size:10.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact;
+    --ink:#111;--muted:#555;--line:#ccc;--panel:#fff;--accent-soft:#fff3e6;--purple-ink:#3b2a8c}
+  #crzRel .rel-cab{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:3px solid #f68712;padding-bottom:6px;margin-bottom:10px}
+  #crzRel h1{font-size:19px;margin:0;color:#3b2a8c}
+  #crzRel .rel-cab p{margin:3px 0 0;font-size:11px;color:#333}
+  #crzRel .rel-cab small{text-align:right;color:#555;font-size:9.5px;white-space:nowrap}
+  #crzRel h2{font-size:13px;color:#3b2a8c;margin:14px 0 5px}
+  #crzRel .rel-pessoas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+  #crzRel .rel-p{border:1px solid #ccc;border-top:4px solid var(--c);border-radius:6px;padding:5px 7px;break-inside:avoid}
+  #crzRel .rel-p b{display:block;font-size:12px}
+  #crzRel .rel-p small{display:block;color:#555;font-size:9px}
+  #crzRel .rel-p svg{width:100%;height:auto;display:block}
+  #crzRel table{width:100%;border-collapse:collapse;font-size:9.5px}
+  #crzRel th{font-size:8.5px;text-transform:uppercase;color:#555;text-align:left;border-bottom:1.5px solid #999;padding:3px 4px}
+  #crzRel th.r,#crzRel td.r{text-align:right}
+  #crzRel td{padding:2px 4px;border-bottom:1px solid #e3e3e3;vertical-align:top}
+  #crzRel thead{display:table-header-group}
+  #crzRel tr{break-inside:avoid}
+  #crzRel .crz-tot td{background:#fff3e6}
+  #crzRel .rg-dv{display:block;font-size:8px;white-space:nowrap}
+  #crzRel .rg-dv .abs{display:inline!important}
+  #crzRel .crz-pn i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+  #crzRel .zname{font-weight:700}
+  #crzRel .rel-reg{break-before:auto}
+  #crzRel .rel-nota{margin-top:12px;font-size:9px;color:#555}
+}
+body.mob #telaCrz .crz-corpo > .tbl-wrap{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}
+body.mob #telaCrz .crz-t thead th{position:static}
+body.mob .crz-varh select{font-size:11px;padding:0 1px;-webkit-appearance:none;appearance:none;border-radius:4px;min-width:0}
+body.mob .crz-t th,body.mob .crz-t td{padding:6px 3px}
+body.mob .crz-t td.crz-un{max-width:96px}
 /* ==== /CRUZ CSS ==== */
 </style>
 
@@ -1254,7 +1312,7 @@ body.mob .crz-modo{margin-left:0}
   </section>
   <section class="tela" id="telaCrz" data-nome="Cruzamento">
     <div class="box crz">
-      <div class="box-head"><h2>Capital · cruzamento de eleições</h2><div class="crz-modo" role="group" aria-label="Mostrar"><button type="button" data-m="v" aria-pressed="true">Votos</button><button type="button" data-m="p" aria-pressed="false">% dos válidos</button></div></div>
+      <div class="box-head"><h2>Capital · cruzamento de eleições</h2><div class="crz-acoes"><button type="button" id="crzPdf" class="crz-pdf" title="Gerar relatório em PDF com regiões e bairros">⤓ Relatório PDF</button><div class="crz-modo" role="group" aria-label="Mostrar"><button type="button" data-m="v" aria-pressed="true">Votos</button><button type="button" data-m="p" aria-pressed="false">% dos válidos</button></div></div></div>
       <div class="crz-corpo">
         <div class="crz-lado">
           <div class="crz-chips" id="crzChips"></div>
@@ -4711,7 +4769,7 @@ const CRUZ = (()=>{
       return `<span class="rg-dv ${d > 0 ? 'up' : 'dn'}" title="${rot}">${d > 0 ? '▲' : '▼'} ${pp(d)}</span>`; }
     if (!(a > 0)) return '';
     const d = b - a, p = 100 * d / a; if (Math.abs(p) < 0.5) return `<span class="rg-dv eq" title="${rot}">▬ ${sinal(d)}</span>`;
-    return `<span class="rg-dv ${d > 0 ? 'up' : 'dn'}" title="${rot}">${d > 0 ? '▲' : '▼'} ${sinal(d)} · ${p > 0 ? '+' : ''}${p.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</span>`;
+    return `<span class="rg-dv ${d > 0 ? 'up' : 'dn'}" title="${rot}: ${sinal(d)}">${d > 0 ? '▲' : '▼'} <span class="abs">${sinal(d)} · </span>${p > 0 ? '+' : ''}${p.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</span>`;
   }
   const cargoAno = (P, a) => { const o = P.anos[a]; return o ? `${CARGO[o.x.c] || o.x.c} · ${o.x.sig}` : ''; };
   // linhas de uma unidade (total, região ou bairro): uma por pessoa
@@ -4727,8 +4785,8 @@ const CRUZ = (()=>{
     }).join('');
   }
   function cabecalho(pessoas, colunas, rot){
-    const opc = sel => colunas.map(a=>`<option value="${a}"${a === sel ? ' selected' : ''}>${a}</option>`).join('');
-    return `<tr><th>${rot}</th>${pessoas.length > 1 ? '<th>Candidatura</th>' : ''}${colunas.map(a=>`<th class="r">${a}</th>`).join('')}<th class="r crz-varh">Var. <select class="crz-de" aria-label="De">${opc(DE)}</select>→<select class="crz-ate" aria-label="Até">${opc(ATE)}</select></th></tr>`;
+    const opc = sel => colunas.map(a=>`<option value="${a}"${a === sel ? ' selected' : ''}>${ano2(a)}</option>`).join('');
+    return `<tr><th>${rot}</th>${pessoas.length > 1 ? '<th>Candidatura</th>' : ''}${colunas.map(a=>`<th class="r">${a}</th>`).join('')}<th class="r crz-varh"><span>Var.</span> <select class="crz-de" aria-label="Variação a partir de">${opc(DE)}</select>→<select class="crz-ate" aria-label="Variação até">${opc(ATE)}</select></th></tr>`;
   }
   // mini gráfico da pessoa: total na capital por eleição, escala própria
   function mini(P, colunas){
@@ -4756,23 +4814,51 @@ const CRUZ = (()=>{
     if (!colunas.includes(ATE)) ATE = colunas[colunas.length - 1];
     if (!colunas.includes(DE) || DE >= ATE) DE = colunas.includes(2022) && 2022 < ATE ? 2022 : colunas[Math.max(0, colunas.indexOf(ATE) - 1)];
     $('crzH').innerHTML = cabecalho(pessoas, colunas, 'Região');
-    const ord = REGS.map((nome, i)=>({nome, i})).concat([{nome:'Outros bairros', i:REGS.length}]).filter(r=>pessoas.some(P=>Object.values(P.anos).some(o=>o.reg[r.i].v > 0)));
-    const ref = pessoas[0], ultA = colunas.filter(a=>ref.anos[a]).pop();
-    ord.sort((a,b)=>(ref.anos[ultA] ? ref.anos[ultA].reg[b.i].v - ref.anos[ultA].reg[a.i].v : 0));
+    const ord = regioesOrd(pessoas, colunas);
     $('crzB').innerHTML = linhas(pessoas, colunas, '<b>Capital · total</b>', '', o=>o.tot, ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
       + ord.map(r=>linhas(pessoas, colunas, esc(r.nome), 'ver bairros ›', o=>o.reg[r.i], ` data-crz="${r.i}"`)).join('');
     $('crzNota').textContent = `Votos na cidade do Rio de Janeiro, 1º turno, dados do TSE por seção agrupados por bairro do local de votação. ${MODO === 'p' ? '“% dos válidos” = parte dos votos válidos daquele cargo naquela região, o que permite comparar cargos diferentes (no Senado cada eleitor vota em 2 em 2018 e 2026). ' : ''}Abaixo de cada número: variação em relação à eleição anterior da mesma pessoa. Clique numa região para ver os bairros.`;
   }
+  const cabFixo = (pessoas, colunas, rot) => cabecalho(pessoas, colunas, rot).replace(/<select class="crz-de"[^]*?<\/select>→<select class="crz-ate"[^]*?<\/select>/, `${ano2(DE)}→${ano2(ATE)}`);
+  const regioesOrd = (pessoas, colunas) => { const ref = pessoas[0], ultA = colunas.filter(a=>ref.anos[a]).pop();
+    return REGS.map((nome, i)=>({nome, i})).concat([{nome:'Outros bairros', i:REGS.length}]).filter(r=>pessoas.some(P=>Object.values(P.anos).some(o=>o.reg[r.i].v > 0)))
+      .sort((a,b)=>(ref.anos[ultA] ? ref.anos[ultA].reg[b.i].v - ref.anos[ultA].reg[a.i].v : 0)); };
+  // tabela de bairros de uma região
+  function tabBairros(pessoas, colunas, i){
+    const nome = i < REGS.length ? REGS[i] : 'Outros bairros';
+    const gids = new Set(); for (const P of pessoas) for (const o of Object.values(P.anos)) for (const [g, x] of o.bai) if (regDe(g) === i && x.v > 0) gids.add(g);
+    const ref = pessoas[0], ultA = colunas.filter(a=>ref.anos[a]).pop(), vr = g => ((ref.anos[ultA] && ref.anos[ultA].bai.get(g)) || {v:0}).v;
+    const L = [...gids].sort((a,b)=>vr(b) - vr(a));
+    const html = `<table class="crz-t"><thead>${cabFixo(pessoas, colunas, 'Bairro')}</thead><tbody>`
+      + linhas(pessoas, colunas, `<b>${esc(nome)} · total</b>`, '', o=>o.reg[i], ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
+      + L.map(g=>linhas(pessoas, colunas, esc(titulo(GEO[g][1])), '', o=>o.bai.get(g) || {v:0, val:0})).join('') + '</tbody></table>';
+    return {nome, n:L.length, html};
+  }
   function abrirRegiao(i){
     const pessoas = ULT; if (!pessoas) return;
-    const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a])), nome = i < REGS.length ? REGS[i] : 'Outros bairros';
-    const gids = new Set(); for (const P of pessoas) for (const o of Object.values(P.anos)) for (const [g, x] of o.bai) if (regDe(g) === i && x.v > 0) gids.add(g);
-    const ref = pessoas[0], ultA = colunas.filter(a=>ref.anos[a]).pop();
-    const L = [...gids].sort((a,b)=>((ref.anos[ultA] && ref.anos[ultA].bai.get(b) || {v:0}).v - (ref.anos[ultA] && ref.anos[ultA].bai.get(a) || {v:0}).v));
-    const corpo = `<div class="tbl-wrap"><table class="crz-t"><thead>${cabecalho(pessoas, colunas, 'Bairro').replace(/<select class="crz-de"[^]*?<\/select>→<select class="crz-ate"[^]*?<\/select>/, `${ano2(DE)}→${ano2(ATE)}`)}</thead><tbody>`
-      + linhas(pessoas, colunas, `<b>${esc(nome)} · total</b>`, '', o=>o.reg[i], ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
-      + L.map(g=>linhas(pessoas, colunas, esc(titulo(GEO[g][1])), '', o=>o.bai.get(g) || {v:0, val:0})).join('') + `</tbody></table></div><p class="det-nota">${MODO === 'p' ? '% dos votos válidos do cargo no bairro' : 'Votos'} na capital, 1º turno, TSE. Ponto (·) = não concorreu naquele ano.</p>`;
-    DET.abrir(esc(nome), `Capital · ${L.length} bairros · ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, corpo, false);
+    const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a])), T = tabBairros(pessoas, colunas, i);
+    DET.abrir(esc(T.nome), `Capital · ${T.n} bairros · ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, `<div class="tbl-wrap">${T.html}</div><p class="det-nota">${MODO === 'p' ? '% dos votos válidos do cargo no bairro' : 'Votos'} na capital, 1º turno, TSE. Ponto (·) = não concorreu naquele ano.</p>`, false);
+  }
+  // relatório em PDF: monta uma página limpa e abre a impressão do navegador ("Salvar como PDF")
+  function relatorio(){
+    const pessoas = ULT; if (!pessoas || !pessoas.length) return;
+    const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a])), ord = regioesOrd(pessoas, colunas);
+    const hoje = new Date().toLocaleString('pt-BR', {dateStyle:'long', timeStyle:'short'});
+    const modo = MODO === 'p' ? '% dos votos válidos do cargo' : 'votos';
+    let h = `<header class="rel-cab"><div><h1>Capital · cruzamento de eleições</h1><p>${pessoas.map(P=>esc(titulo(P.p.n))).join(' · ')} — cidade do Rio de Janeiro, ${colunas.join(', ')} · ${modo}</p></div><small>Gerado em ${esc(hoje)}<br>Fonte: TSE, 1º turno</small></header>`;
+    h += `<section class="rel-pessoas">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))}</b><small>${ANOS.filter(a=>P.anos[a]).map(a=>`${a}: ${esc(cargoAno(P, a))} (${P.anos[a].x.nr})`).join(' · ')}</small>${mini(P, colunas)}</div>`).join('')}</section>`;
+    h += `<h2>Capital por região</h2><table class="crz-t"><thead>${cabFixo(pessoas, colunas, 'Região')}</thead><tbody>`
+      + linhas(pessoas, colunas, '<b>Capital · total</b>', '', o=>o.tot, ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
+      + ord.map(r=>linhas(pessoas, colunas, esc(r.nome), '', o=>o.reg[r.i])).join('') + '</tbody></table>';
+    for (const r of ord) { const T = tabBairros(pessoas, colunas, r.i); h += `<section class="rel-reg"><h2>${esc(T.nome)} · ${T.n} bairros</h2>${T.html}</section>`; }
+    h += `<p class="rel-nota">Votos na cidade do Rio de Janeiro no 1º turno, dados do TSE por seção agrupados pelo bairro do local de votação. ${MODO === 'p' ? '“% dos válidos” = parte dos votos válidos daquele cargo na região ou bairro. ' : ''}Abaixo de cada número: variação em relação à eleição anterior da mesma pessoa. Última coluna: variação ${DE}→${ATE}. Ponto (·) = não concorreu naquele ano. Regiões da capital: divisão usada pela campanha.</p>`;
+    let R = $('crzRel'); if (!R) { R = document.createElement('div'); R.id = 'crzRel'; document.body.appendChild(R); }
+    R.innerHTML = h;
+    const tituloAnt = document.title; document.title = `Cruzamento capital - ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`;
+    document.documentElement.classList.add('crz-print');
+    const fim = () => { document.documentElement.classList.remove('crz-print'); document.title = tituloAnt; removeEventListener('afterprint', fim); };
+    addEventListener('afterprint', fim);
+    setTimeout(()=>{ window.print(); setTimeout(()=>{ if (!matchMedia('print').matches) fim(); }, 1500); }, 60);
   }
   // busca
   function buscar(q){
@@ -4794,6 +4880,7 @@ const CRUZ = (()=>{
     T.querySelector('.crz-modo').addEventListener('click', e=>{ const b = e.target.closest('[data-m]'); if (!b || b.dataset.m === MODO) return; MODO = b.dataset.m;
       T.querySelectorAll('.crz-modo [data-m]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.m === MODO)); render(); });
     $('crzH').addEventListener('change', e=>{ if (e.target.matches('.crz-de')) DE = +e.target.value; if (e.target.matches('.crz-ate')) ATE = +e.target.value; render(); });
+    $('crzPdf').onclick = relatorio;
     $('crzB').addEventListener('click', e=>{ const r = e.target.closest('[data-crz]'); if (r) abrirRegiao(+r.dataset.crz); });
     document.addEventListener('click', e=>{ const b = $('crzBusca'); if (!b.hidden && !e.target.closest('.crz-add')) b.hidden = true; });
   }
