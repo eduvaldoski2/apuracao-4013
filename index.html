@@ -927,7 +927,8 @@ body.mob{overflow-x:clip}
 .crz-rel .rel-rg{border:1px solid #ddd;border-radius:6px;padding:5px 7px;break-inside:avoid}
 .crz-rel .rel-rg b{font-size:11px}
 .crz-rel .rel-regg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:6px;max-width:520px}
-.crz-rel .rel-reg{break-before:page}
+.crz-rel .rel-reg{break-before:auto;margin-top:6px}
+.crz-rel .rel-quebra{break-before:page}
 .crz-rel table{width:100%;border-collapse:collapse;font-size:10px}
 .crz-rel th{font-size:9px;text-transform:uppercase;color:#555;text-align:left;border-bottom:1.5px solid #999;padding:3px 4px;position:static}
 .crz-rel th.r,.crz-rel td.r{text-align:right}
@@ -953,6 +954,14 @@ body.mob dialog[open] ~ .pdf-fab{display:none}
 .det-head .det-pdf{margin-left:auto;margin-right:8px;font-weight:800;font-size:13px;padding:7px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;align-self:flex-start;white-space:nowrap}
 .det-head .det-pdf:hover{background:var(--accent-soft)}
 .crz-rel .crz-var .rg-dv{font-size:9.5px}
+.crz-rel .rel-resumo h2{margin-top:4px}
+.crz-rel .rel-rs{border:1px solid #ccc;border-left:5px solid var(--c);border-radius:6px;padding:7px 10px;margin-bottom:10px;break-inside:avoid;background:#fcfbff}
+.crz-rel .rel-rs h3{margin:0 0 5px;font-size:13px;color:#111}
+.crz-rel .rel-rs table{font-size:10px}
+.crz-rel .rel-mut{color:#888;font-size:9px}
+.crz-rel .rel-dest{margin:7px 0 0;padding-left:16px;font-size:10.5px;line-height:1.45}
+.crz-rel .rel-pessoas{margin-top:6px}
+.crz-rel .rel-reg:first-of-type{break-before:auto}
 /* ==== /CRUZ CSS ==== */
 </style>
 
@@ -4809,24 +4818,30 @@ const CRUZ = (()=>{
   // regiões da capital (mesma divisão da tela Regiões)
   const REGS = (typeof REG_DADOS === 'object') ? REG_DADOS.capRegs : [];
   const REG_B = new Map((typeof REG_DADOS === 'object') ? Object.entries(REG_DADOS.cap).map(([nm, x])=>[norm(nm), x[0]]) : []);
+  // regiões do estado (regiões de governo, Metropolitana dividida) e o nome de cada município
+  const REGE = (typeof REG_DADOS === 'object') ? Object.keys(REG_DADOS.est) : [];
+  const REGE_M = new Map(); if (typeof REG_DADOS === 'object') Object.entries(REG_DADOS.est).forEach(([rg, ms], i)=>ms.forEach(m=>REGE_M.set(norm(m), i)));
+  const NOME_M = cd => { const M = (typeof RJB === 'object') && RJB.mun[String(cd).padStart(5,'0')]; return M ? M.nm : String(cd); };
+  const regM = cd => { const r = REGE_M.get(norm(NOME_M(cd))); return r == null ? REGE.length : r; };
   let IDX = null, GEO = null, SEL = [], MODO = 'v', DE = null, ATE = null, seq = 0, iniciado = false;
   try { const s = JSON.parse(localStorage.getItem('crzSel') || 'null'); if (Array.isArray(s) && s.length) SEL = s; } catch(e){}
   if (!SEL.length) SEL = ['eb49485ba'];
   const salvar = () => { try { localStorage.setItem('crzSel', JSON.stringify(SEL)); } catch(e){} };
   async function base(){
     if (!IDX) { const [d, g] = await Promise.all([pegar('cap_busca.json'), pegar('geo.json')]);
-      GEO = g.b; const P = new Map(d.p.map(([pid, n, e])=>[pid, {pid, n, e:e.map(([ano, c, nr, sig, ue, v, sit])=>({ano, c, nr, sig, ue, v, sit}))}]));
+      GEO = g.b; const P = new Map(d.p.map(([pid, n, e])=>[pid, {pid, n, e:e.map(([ano, c, nr, sig, ue, v, sit, vt])=>({ano, c, nr, sig, ue, v, sit, vt}))}]));
       // votos válidos por bairro da capital em cada eleição/cargo → por região
       const VB = {}; for (const [a, cs] of Object.entries(d.vb)) for (const [c, l] of Object.entries(cs)) { const m = new Map(); for (let k=0; k<l.length; k+=2) m.set(l[k], l[k+1]); VB[a+'|'+c] = m; }
-      IDX = {P, val:d.val, VB, lista:[...P.values()].map(p=>({p, k:norm(p.n), max:Math.max(...p.e.map(x=>x.v))}))}; }
+      const VM = {}; for (const [a, cs] of Object.entries(d.vm || {})) for (const [c, l] of Object.entries(cs)) { const m = new Map(); for (let k=0; k<l.length; k+=2) m.set(l[k], l[k+1]); VM[a+'|'+c] = m; }
+      IDX = {P, val:d.val, VB, VM, lista:[...P.values()].map(p=>({p, k:norm(p.n), max:Math.max(...p.e.map(x=>x.v))}))}; }
     return IDX;
   }
   const arq = x => x.c === 6 || x.c === 7 ? `c${x.c}t1b${x.nr % 8}` : x.c === 13 ? 'c13t1r2' : `c${x.c}t1`;
   // votos da candidatura por bairro da capital: Map(gid → votos)
   async function votos(x){
-    const d = await pegar(`${x.ano}/${arq(x)}.json`), r = d[x.ue === CAP ? `${x.nr}@${CAP}` : String(x.nr)] || {}, b = r.b || [], m = new Map();
-    for (let k=0; k<b.length; k+=2) if (GEO[b[k]] && GEO[b[k]][0] === CAP) m.set(b[k], b[k+1]);
-    return m;
+    const d = await pegar(`${x.ano}/${arq(x)}.json`), r = d[x.ue === CAP ? `${x.nr}@${CAP}` : String(x.nr)] || {}, b = r.b || [], m = new Map(), mm = new Map();
+    for (let k=0; k<b.length; k+=2) { const G = GEO[b[k]]; if (!G) continue; if (G[0] === CAP) m.set(b[k], b[k+1]); const cd = +G[0]; mm.set(cd, (mm.get(cd) || 0) + b[k+1]); }
+    m.mun = mm; return m;
   }
   const regDe = gid => { const r = REG_B.get(norm(GEO[gid][1])); return r == null ? REGS.length : r; };
   // monta, para cada pessoa, os votos (e válidos) por região e bairro em cada ano
@@ -4838,7 +4853,14 @@ const CRUZ = (()=>{
         const reg = REGS.map(()=>({v:0, val:0})).concat([{v:0, val:0}]), bai = new Map();
         for (const [gid, val] of vb) { const r = regDe(gid); reg[r].val += val; bai.set(gid, {v:0, val}); }
         for (const [gid, v] of m) { reg[regDe(gid)].v += v; const o = bai.get(gid) || {v:0, val:0}; o.v += v; bai.set(gid, o); }
-        anos[x.ano] = {x, tot:{v:x.v, val:I.val[x.ano][x.c] || 0}, reg, bai}; }));
+        const o = {x, tot:{v:x.v, val:I.val[x.ano][x.c] || 0}, reg, bai};
+        const vm = I.VM[x.ano+'|'+x.c];
+        if (x.ue !== CAP && vm) { // candidatura estadual: municípios e regiões do estado
+          const mun = new Map(), rege = REGE.map(()=>({v:0, val:0})).concat([{v:0, val:0}]); let tv = 0;
+          for (const [cd, val] of vm) { mun.set(cd, {v:0, val}); rege[regM(cd)].val += val; tv += val; }
+          for (const [cd, v] of m.mun) { const q = mun.get(cd) || {v:0, val:0}; q.v += v; mun.set(cd, q); rege[regM(cd)].v += v; }
+          o.mun = mun; o.rege = rege; o.est = {v:x.vt || [...m.mun.values()].reduce((a,b)=>a+b, 0), val:tv}; }
+        anos[x.ano] = o; }));
       pessoas.push({p, cor:CORES[i % CORES.length], anos}); }
     return pessoas;
   }
@@ -4921,20 +4943,71 @@ const CRUZ = (()=>{
     DET.abrir(esc(T.nome), `Capital · ${T.n} bairros · ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, `<div class="tbl-wrap">${T.html}</div><p class="det-nota">${MODO === 'p' ? '% dos votos válidos do cargo no bairro' : 'Votos'} na capital, 1º turno, TSE. Ponto (·) = não concorreu naquele ano.</p>`, false);
   }
   // relatório em PDF: abre uma página própria (aba nova) com o relatório completo, pronta para "Salvar como PDF"
+  // quadro-resumo do relatório
+  function resumo(pessoas, colunas, ord){
+    const pcs = (a, b) => b > 0 ? pc(100 * a / b) : '—';
+    let h = '<section class="rel-resumo"><h2>Resumo</h2>';
+    for (const P of pessoas) {
+      const anos = ANOS.filter(a=>P.anos[a]);
+      h += `<div class="rel-rs" style="--c:${P.cor}"><h3>${esc(titulo(P.p.n))}</h3><table><thead><tr><th>Eleição</th><th>Cargo</th><th>Partido · nº</th><th>Situação</th><th class="r">Votos no estado</th><th class="r">Votos na capital</th><th class="r">Capital / total</th><th class="r">% válidos na capital</th></tr></thead><tbody>`
+        + anos.map(a=>{ const o = P.anos[a], x = o.x, est = o.est ? o.est.v : null;
+          return `<tr><td><b>${a}</b></td><td>${esc(CARGO[x.c] || x.c)}</td><td>${esc(x.sig)} · ${x.nr}</td><td>${esc(titulo(x.sit || ''))}</td><td class="r num">${est != null ? fmt(est) : '<span class="rel-mut">só capital</span>'}</td><td class="r num">${fmt(o.tot.v)}</td><td class="r num">${est ? pcs(o.tot.v, est) : '100%'}</td><td class="r num">${pcs(o.tot.v, o.tot.val)}</td></tr>`; }).join('') + '</tbody></table>';
+      // destaques: melhor região e maiores altas/quedas no período escolhido
+      const ult = anos[anos.length - 1], oU = P.anos[ult], dest = [];
+      if (oU) { const best = ord.map(r=>({r, v:oU.reg[r.i].v})).sort((a,b)=>b.v-a.v)[0]; if (best && best.v > 0) dest.push(`Região mais forte na capital em ${ult}: <b>${esc(best.r.nome)}</b> (${fmt(best.v)} votos, ${pcs(best.v, oU.tot.v)} da votação dela na capital)`); }
+      const oD = P.anos[DE], oA = P.anos[ATE];
+      if (oD && oA) { const dv = ord.map(r=>({r, d:oA.reg[r.i].v - oD.reg[r.i].v})).sort((a,b)=>b.d-a.d);
+        const tot = oA.tot.v - oD.tot.v; dest.push(`Capital ${DE}→${ATE}: <b>${sinal(tot)}</b> votos (${oD.tot.v > 0 ? (tot >= 0 ? '+' : '') + Math.round(100 * tot / oD.tot.v) + '%' : '—'})`);
+        if (dv[0] && dv[0].d > 0) dest.push(`Maior alta ${DE}→${ATE}: <b>${esc(dv[0].r.nome)}</b> (${sinal(dv[0].d)})`);
+        const q = dv[dv.length - 1]; if (q && q.d < 0) dest.push(`Maior queda ${DE}→${ATE}: <b>${esc(q.r.nome)}</b> (${sinal(q.d)})`);
+        if (oD.rege && oA.rege) { const de = REGE.map((nome, i)=>({nome, d:oA.rege[i].v - oD.rege[i].v})).sort((a,b)=>b.d-a.d);
+          if (de[0] && de[0].d > 0) dest.push(`No estado, maior alta ${DE}→${ATE}: <b>${esc(de[0].nome)}</b> (${sinal(de[0].d)})`);
+          const qe = de[de.length - 1]; if (qe && qe.d < 0) dest.push(`No estado, maior queda ${DE}→${ATE}: <b>${esc(qe.nome)}</b> (${sinal(qe.d)})`); } }
+      if (dest.length) h += `<ul class="rel-dest">${dest.map(d=>`<li>${d}</li>`).join('')}</ul>`;
+      h += '</div>';
+    }
+    return h + '</section>';
+  }
+  // seção do estado: regiões e municípios (só eleições estaduais/federais: 2018, 2022, 2026)
+  function estado(pessoas, colunas){
+    const colE = colunas.filter(a=>pessoas.some(P=>P.anos[a] && P.anos[a].mun)); if (!colE.length) return '';
+    const DE0 = DE, ATE0 = ATE; if (!colE.includes(ATE)) ATE = colE[colE.length - 1]; if (!colE.includes(DE) || DE >= ATE) DE = colE[Math.max(0, colE.indexOf(ATE) - 1)];
+    const ref = pessoas[0], uA = colE.filter(a=>ref.anos[a] && ref.anos[a].rege).pop();
+    const ordE = REGE.map((nome, i)=>({nome, i})).concat([{nome:'Outros municípios', i:REGE.length}]).filter(r=>pessoas.some(P=>colE.some(a=>P.anos[a] && P.anos[a].rege && P.anos[a].rege[r.i].v > 0)))
+      .sort((a,b)=>uA ? ref.anos[uA].rege[b.i].v - ref.anos[uA].rege[a.i].v : 0);
+    const pegaE = f => o => o.rege ? f(o) : null;
+    let h = `<section class="rel-reg rel-quebra"><h2>Estado do Rio de Janeiro por região</h2><p class="rel-leg">Só as eleições estaduais e federais (${colE.join(', ')}). Regiões de governo do RJ, com a Metropolitana dividida em Capital, Baixada Fluminense e Leste Metropolitano.</p><table class="crz-t"><thead>${cabFixo(pessoas, colE, 'Região')}</thead><tbody>`
+      + linhas(pessoas, colE, '<b>Estado · total</b>', '', o=>o.est || null, ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
+      + ordE.map(r=>linhas(pessoas, colE, esc(r.nome), '', pegaE(o=>o.rege[r.i]))).join('') + '</tbody></table>';
+    h += `<h2>Trajetória em cada região do estado</h2><section class="rel-mult">${ordE.map(r=>`<div class="rel-rg"><b>${esc(r.nome)}</b>${pessoas.map(P=>mini(P, colE, pegaE(o=>o.rege[r.i]))).join('')}</div>`).join('')}</section></section>`;
+    for (const r of ordE) { if (REGE[r.i] === 'Capital') continue;
+      const cds = new Set(); for (const P of pessoas) for (const a of colE) { const o = P.anos[a]; if (o && o.mun) for (const [cd, q] of o.mun) if (regM(cd) === r.i && q.v > 0) cds.add(cd); }
+      const vr = cd => ((uA && ref.anos[uA].mun.get(cd)) || {v:0}).v, L = [...cds].sort((a,b)=>vr(b) - vr(a));
+      h += `<section class="rel-reg"><h2>${esc(r.nome)} · ${L.length} município${L.length === 1 ? '' : 's'}</h2><div class="rel-regg">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))}</b>${mini(P, colE, pegaE(o=>o.rege[r.i]))}</div>`).join('')}</div>`
+        + `<table class="crz-t"><thead>${cabFixo(pessoas, colE, 'Município')}</thead><tbody>`
+        + linhas(pessoas, colE, `<b>${esc(r.nome)} · total</b>`, '', pegaE(o=>o.rege[r.i]), ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
+        + L.map(cd=>linhas(pessoas, colE, esc(titulo(NOME_M(cd))), '', o=>o.mun ? (o.mun.get(cd) || {v:0, val:0}) : null)).join('') + '</tbody></table></section>';
+    }
+    DE = DE0; ATE = ATE0;
+    return h;
+  }
+  // relatório em PDF: abre uma página própria (aba nova) com o relatório completo, pronta para "Salvar como PDF"
   function relatorio(){
     const pessoas = ULT; if (!pessoas || !pessoas.length) return;
     const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a])), ord = regioesOrd(pessoas, colunas);
     const modo = MODO === 'p' ? '% dos votos válidos do cargo' : 'votos';
-    let h = `<p class="rel-sub">${pessoas.map(P=>esc(titulo(P.p.n))).join(' · ')} — cidade do Rio de Janeiro, ${colunas.join(', ')} · ${modo}</p>`;
-    h += `<section class="rel-pessoas">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))}</b><small>${ANOS.filter(a=>P.anos[a]).map(a=>`${a}: ${esc(cargoAno(P, a))} (${P.anos[a].x.nr})`).join(' · ')}</small>${mini(P, colunas)}</div>`).join('')}</section>`;
-    h += `<h2>Capital por região</h2><table class="crz-t"><thead>${cabFixo(pessoas, colunas, 'Região')}</thead><tbody>`
+    let h = `<p class="rel-sub">${pessoas.map(P=>esc(titulo(P.p.n))).join(' · ')} — ${colunas.join(', ')} · ${modo} · capital por região e bairro, estado por região e município</p>`;
+    h += resumo(pessoas, colunas, ord);
+    h += `<section class="rel-pessoas">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))} · votos na capital</b><small>${ANOS.filter(a=>P.anos[a]).map(a=>`${a}: ${esc(cargoAno(P, a))} (${P.anos[a].x.nr})`).join(' · ')}</small>${mini(P, colunas)}</div>`).join('')}</section>`;
+    h += `<section class="rel-reg rel-quebra"><h2>Capital por região</h2><table class="crz-t"><thead>${cabFixo(pessoas, colunas, 'Região')}</thead><tbody>`
       + linhas(pessoas, colunas, '<b>Capital · total</b>', '', o=>o.tot, ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
       + ord.map(r=>linhas(pessoas, colunas, esc(r.nome), '', o=>o.reg[r.i])).join('') + '</tbody></table>';
-    h += `<h2>Trajetória em cada região</h2><p class="rel-leg">Cada gráfico tem escala própria. ${pessoas.length > 1 ? pessoas.map(P=>`<i style="background:${P.cor}"></i>${esc(titulo(P.p.n))}`).join(' ') : ''}</p><section class="rel-mult">${ord.map(r=>`<div class="rel-rg"><b>${esc(r.nome)}</b>${pessoas.map(P=>mini(P, colunas, o=>o.reg[r.i])).join('')}</div>`).join('')}</section>`;
+    h += `<h2>Trajetória em cada região da capital</h2><p class="rel-leg">Cada gráfico tem escala própria. ${pessoas.length > 1 ? pessoas.map(P=>`<i style="background:${P.cor}"></i>${esc(titulo(P.p.n))}`).join(' ') : ''}</p><section class="rel-mult">${ord.map(r=>`<div class="rel-rg"><b>${esc(r.nome)}</b>${pessoas.map(P=>mini(P, colunas, o=>o.reg[r.i])).join('')}</div>`).join('')}</section></section>`;
     for (const r of ord) { const T = tabBairros(pessoas, colunas, r.i);
-      h += `<section class="rel-reg"><h2>${esc(T.nome)} · ${T.n} bairros</h2><div class="rel-regg">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))}</b>${mini(P, colunas, o=>o.reg[r.i])}</div>`).join('')}</div>${T.html}</section>`; }
-    h += `<p class="rel-nota">Votos na cidade do Rio de Janeiro no 1º turno, dados do TSE por seção agrupados pelo bairro do local de votação. ${MODO === 'p' ? '“% dos válidos” = parte dos votos válidos daquele cargo na região ou bairro. ' : ''}Abaixo de cada número: variação em relação à eleição anterior da mesma pessoa. Última coluna: variação ${DE}→${ATE}. Ponto (·) = não concorreu naquele ano. Regiões da capital: divisão usada pela campanha.</p>`;
-    PDFX.abrir('Capital · cruzamento de eleições', `Cruzamento capital - ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, `<div class="crz-rel">${h}</div>`);
+      h += `<section class="rel-reg"><h2>Capital · ${esc(T.nome)} · ${T.n} bairros</h2><div class="rel-regg">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))}</b>${mini(P, colunas, o=>o.reg[r.i])}</div>`).join('')}</div>${T.html}</section>`; }
+    h += estado(pessoas, colunas);
+    h += `<p class="rel-nota">Dados do TSE, 1º turno, por seção eleitoral. Capital: votos agrupados pelo bairro do local de votação, nas regiões usadas pela campanha. Estado: votos por município, nas regiões de governo do RJ. ${MODO === 'p' ? '“% dos válidos” = parte dos votos válidos daquele cargo na região, bairro ou município. ' : ''}Abaixo de cada número: variação em relação à eleição anterior da mesma pessoa. Última coluna: variação entre os anos indicados. Ponto (·) = não concorreu naquele ano. 2020 e 2024 são eleições municipais, por isso aparecem só na capital.</p>`;
+    PDFX.abrir('Cruzamento de eleições · capital e estado', `Cruzamento - ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, `<div class="crz-rel">${h}</div>`);
   }
   // busca
   function buscar(q){
