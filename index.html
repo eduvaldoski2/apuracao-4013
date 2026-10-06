@@ -912,45 +912,47 @@ body.mob .crz-t td .rg-dv{white-space:nowrap}
 body.mob .crz-varh span{display:block}
 body.mob .crz-varh select{font-size:12px}
 body.mob .crz-t .crz-pn{white-space:normal;font-size:12px}
-html.crz-print, html.crz-print body{overflow:visible!important}
 body.mob{overflow-x:clip}
-#crzRel{display:none}
-@media print{
-  @page{size:A4;margin:12mm}
-  html.crz-print{zoom:1!important}
-  html.crz-print body{display:block!important;height:auto!important;min-height:0!important;padding:0!important;background:#fff!important;zoom:1!important}
-  html.crz-print body > *:not(#crzRel){display:none!important}
-  html.crz-print #crzRel{display:block!important;color:#111;font-size:10.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact;
-    --ink:#111;--muted:#555;--line:#ccc;--panel:#fff;--accent-soft:#fff3e6;--purple-ink:#3b2a8c}
-  #crzRel .rel-cab{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:3px solid #f68712;padding-bottom:6px;margin-bottom:10px}
-  #crzRel h1{font-size:19px;margin:0;color:#3b2a8c}
-  #crzRel .rel-cab p{margin:3px 0 0;font-size:11px;color:#333}
-  #crzRel .rel-cab small{text-align:right;color:#555;font-size:9.5px;white-space:nowrap}
-  #crzRel h2{font-size:13px;color:#3b2a8c;margin:14px 0 5px}
-  #crzRel .rel-pessoas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
-  #crzRel .rel-p{border:1px solid #ccc;border-top:4px solid var(--c);border-radius:6px;padding:5px 7px;break-inside:avoid}
-  #crzRel .rel-p b{display:block;font-size:12px}
-  #crzRel .rel-p small{display:block;color:#555;font-size:9px}
-  #crzRel .rel-p svg{width:100%;height:auto;display:block}
-  #crzRel table{width:100%;border-collapse:collapse;font-size:9.5px}
-  #crzRel th{font-size:8.5px;text-transform:uppercase;color:#555;text-align:left;border-bottom:1.5px solid #999;padding:3px 4px}
-  #crzRel th.r,#crzRel td.r{text-align:right}
-  #crzRel td{padding:2px 4px;border-bottom:1px solid #e3e3e3;vertical-align:top}
-  #crzRel thead{display:table-header-group}
-  #crzRel tr{break-inside:avoid}
-  #crzRel .crz-tot td{background:#fff3e6}
-  #crzRel .rg-dv{display:block;font-size:8px;white-space:nowrap}
-  #crzRel .rg-dv .abs{display:inline!important}
-  #crzRel .crz-pn i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
-  #crzRel .zname{font-weight:700}
-  #crzRel .rel-reg{break-before:auto}
-  #crzRel .rel-nota{margin-top:12px;font-size:9px;color:#555}
-}
+.crz-rel{color:#111;font-size:10.5px}
+.crz-rel .rel-sub{margin:0 0 10px;font-size:12px;color:#333}
+.crz-rel h2{font-size:14px;color:#3b2a8c;margin:16px 0 6px;break-after:avoid}
+.crz-rel .rel-pessoas{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.crz-rel .rel-p{border:1px solid #ccc;border-top:4px solid var(--c);border-radius:6px;padding:5px 7px;break-inside:avoid;background:#fff}
+.crz-rel .rel-p b{display:block;font-size:12px}
+.crz-rel .rel-p small{display:block;color:#555;font-size:9.5px}
+.crz-rel svg{width:100%;height:auto;display:block}
+.crz-rel .rel-leg{font-size:10px;color:#555;margin:0 0 6px}
+.crz-rel .rel-leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 4px 0 10px;vertical-align:-1px}
+.crz-rel .rel-mult{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.crz-rel .rel-rg{border:1px solid #ddd;border-radius:6px;padding:5px 7px;break-inside:avoid}
+.crz-rel .rel-rg b{font-size:11px}
+.crz-rel .rel-regg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:6px;max-width:520px}
+.crz-rel .rel-reg{break-before:page}
+.crz-rel table{width:100%;border-collapse:collapse;font-size:10px}
+.crz-rel th{font-size:9px;text-transform:uppercase;color:#555;text-align:left;border-bottom:1.5px solid #999;padding:3px 4px;position:static}
+.crz-rel th.r,.crz-rel td.r{text-align:right}
+.crz-rel td{padding:3px 4px;border-bottom:1px solid #e3e3e3;vertical-align:top}
+.crz-rel thead{display:table-header-group}
+.crz-rel tr{break-inside:avoid}
+.crz-rel .crz-tot td{background:#fff3e6}
+.crz-rel .rg-dv{display:block;font-size:8.5px;white-space:nowrap}
+.crz-rel .rg-dv .abs{display:inline!important}
+.crz-rel .crz-pn i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
+.crz-rel .zname{font-weight:700}
+.crz-rel .zmun{display:none}
+.crz-rel .rel-nota{margin-top:14px;font-size:9.5px;color:#555}
 body.mob #telaCrz .crz-corpo > .tbl-wrap{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}
 body.mob #telaCrz .crz-t thead th{position:static}
 body.mob .crz-varh select{font-size:11px;padding:0 1px;-webkit-appearance:none;appearance:none;border-radius:4px;min-width:0}
 body.mob .crz-t th,body.mob .crz-t td{padding:6px 3px}
 body.mob .crz-t td.crz-un{max-width:96px}
+#btnPdf{font-weight:800}
+.pdf-fab{display:none}
+body.mob .pdf-fab{display:block;position:fixed;right:10px;bottom:calc(var(--tabH,64px) + 52px);z-index:11;font:inherit;font-weight:800;font-size:13px;padding:9px 13px;border-radius:999px;border:0;background:var(--accent);color:#2a1600;box-shadow:0 4px 14px rgba(0,0,0,.28)}
+body.mob dialog[open] ~ .pdf-fab{display:none}
+.det-head .det-pdf{margin-left:auto;margin-right:8px;font-weight:800;font-size:13px;padding:7px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;align-self:flex-start;white-space:nowrap}
+.det-head .det-pdf:hover{background:var(--accent-soft)}
+.crz-rel .crz-var .rg-dv{font-size:9.5px}
 /* ==== /CRUZ CSS ==== */
 </style>
 
@@ -4708,6 +4710,85 @@ const IA = (()=>{
   $('iaSug').addEventListener('click', e=>{ const b = e.target.closest('button'); if (b) $('iaPerg').value = b.textContent; });
   return { abrir, montar };
 })();
+/* ==== PDFX INÍCIO ==== */
+// PDF de qualquer consulta: abre a tela (ou o quadro de detalhe) numa aba própria, limpa, pronta para "Salvar como PDF".
+const PDFX = (()=>{
+  const CSS_DOC = `
+@page{size:A4;margin:10mm}
+html,body{background:#fff!important;color:#111}
+body.pdf-doc{display:block!important;padding:0!important;margin:0;overflow:visible!important;height:auto!important;zoom:1!important}
+.pdf-bar{position:sticky;top:0;z-index:99;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#241c52;color:#fff;padding:10px 14px;font-size:14px}
+.pdf-bar button{font:inherit;font-weight:800;background:#f68712;color:#2a1600;border:0;border-radius:8px;padding:10px 16px;cursor:pointer}
+.pdf-bar span{opacity:.85}
+.pdf-pag{max-width:1040px;margin:0 auto;padding:14px 16px 24px}
+.pdf-cab{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:3px solid #f68712;padding-bottom:6px;margin-bottom:12px}
+.pdf-cab h1{font-size:20px;margin:0;color:#3b2a8c}
+.pdf-cab p{margin:3px 0 0;font-size:12px;color:#333}
+.pdf-cab small{text-align:right;color:#555;font-size:10px;white-space:nowrap}
+.pdf-pag .tela{display:block!important;height:auto!important;min-height:0!important;margin:0!important}
+.pdf-pag .scroll,.pdf-pag .tbl-wrap,.pdf-pag .box,.pdf-pag .tt-wrap,.pdf-pag .tt-col{max-height:none!important;height:auto!important;overflow:visible!important}
+.pdf-pag thead th{position:static!important}
+.pdf-pag thead{display:table-header-group}
+.pdf-pag tr,.pdf-pag .rg-card,.pdf-pag .card,.pdf-pag .kpi{break-inside:avoid}
+.pdf-pag .det-x,.pdf-pag .det-voltar,.pdf-pag .crz-acoes,.pdf-pag .crz-add,.pdf-pag [data-tira],.pdf-pag .seta,.pdf-pag .pdf-btn{display:none!important}
+*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@media print{.pdf-bar{display:none}.pdf-pag{padding:0;max-width:none}}
+`;
+  const estilos = () => [...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+  const links = () => [...document.querySelectorAll('link[rel="stylesheet"]')].map(l=>`<link rel="stylesheet" href="${l.href}">`).join('');
+  const quando = () => new Date().toLocaleString('pt-BR', {dateStyle:'long', timeStyle:'short'});
+  const nomeArq = t => String(t).replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 90);
+  // abre a página do relatório; corpo = HTML pronto
+  function abrir(titulo, arquivo, corpo, sub){
+    const w = window.open('', '_blank');
+    if (!w) { avisar('O navegador bloqueou a nova aba. Libere pop-ups para este site e tente de novo.'); return; }
+    const app = document.querySelector('h1') ? document.querySelector('h1').textContent.replace(/\s+/g, ' ').trim() : 'Painel';
+    w.document.open();
+    w.document.write(`<!doctype html><html lang="pt-BR" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(nomeArq(arquivo || titulo))}</title>${links()}<style>${estilos()}</style><style>${CSS_DOC}</style></head>
+<body class="pdf-doc"><div class="pdf-bar"><span>Relatório pronto. Toque em “Salvar PDF” e escolha <b>Salvar como PDF</b>.</span><button type="button" onclick="window.print()">⤓ Salvar PDF</button></div>
+<main class="pdf-pag"><header class="pdf-cab"><div><h1>${esc(titulo)}</h1><p>${esc(sub || app)}</p></div><small>Gerado em ${esc(quando())}<br>Tatiana Roque 4013 · dados do TSE</small></header>${corpo}</main>
+<script>addEventListener('load',()=>setTimeout(()=>{ try { window.print(); } catch(e){} }, 700));<\/script></body></html>`);
+    w.document.close();
+  }
+  function avisar(msg){ const a = $('alertas'); if (!a) return; const d = document.createElement('div'); d.className = 'alerta'; d.textContent = msg; a.appendChild(d); setTimeout(()=>d.remove(), 6000); }
+  // cópia de um pedaço da página: selects/inputs viram texto, canvas vira imagem
+  function copia(el){
+    const c = el.cloneNode(true);
+    const s1 = el.querySelectorAll('select'), s2 = c.querySelectorAll('select');
+    s1.forEach((s,i)=>{ const t = document.createElement('b'); t.textContent = s.selectedOptions[0] ? s.selectedOptions[0].textContent : ''; s2[i].replaceWith(t); });
+    const i1 = el.querySelectorAll('input'), i2 = c.querySelectorAll('input');
+    i1.forEach((x,i)=>{ if (x.type === 'search' || x.type === 'text') { const t = document.createElement('span'); t.textContent = x.value; i2[i].replaceWith(t); } else i2[i].remove(); });
+    const c1 = el.querySelectorAll('canvas'), c2 = c.querySelectorAll('canvas');
+    c1.forEach((cv,i)=>{ try { const im = new Image(); im.src = cv.toDataURL('image/png'); im.style.maxWidth = '100%'; c2[i].replaceWith(im); } catch(e){} });
+    c.querySelectorAll('[hidden]').forEach(x=>x.remove());
+    return c;
+  }
+  // tela atual
+  function tela(){
+    const T = TELAS[telaAtual]; if (!T) return;
+    if (T.id === 'telaCrz' && window.CRUZ) return CRUZ.relatorio();
+    const c = copia(T); c.classList.add('ativa');
+    const nome = T.dataset.nome || 'Tela';
+    abrir(nome, `${nome} - painel 4013`, c.outerHTML);
+  }
+  // quadro de detalhe aberto (bairro, município, região, candidatura…)
+  function det(){
+    const tit = $('detTit') ? $('detTit').textContent.trim() : 'Detalhe', sub = $('detSub') ? $('detSub').textContent.trim() : '';
+    const c = copia($('detCorpo'));
+    abrir(tit, `${tit} - painel 4013`, `<div class="det-corpo-pdf">${c.innerHTML}</div>`, sub);
+  }
+  function iniciar(){
+    const ct = $('controles');
+    if (ct && !$('btnPdf')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'btnPdf'; b.className = 'pdf-btn'; b.title = 'Baixar esta tela em PDF'; b.textContent = '⤓ PDF desta tela'; b.onclick = tela; ct.insertBefore(b, $('btnFull') || null); }
+    if (!$('pdfFab')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'pdfFab'; b.className = 'pdf-fab pdf-btn'; b.title = 'Baixar esta tela em PDF'; b.setAttribute('aria-label', 'Baixar esta tela em PDF'); b.textContent = '⤓ PDF'; b.onclick = tela; document.body.appendChild(b); }
+    const dh = document.querySelector('#dlgDet .det-head');
+    if (dh && !$('detPdf')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'detPdf'; b.className = 'det-pdf pdf-btn'; b.title = 'Baixar este quadro em PDF'; b.textContent = '⤓ PDF'; b.onclick = det; dh.insertBefore(b, $('detX')); }
+  }
+  iniciar();
+  return { abrir, tela, det };
+})();
+window.PDFX = PDFX;
+/* ==== PDFX FIM ==== */
 /* ==== CRUZ INÍCIO ==== */
 // Capital · cruzamento: votos de qualquer candidatura na cidade do Rio em 2018, 2020, 2022, 2024 e 2026 (TSE), por região e bairro.
 const CRUZ = (()=>{
@@ -4789,9 +4870,9 @@ const CRUZ = (()=>{
     return `<tr><th>${rot}</th>${pessoas.length > 1 ? '<th>Candidatura</th>' : ''}${colunas.map(a=>`<th class="r">${a}</th>`).join('')}<th class="r crz-varh"><span>Var.</span> <select class="crz-de" aria-label="Variação a partir de">${opc(DE)}</select>→<select class="crz-ate" aria-label="Variação até">${opc(ATE)}</select></th></tr>`;
   }
   // mini gráfico da pessoa: total na capital por eleição, escala própria
-  function mini(P, colunas){
+  function mini(P, colunas, pega = o=>o.tot){
     const W = 300, H = 74, pl = 14, pr = 14, pt = 15, pb = 14;
-    const pts = colunas.map((a,k)=>P.anos[a] ? [k, valor(P.anos[a].tot), a] : null).filter(Boolean);
+    const pts = colunas.map((a,k)=>P.anos[a] ? [k, valor(pega(P.anos[a])), a] : null).filter(v=>v && v[1] != null);
     const max = Math.max(1e-9, ...pts.map(p=>p[1]));
     const X = k => colunas.length === 1 ? W / 2 : pl + (W - pl - pr) * k / (colunas.length - 1), Y = v => pt + (H - pt - pb) * (1 - v / max);
     let g = `<line x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}" stroke="var(--line)" stroke-width="1"/>`;
@@ -4839,26 +4920,21 @@ const CRUZ = (()=>{
     const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a])), T = tabBairros(pessoas, colunas, i);
     DET.abrir(esc(T.nome), `Capital · ${T.n} bairros · ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, `<div class="tbl-wrap">${T.html}</div><p class="det-nota">${MODO === 'p' ? '% dos votos válidos do cargo no bairro' : 'Votos'} na capital, 1º turno, TSE. Ponto (·) = não concorreu naquele ano.</p>`, false);
   }
-  // relatório em PDF: monta uma página limpa e abre a impressão do navegador ("Salvar como PDF")
+  // relatório em PDF: abre uma página própria (aba nova) com o relatório completo, pronta para "Salvar como PDF"
   function relatorio(){
     const pessoas = ULT; if (!pessoas || !pessoas.length) return;
     const colunas = ANOS.filter(a=>pessoas.some(P=>P.anos[a])), ord = regioesOrd(pessoas, colunas);
-    const hoje = new Date().toLocaleString('pt-BR', {dateStyle:'long', timeStyle:'short'});
     const modo = MODO === 'p' ? '% dos votos válidos do cargo' : 'votos';
-    let h = `<header class="rel-cab"><div><h1>Capital · cruzamento de eleições</h1><p>${pessoas.map(P=>esc(titulo(P.p.n))).join(' · ')} — cidade do Rio de Janeiro, ${colunas.join(', ')} · ${modo}</p></div><small>Gerado em ${esc(hoje)}<br>Fonte: TSE, 1º turno</small></header>`;
+    let h = `<p class="rel-sub">${pessoas.map(P=>esc(titulo(P.p.n))).join(' · ')} — cidade do Rio de Janeiro, ${colunas.join(', ')} · ${modo}</p>`;
     h += `<section class="rel-pessoas">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))}</b><small>${ANOS.filter(a=>P.anos[a]).map(a=>`${a}: ${esc(cargoAno(P, a))} (${P.anos[a].x.nr})`).join(' · ')}</small>${mini(P, colunas)}</div>`).join('')}</section>`;
     h += `<h2>Capital por região</h2><table class="crz-t"><thead>${cabFixo(pessoas, colunas, 'Região')}</thead><tbody>`
       + linhas(pessoas, colunas, '<b>Capital · total</b>', '', o=>o.tot, ' class="crz-tot"').replace('<tr class="crz-g1" class="crz-tot"', '<tr class="crz-g1 crz-tot"')
       + ord.map(r=>linhas(pessoas, colunas, esc(r.nome), '', o=>o.reg[r.i])).join('') + '</tbody></table>';
-    for (const r of ord) { const T = tabBairros(pessoas, colunas, r.i); h += `<section class="rel-reg"><h2>${esc(T.nome)} · ${T.n} bairros</h2>${T.html}</section>`; }
+    h += `<h2>Trajetória em cada região</h2><p class="rel-leg">Cada gráfico tem escala própria. ${pessoas.length > 1 ? pessoas.map(P=>`<i style="background:${P.cor}"></i>${esc(titulo(P.p.n))}`).join(' ') : ''}</p><section class="rel-mult">${ord.map(r=>`<div class="rel-rg"><b>${esc(r.nome)}</b>${pessoas.map(P=>mini(P, colunas, o=>o.reg[r.i])).join('')}</div>`).join('')}</section>`;
+    for (const r of ord) { const T = tabBairros(pessoas, colunas, r.i);
+      h += `<section class="rel-reg"><h2>${esc(T.nome)} · ${T.n} bairros</h2><div class="rel-regg">${pessoas.map(P=>`<div class="rel-p" style="--c:${P.cor}"><b>${esc(titulo(P.p.n))}</b>${mini(P, colunas, o=>o.reg[r.i])}</div>`).join('')}</div>${T.html}</section>`; }
     h += `<p class="rel-nota">Votos na cidade do Rio de Janeiro no 1º turno, dados do TSE por seção agrupados pelo bairro do local de votação. ${MODO === 'p' ? '“% dos válidos” = parte dos votos válidos daquele cargo na região ou bairro. ' : ''}Abaixo de cada número: variação em relação à eleição anterior da mesma pessoa. Última coluna: variação ${DE}→${ATE}. Ponto (·) = não concorreu naquele ano. Regiões da capital: divisão usada pela campanha.</p>`;
-    let R = $('crzRel'); if (!R) { R = document.createElement('div'); R.id = 'crzRel'; document.body.appendChild(R); }
-    R.innerHTML = h;
-    const tituloAnt = document.title; document.title = `Cruzamento capital - ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`;
-    document.documentElement.classList.add('crz-print');
-    const fim = () => { document.documentElement.classList.remove('crz-print'); document.title = tituloAnt; removeEventListener('afterprint', fim); };
-    addEventListener('afterprint', fim);
-    setTimeout(()=>{ window.print(); setTimeout(()=>{ if (!matchMedia('print').matches) fim(); }, 1500); }, 60);
+    PDFX.abrir('Capital · cruzamento de eleições', `Cruzamento capital - ${pessoas.map(P=>titulo(P.p.n)).join(', ')}`, `<div class="crz-rel">${h}</div>`);
   }
   // busca
   function buscar(q){
@@ -4885,7 +4961,7 @@ const CRUZ = (()=>{
     document.addEventListener('click', e=>{ const b = $('crzBusca'); if (!b.hidden && !e.target.closest('.crz-add')) b.hidden = true; });
   }
   function atualizar(){ iniciar(); render(); }
-  return { atualizar };
+  return { atualizar, relatorio };
 })();
 window.IDX_CRUZ = TELAS.findIndex(t=>t.id==='telaCrz'); window.CRUZ = CRUZ;
 /* ==== CRUZ FIM ==== */
