@@ -962,6 +962,39 @@ body.mob dialog[open] ~ .pdf-fab{display:none}
 .crz-rel .rel-dest{margin:7px 0 0;padding-left:16px;font-size:10.5px;line-height:1.45}
 .crz-rel .rel-pessoas{margin-top:6px}
 .crz-rel .rel-reg:first-of-type{break-before:auto}
+/* cabeçalho compacto no celular */
+body.mob .top{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"logo tit pill" "cand cand acoes";align-items:center;gap:4px 8px;padding:6px 10px 6px!important}
+body.mob .top .logo{grid-area:logo;height:30px!important;width:auto}
+body.mob .top .tit{grid-area:tit;gap:0;min-width:0}
+body.mob .top h1{font-size:14.5px!important;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+body.mob .top .meta,body.mob .top .idade{font-size:10.5px!important;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+body.mob .top .apur-pill{grid-area:pill;padding:2px 7px 2px 3px}
+body.mob .top .apur-pill .ring{width:18px;height:18px}
+body.mob .top .apur-pill .ring::after{width:11px;height:11px}
+body.mob .top .apur-pill b{font-size:12.5px}
+body.mob .top #chipModo,body.mob .top .spacer,body.mob .top .countdown{display:none!important}
+body.mob .hdr-cand{grid-area:cand;order:0;flex:none;min-width:0;font-size:11.5px!important;padding:3px 8px!important;gap:0 8px!important;flex-wrap:nowrap;overflow:hidden;border-radius:8px}
+body.mob .hdr-cand b{font-size:13px}
+body.mob .hdr-cand .hc-it span{font-size:10.5px}
+body.mob .top .acoes{grid-area:acoes;display:flex!important;gap:4px}
+body.mob .top .acoes button{width:auto;font-size:0!important;padding:5px 8px!important;line-height:1;border-radius:8px;min-width:32px;min-height:30px}
+body.mob .top .acoes button::before{font-size:15px;font-weight:800}
+body.mob #btnAtualizar::before{content:"⟳"}
+body.mob #btnConfig::before{content:"⚙"}
+body.mob #btnIA::before{content:"✦"}
+body.mob .crz .box-head{flex-wrap:wrap;gap:6px}
+body.mob .crz .box-head h2{font-size:18px;flex:1 1 100%;margin:0}
+body.mob .crz-acoes{flex-wrap:nowrap;gap:6px}
+body.mob .crz-pdf,body.mob .crz-modo button{font-size:12px;padding:6px 9px;white-space:nowrap}
+body.mob .crz-chip small{font-size:10.5px}
+body.mob #crzMais{padding:7px 12px;font-size:13px}
+.evo-ref{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:auto;font-size:12.5px}
+.evo-ref span{padding:6px 9px;color:var(--muted);font-weight:700}
+.evo-ref button{border:0;border-left:1px solid var(--line);background:none;padding:6px 10px;font:inherit;font-weight:700;color:var(--muted);cursor:pointer}
+.evo-ref button[aria-pressed="true"]{background:var(--accent);color:#2a1600}
+#telaEvo .box-head{flex-wrap:wrap;gap:6px 10px}
+body.mob #telaEvo .box-head h2{font-size:18px;flex:1 1 100%}
+body.mob .evo-ref{margin-left:0;font-size:12px}
 /* ==== /CRUZ CSS ==== */
 </style>
 
@@ -1038,7 +1071,7 @@ body.mob dialog[open] ~ .pdf-fab{display:none}
 
   <section class="tela" id="telaEvo" data-nome="Evolução">
     <div class="box evo-box">
-      <div class="box-head"><h2 id="evoTit">Evolução na apuração</h2><span class="eyebrow" id="ttGMeta"></span></div>
+      <div class="box-head"><h2 id="evoTit">Evolução na apuração 2026</h2><div class="evo-ref" id="evoRef" role="group" aria-label="Comparar com outra eleição"><span>Comparar com</span><button type="button" data-r="22">2022</button><button type="button" data-r="18">2018</button><button type="button" data-r="0">Nenhuma</button></div><span class="eyebrow" id="ttGMeta"></span></div>
       <div class="evo-graf">
         <div><div class="gl-t">Votos apurados e projeção final</div><figure id="gVotos" class="gl-fig"></figure></div>
         <div><div class="gl-t">Posição geral entre todos os candidatos</div><figure id="gPos" class="gl-fig"></figure></div>
@@ -2724,15 +2757,18 @@ function graficoLinha(fig, {series, yInv=false, fmtY=fmt, ref=null, rotuloY='', 
 function renderGrafico(){
   if (!$('gVotos')) return;
   if (HIST._k !== chaveHist()) { carregarHist(); HIST._k = chaveHist(); }
-  const c22 = usa22(CFG.candidata) ? { y: COMP22.votos, rotulo: `2022: ${fmt(COMP22.votos)} votos` } : null;
+  let EVR = '22'; try { EVR = localStorage.getItem('evoRef') || '22'; } catch(e){}
+  document.querySelectorAll('#evoRef [data-r]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.r === EVR));
+  const c22 = EVR === '22' && usa22(CFG.candidata) ? { y: COMP22.votos, rotulo: `Referência 2022: ${fmt(COMP22.votos)} votos` } : EVR === '18' && CFG.candidata === '4013' ? { y: 15789, rotulo: 'Referência 2018: 15.789 votos (PSOL, 5010)' } : null;
   graficoLinha($('gVotos'), { series:[
     { nome:'Votos apurados', cor:'var(--brand)', pts: HIST.map(h=>[h.p, h.v]) },
     { nome:'Projeção final', cor:'var(--accent)', tracejado:true, pts: HIST.filter(h=>h.pj).map(h=>[h.p, h.pj]) } ],
     banda: { nome:'faixa provável', cor:'var(--accent)', pts: HIST.filter(h=>h.lo && h.hi).map(h=>[h.p, h.lo, h.hi]) },
     fmtY: v=>v>=1000 ? (v/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})+' mil' : fmt(v), ref: c22 });
   graficoLinha($('gPos'), { series:[{ nome:'Posição geral', cor:'var(--brand)', degrau:true, pts: HIST.map(h=>[h.p, h.pos]) }], yInv:true, fmtY: v=>Math.round(v)+'º',
-    ref: usa22(CFG.candidata) ? { y: COMP22.pos, rotulo: `2022: ${COMP22.pos}º` } : null });
-  const cc = ULTIMO && ULTIMO.d.cands.find(x=>x.n===CFG.candidata); $('evoTit').textContent = `Evolução na apuração · ${cc ? titulo(cc.nome) : 'candidatura'} ${CFG.candidata}`;
+    ref: EVR === '22' && usa22(CFG.candidata) ? { y: COMP22.pos, rotulo: `Referência 2022: ${COMP22.pos}º` } : null });
+  const cc = ULTIMO && ULTIMO.d.cands.find(x=>x.n===CFG.candidata); $('evoTit').textContent = `Evolução na apuração ${(String(CFG.ano||'').match(/\d{4}/)||['2026'])[0]} · ${cc ? titulo(cc.nome) : 'candidatura'} ${CFG.candidata}`;
+  const er = $('evoRef'); if (er && !er.dataset.ok) { er.dataset.ok = 1; er.addEventListener('click', e=>{ const b = e.target.closest('[data-r]'); if (!b) return; try { localStorage.setItem('evoRef', b.dataset.r); } catch(x){} renderGrafico(); }); }
   $('ttGMeta').textContent = HIST.length ? `${HIST.length} ${HIST.length===1?'leitura':'leituras'} · eixo: % de seções apuradas` : '';
 }
 
