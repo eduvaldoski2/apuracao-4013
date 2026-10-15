@@ -996,6 +996,52 @@ body.mob #crzMais{padding:7px 12px;font-size:13px}
 body.mob #telaEvo .box-head h2{font-size:18px;flex:1 1 100%}
 body.mob .evo-ref{margin-left:0;font-size:12px}
 /* ==== /CRUZ CSS ==== */
+/* ==== UF CSS ==== */
+.uf-wrap{display:flex;flex-direction:column;gap:12px;min-width:0}
+.uf-sel{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:10px}
+.uf-sel label,.uf-filtros label,.uf-ord{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:700;color:var(--muted)}
+.uf-sel select,.uf-filtros select{font:inherit;font-size:15px;font-weight:600;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);max-width:min(340px,86vw)}
+.uf-bloco{display:flex;flex-direction:column;gap:12px;min-width:0}
+.uf-bloco .box-head h2 small{font-size:13px;font-weight:600;color:var(--muted);margin-left:6px}
+.uf-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.uf-kpis > div{border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:8px;padding:8px 10px;background:var(--panel);min-width:0}
+.uf-kpis b{display:block;font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+.uf-kpis b.uf-mini{font-size:15px;line-height:1.25}
+.uf-kpis small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px}
+.uf-busca{width:100%;font:inherit;font-size:15px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg,var(--panel));color:var(--ink)}
+.uf-t td small.uf-end,.uf-t th small.uf-end{display:block;font-weight:500;font-size:11px;color:var(--muted)}
+.uf-t tbody tr[data-nr],.uf-t tbody tr[data-mun],.uf-t tbody tr[data-uf]{cursor:pointer}
+.uf-t tbody tr[data-nr]:hover td,.uf-t tbody tr[data-mun]:hover td,.uf-t tbody tr[data-uf]:hover td{background:var(--accent-soft)}
+.uf-t .uf-tot td{background:color-mix(in srgb,var(--accent-soft) 55%,transparent);border-top:2px solid var(--line)}
+.uf-volta{border:0;background:none;color:var(--accent-ink);font-weight:800;font-size:13px;cursor:pointer;padding:0 0 2px}
+.uf-volta:hover{text-decoration:underline}
+.uf-filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.uf-seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.uf-seg button{border:0;background:none;padding:8px 12px;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer}
+.uf-seg button[aria-pressed="true"]{background:var(--accent);color:#2a1600}
+.uf-acoes{display:flex;gap:6px;margin-left:12px}
+.uf-bloco .box-head{flex-wrap:wrap;align-items:center}
+.uf-bloco .box-head > div{min-width:0}
+.uf-bt,.png-mini{font:inherit;font-weight:800;font-size:12.5px;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;white-space:nowrap}
+.uf-bt:hover,.png-mini:hover{background:var(--accent-soft)}
+.png-mini{margin-left:auto;font-size:11.5px;padding:4px 9px}
+.box-head .png-mini,.tr-head .png-mini{align-self:center}
+.uf-mapa svg{display:block;width:100%;height:auto;border-radius:8px}
+.uf-mapa circle:hover{stroke:var(--ink);stroke-width:1.4}
+.uf-leg{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px}
+.uf-bola{display:inline-block;width:var(--s);height:var(--s);border-radius:50%;background:var(--accent);vertical-align:middle;margin:0 3px}
+.uf-grad{display:inline-block;width:70px;height:9px;border-radius:5px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 25%,var(--brand)),var(--accent));vertical-align:middle;margin-right:5px}
+.png-fab{display:none}
+body.mob .png-fab{display:block;position:fixed;right:10px;bottom:calc(var(--tabH,64px) + 96px);z-index:11;font:inherit;font-weight:800;font-size:13px;padding:9px 13px;border-radius:999px;border:0;background:var(--accent);color:#2a1600;box-shadow:0 4px 14px rgba(0,0,0,.28)}
+body.mob dialog[open] ~ .png-fab{display:none}
+#btnPng{font-weight:800}
+body.apres #telaUF{overflow:auto;display:none}
+body.apres #telaUF.ativa{display:block}
+#telaUF,.uf-wrap,.uf-bloco{min-width:0;max-width:100%}
+body.mob .uf-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.mob .uf-t th,body.mob .uf-t td{padding:6px 3px}
+.pdf-pag .png-mini,.pdf-pag .uf-acoes,.pdf-pag .png-fab{display:none!important}
+/* ==== /UF CSS ==== */
 </style>
 
 <header class="top">
@@ -1367,6 +1413,7 @@ body.mob .evo-ref{margin-left:0;font-size:12px}
       <p class="legend-proj" id="crzNota"></p>
     </div>
   </section>
+  <section class="tela" id="telaUF" data-nome="Estados"><div class="uf-wrap" id="ufBox"><div class="empty">Carregando…</div></div></section>
 </div>
 
 <div class="ticker" id="ticker" aria-label="Apuração presidente, governador e senado">
@@ -1396,6 +1443,7 @@ body.mob .evo-ref{margin-left:0;font-size:12px}
   <button type="button" data-tela="17"><b>22·26</b>Evolução</button>
   <button type="button" data-tela="18"><b>REG</b>Regiões</button>
   <button type="button" data-tela="19"><b>CRZ</b>Cruzamento</button>
+  <button type="button" data-tela="20"><b>UF</b>Estados</button>
 </nav>
 <nav class="controles" id="controles" aria-label="Troca de telas">
   <button type="button" id="btnAnt" title="Tela anterior (←)">◀</button>
@@ -3593,6 +3641,7 @@ function mostrarTela(i){
   if (telaAtual === window.IDX_HIST && window.EVOL) EVOL.atualizar();
   if (telaAtual === window.IDX_REG && window.REG) REG.atualizar();
   if (telaAtual === window.IDX_CRUZ && window.CRUZ) CRUZ.atualizar();
+  if (telaAtual === window.IDX_UF && window.UFS) UFS.atualizar();
   if (telaAtual === window.IDX_PART && PT_ESC !== 'RJ' && window.CONG) { Promise.resolve(CONG.atualizar()).then(renderPartidos); carregarEst7(); }
   if (TELAS[telaAtual] && TELAS[telaAtual].id==='telaEvo') renderGrafico();
   restante = DUR_TELA; fimTela = Date.now()+DUR_TELA;
@@ -4775,7 +4824,7 @@ body.pdf-doc{display:block!important;padding:0!important;margin:0;overflow:visib
 .pdf-pag thead th{position:static!important}
 .pdf-pag thead{display:table-header-group}
 .pdf-pag tr,.pdf-pag .rg-card,.pdf-pag .card,.pdf-pag .kpi{break-inside:avoid}
-.pdf-pag .det-x,.pdf-pag .det-voltar,.pdf-pag .crz-acoes,.pdf-pag .crz-add,.pdf-pag [data-tira],.pdf-pag .seta,.pdf-pag .pdf-btn{display:none!important}
+.pdf-pag .det-x,.pdf-pag .det-voltar,.pdf-pag .crz-acoes,.pdf-pag .crz-add,.pdf-pag [data-tira],.pdf-pag .seta,.pdf-pag .pdf-btn,.pdf-pag .png-mini,.pdf-pag .uf-acoes{display:none!important}
 *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 @media print{.pdf-bar{display:none}.pdf-pag{padding:0;max-width:none}}
 `;
@@ -5074,6 +5123,327 @@ const CRUZ = (()=>{
 })();
 window.IDX_CRUZ = TELAS.findIndex(t=>t.id==='telaCrz'); window.CRUZ = CRUZ;
 /* ==== CRUZ FIM ==== */
+/* ==== UF INÍCIO ==== */
+// Estados · votação por município, bairro, zona e local de votação (TSE, 1º turno 2026, por seção) para todos os estados.
+const UFS = (()=>{
+  const RAW = 'https://raw.githubusercontent.com/eduvaldoski2/apuracao-4013/main/hist/uf/';
+  const LOCAL = /github\.io$|^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? new URL((location.pathname.includes('/teste-2022/') ? '../' : './') + 'hist/uf/', location.href).href : null;
+  const J = new Map();
+  const pegar = u => { if (!J.has(u)) J.set(u, (async()=>{ let r = LOCAL ? await fetch(LOCAL + u).catch(()=>null) : null;
+      if (!r || !r.ok) r = await fetch(RAW + u); if (!r.ok) throw new Error(r.status + ' em ' + u); return r.json(); })().catch(e=>{ J.delete(u); throw e; }));
+    return J.get(u); };
+  const norm = t => String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+  const sit = t => { t = String(t || '').trim().toLowerCase(); if (!t || t[0] === '#') return ''; return (t[0].toUpperCase() + t.slice(1)).replace(/\bqp\b/g, 'QP').replace(/\bmedia\b/g, 'média').replace(/\bnao\b/g, 'não').replace(/\bturno\b/g, 'turno'); };
+  const pc = (a, b) => b > 0 ? (100 * a / b).toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1}) + '%' : '—';
+  const nomeC = {1:'Presidente', 3:'Governador', 5:'Senador', 6:'Deputado Federal', 7:'Deputado Estadual', 8:'Deputado Distrital'};
+  let IDXG = null, BRA = null, UF = 'RJ', CARGO = 6, NR = null, VISAO = 'mun', MUNF = -1, FILTRO = '', MAIS = 200, ORD = 'v', iniciado = false, seq = 0;
+  try { const s = JSON.parse(localStorage.getItem('ufSel') || 'null'); if (s && s.uf) { UF = s.uf; CARGO = s.c || 6; } } catch(e){}
+  const salvar = () => { try { localStorage.setItem('ufSel', JSON.stringify({uf:UF, c:CARGO})); } catch(e){} };
+  const D = {};   // UF -> {geo, idx, val(Map cargo->Map lid->val), tot, cands}
+  async function dados(uf){
+    if (D[uf]) return D[uf];
+    const [geo, idx] = await Promise.all([pegar(`${uf}/geo.json`), pegar(`${uf}/idx.json`)]);
+    const val = {}, tot = {};
+    for (const c of idx.cargos) { const m = new Map(); let v = 0, b = 0, n = 0; for (const [lid, a, br, nu] of c.tot) { m.set(lid, a); v += a; b += br; n += nu; } val[c.c] = m; tot[c.c] = {v, b, n}; }
+    return D[uf] = {geo, idx, val, tot};
+  }
+  async function votosDe(uf, c, nr){
+    const d = await dados(uf), cg = d.idx.cargos.find(x=>x.c === c), k = cg ? cg.k : 1;
+    const arq = `${uf}/c${c}${k > 1 ? 'b' + (nr % k) : ''}.json`;
+    const o = (await pegar(arq))[String(nr)];
+    const m = new Map(); if (o) for (let i=0; i<o.l.length; i+=2) m.set(o.l[i], o.l[i+1]);
+    return m;
+  }
+  // agrupa votos por unidade
+  function agrupar(d, m, chave){
+    const G = new Map(), val = d.val[CARGO];
+    for (const [lid, v] of m) {
+      const l = d.geo.l[lid]; if (MUNF >= 0 && l[0] !== MUNF) continue;
+      const k = chave(l, lid); let o = G.get(k);
+      if (!o) { o = {k, v:0, val:0, loc:0, el:0, sec:0, l}; G.set(k, o); }
+      o.v += v; o.loc++; o.el += l[8]; o.sec += l[9];
+    }
+    // válidos da unidade: soma dos locais da unidade (inclui locais onde o candidato não teve votos)
+    const U = new Map(); d.geo.l.forEach((l, lid)=>{ if (MUNF >= 0 && l[0] !== MUNF) return; const k = chave(l, lid); U.set(k, (U.get(k) || 0) + (val.get(lid) || 0)); });
+    for (const o of G.values()) o.val = U.get(o.k) || 0;
+    return [...G.values()];
+  }
+  const rotMun = (d, mi) => titulo(d.geo.m[mi][1]);
+  const rotBai = (d, bi) => { const b = d.geo.b[bi]; return `${titulo(b[1])}`; };
+  // ---------- telas ----------
+  const $T = () => $('ufBox');
+  function selects(d){
+    const ufs = Object.keys(IDXG.ufs);
+    const cargos = d ? d.idx.cargos.map(c=>c.c) : [];
+    return `<div class="uf-sel"><label>Estado <select id="ufUF"><option value="BR"${UF === 'BR' ? ' selected' : ''}>Brasil · Presidente</option>${ufs.filter(u=>u !== 'ZZ').map(u=>`<option value="${u}"${u === UF ? ' selected' : ''}>${esc(IDXG.ufs[u].nome)}</option>`).join('')}<option value="ZZ"${UF === 'ZZ' ? ' selected' : ''}>Exterior</option></select></label>`
+      + (UF === 'BR' ? '' : `<label>Cargo <select id="ufCargo">${cargos.map(c=>`<option value="${c}"${c === CARGO ? ' selected' : ''}>${nomeC[c]}</option>`).join('')}</select></label>`)
+      + `</div>`;
+  }
+  async function render(){
+    const meu = ++seq, box = $T(); if (!box) return;
+    try { IDXG = IDXG || await pegar('index.json'); } catch(e) { box.innerHTML = `<div class="empty">Não foi possível carregar os dados (${esc(e.message)}).</div>`; return; }
+    if (UF === 'BR') return renderBrasil(meu);
+    box.innerHTML = '<div class="empty">Carregando os dados do TSE…</div>';
+    let d; try { d = await dados(UF); } catch(e) { if (meu === seq) box.innerHTML = `<div class="empty">Não foi possível carregar ${esc(UF)} (${esc(e.message)}).</div>`; return; }
+    if (meu !== seq) return;
+    if (!d.idx.cargos.some(c=>c.c === CARGO)) CARGO = d.idx.cargos.find(c=>c.c === 6) ? 6 : d.idx.cargos[0].c;
+    box.innerHTML = selects(d) + '<div id="ufCorpo"></div>';
+    if (NR != null) await renderCand(d, meu); else renderRanking(d);
+  }
+  // ranking dos candidatos do cargo
+  function renderRanking(d){
+    const T = d.tot[CARGO], cs = d.idx.cands.filter(x=>x[0] === CARGO && x[2] !== 'LEGENDA' && x[8]).sort((a,b)=>b[7] - a[7]);
+    const q = norm(FILTRO), num = /^\d+$/.test(q) ? +q : null, ter = q.split(' ').filter(Boolean);
+    const L = q ? cs.filter(x=>num != null ? String(x[1]).startsWith(q) : ter.every(w=>norm(x[2] + ' ' + x[3] + ' ' + x[4]).includes(w))) : cs;
+    const comp = T.v + T.b + T.n;
+    const leg = d.idx.cands.filter(x=>x[0] === CARGO && x[2] === 'LEGENDA').reduce((a,x)=>a + x[7], 0);
+    $('ufCorpo').innerHTML = `<div class="box uf-bloco" id="ufBloco"><div class="box-head"><h2>${nomeC[CARGO]} · ${esc(IDXG.ufs[UF].nome)}</h2><span class="eyebrow">1º turno 2026 · ${fmt(comp)} votos no cargo</span>${pngBtn('ufBloco')}</div>
+      <div class="uf-kpis"><div><b>${fmt(T.v)}</b><small>votos válidos</small></div><div><b>${fmt(T.b)}</b><small>brancos (${pc(T.b, comp)})</small></div><div><b>${fmt(T.n)}</b><small>nulos (${pc(T.n, comp)})</small></div><div><b>${fmt(d.geo.m.length)}</b><small>${d.geo.m.length === 1 ? 'município' : 'municípios'}</small></div><div><b>${fmt(d.geo.l.length)}</b><small>locais de votação</small></div>${leg ? `<div><b>${fmt(leg)}</b><small>votos de legenda</small></div>` : ''}</div>
+      <input id="ufBusca" type="search" class="uf-busca" placeholder="Buscar candidatura por nome, partido ou número" value="${esc(FILTRO)}" autocomplete="off" aria-label="Buscar candidatura">
+      <div class="tbl-wrap scroll"><table class="uf-t"><thead><tr><th class="r">#</th><th>Candidatura</th><th>Partido</th><th class="r">Nº</th><th class="r">Votos</th><th class="r">% válidos</th><th>Situação</th></tr></thead><tbody>
+      ${L.slice(0, 80).map((x,i)=>`<tr data-nr="${x[1]}"><td class="r num">${cs.indexOf(x) + 1}</td><td><b>${esc(titulo(x[2]))}</b></td><td>${esc(x[4])}</td><td class="r num">${x[1]}</td><td class="r num">${fmt(x[7])}</td><td class="r num">${pc(x[7], T.v)}</td><td>${esc(sit(x[5]))}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">Nenhuma candidatura encontrada.</td></tr>'}</tbody></table></div>
+      <p class="legend-proj">${L.length > 80 ? `Mostrando as 80 primeiras de ${fmt(L.length)} candidaturas; use a busca para achar as demais. ` : ''}Clique numa candidatura para ver a votação por município, bairro, zona e local de votação. Dados do TSE, votação por seção.</p></div>`;
+    $('ufCorpo').dataset.csvCabs = JSON.stringify(['Posição', 'Candidatura', 'Partido', 'Número', 'Votos', '% dos votos válidos', 'Situação']);
+    $('ufCorpo').dataset.csvLin = JSON.stringify(L.map(x=>[cs.indexOf(x) + 1, titulo(x[2]), x[4], x[1], x[7], T.v ? (100 * x[7] / T.v).toFixed(2) : '', sit(x[5])]));
+  }
+  const pngBtn = id => `<div class="uf-acoes"><button type="button" class="uf-bt" data-png="${id}" title="Baixar como imagem PNG">⤓ PNG</button><button type="button" class="uf-bt" data-baixa-csv="1" title="Baixar a tabela em CSV (Excel)">⤓ CSV</button></div>`;
+  // candidatura
+  async function renderCand(d, meu){
+    const x = d.idx.cands.find(c=>c[0] === CARGO && c[1] === NR); if (!x) { NR = null; return renderRanking(d); }
+    $('ufCorpo').innerHTML = '<div class="empty">Carregando a votação por local…</div>';
+    let m; try { m = await votosDe(UF, CARGO, NR); } catch(e) { if (meu === seq) $('ufCorpo').innerHTML = `<div class="empty">Não foi possível carregar a votação (${esc(e.message)}).</div>`; return; }
+    if (meu !== seq) return;
+    desenhar(d, x, m);
+  }
+  let ULT = null;
+  function desenhar(d, x, m){
+    ULT = {d, x, m};
+    const T = d.tot[CARGO], g = d.geo;
+    // municípios com voto, para o filtro
+    const muns = new Map(); for (const [lid, v] of m) { const mi = g.l[lid][0]; muns.set(mi, (muns.get(mi) || 0) + v); }
+    if (MUNF >= 0 && !muns.has(MUNF)) MUNF = -1;
+    const lista = [...muns.keys()].sort((a,b)=>muns.get(b) - muns.get(a));
+    let tabela = '', nota = '', cabs = '', csv = [];
+    const linhaPc = (v, val) => pc(v, val);
+    if (VISAO === 'mun') {
+      const G = agrupar(d, m, l=>l[0]).sort((a,b)=>b.v - a.v), tv = G.reduce((s,o)=>s + o.v, 0);
+      cabs = ['Município', 'Votos', '% dos válidos no município', '% dos votos da candidatura', 'Locais com voto'];
+      csv = G.map(o=>[rotMun(d, o.k), o.v, o.val ? (100 * o.v / o.val).toFixed(2) : '', tv ? (100 * o.v / tv).toFixed(2) : '', o.loc]);
+      tabela = G.slice(0, MAIS).map(o=>`<tr data-mun="${o.k}"><td><b>${esc(rotMun(d, o.k))}</b></td><td class="r num">${fmt(o.v)}</td><td class="r num">${linhaPc(o.v, o.val)}</td><td class="r num">${pc(o.v, tv)}</td><td class="r num">${o.loc}</td></tr>`).join('');
+      nota = G.length > MAIS ? `${fmt(G.length)} municípios no total.` : '';
+    } else if (VISAO === 'bai') {
+      const G = agrupar(d, m, l=>l[3]).sort((a,b)=>b.v - a.v), tv = G.reduce((s,o)=>s + o.v, 0);
+      cabs = ['Bairro', 'Município', 'Votos', '% dos válidos no bairro', '% dos votos da candidatura', 'Locais'];
+      csv = G.map(o=>[titulo(g.b[o.k][1]), rotMun(d, g.b[o.k][0]), o.v, o.val ? (100 * o.v / o.val).toFixed(2) : '', tv ? (100 * o.v / tv).toFixed(2) : '', o.loc]);
+      tabela = G.slice(0, MAIS).map(o=>`<tr><td><b>${esc(titulo(g.b[o.k][1]))}</b></td><td>${esc(rotMun(d, g.b[o.k][0]))}</td><td class="r num">${fmt(o.v)}</td><td class="r num">${linhaPc(o.v, o.val)}</td><td class="r num">${pc(o.v, tv)}</td><td class="r num">${o.loc}</td></tr>`).join('');
+      nota = G.length > MAIS ? `${fmt(G.length)} bairros com voto.` : '';
+    } else if (VISAO === 'zona') {
+      const G = agrupar(d, m, l=>l[0] * 1000 + l[1]).sort((a,b)=>b.v - a.v), tv = G.reduce((s,o)=>s + o.v, 0);
+      cabs = ['Zona', 'Município', 'Votos', '% dos válidos na zona', '% dos votos da candidatura', 'Locais'];
+      csv = G.map(o=>[o.l[1], rotMun(d, o.l[0]), o.v, o.val ? (100 * o.v / o.val).toFixed(2) : '', tv ? (100 * o.v / tv).toFixed(2) : '', o.loc]);
+      tabela = G.slice(0, MAIS).map(o=>`<tr><td><b>Zona ${o.l[1]}</b></td><td>${esc(rotMun(d, o.l[0]))}</td><td class="r num">${fmt(o.v)}</td><td class="r num">${linhaPc(o.v, o.val)}</td><td class="r num">${pc(o.v, tv)}</td><td class="r num">${o.loc}</td></tr>`).join('');
+      nota = G.length > MAIS ? `${fmt(G.length)} zonas com voto.` : '';
+    } else if (VISAO === 'loc') {
+      const val = d.val[CARGO], A = [];
+      for (const [lid, v] of m) { const l = g.l[lid]; if (MUNF >= 0 && l[0] !== MUNF) continue; A.push({lid, v, val:val.get(lid) || 0, l}); }
+      A.sort((a,b)=>ORD === 'p' ? (b.val ? b.v / b.val : 0) - (a.val ? a.v / a.val : 0) : b.v - a.v);
+      const tv = A.reduce((s,o)=>s + o.v, 0);
+      cabs = ['Local de votação', 'Bairro', 'Município', 'Zona', 'Votos', '% dos válidos no local', 'Eleitores', 'Seções'];
+      csv = A.map(o=>[titulo(o.l[4]), titulo(g.b[o.l[3]][1]), rotMun(d, o.l[0]), o.l[1], o.v, o.val ? (100 * o.v / o.val).toFixed(2) : '', o.l[8], o.l[9]]);
+      tabela = A.slice(0, MAIS).map(o=>`<tr title="${esc(titulo(o.l[5]))}"><td><b>${esc(titulo(o.l[4]))}</b><small class="uf-end">${esc(titulo(o.l[5]))}</small></td><td>${esc(titulo(g.b[o.l[3]][1]))}</td><td>${esc(rotMun(d, o.l[0]))}</td><td class="r num">${o.l[1]}</td><td class="r num">${fmt(o.v)}</td><td class="r num">${linhaPc(o.v, o.val)}</td><td class="r num">${fmt(o.l[8])}</td><td class="r num">${o.l[9]}</td></tr>`).join('');
+      nota = A.length > MAIS ? `${fmt(A.length)} locais com voto.` : '';
+    }
+    const tvAll = [...m.values()].reduce((a,b)=>a + b, 0);
+    const melhorM = lista[0] != null ? `${rotMun(d, lista[0])} (${fmt(muns.get(lista[0]))})` : '—';
+    const vis = [['mun', 'Municípios'], ['bai', 'Bairros'], ['zona', 'Zonas'], ['loc', 'Locais de votação'], ['mapa', 'Mapa']];
+    const extra = VISAO === 'loc' ? `<label class="uf-ord">Ordenar por <select id="ufOrd"><option value="v"${ORD === 'v' ? ' selected' : ''}>votos</option><option value="p"${ORD === 'p' ? ' selected' : ''}>% dos válidos</option></select></label>` : '';
+    const corpo = VISAO === 'mapa' ? mapa(d, m) : `<div class="tbl-wrap scroll"><table class="uf-t" id="ufTab"><thead><tr>${cabs.map((c,i)=>`<th${/^(Município|Bairro|Local de votação)$/.test(c) || (c === 'Zona' && i === 0) ? '' : ' class="r"'}>${c}</th>`).join('')}</tr></thead><tbody>${tabela || '<tr><td class="empty" colspan="8">Sem votos neste recorte.</td></tr>'}</tbody></table></div>`;
+    $('ufCorpo').innerHTML = `<div class="box uf-bloco" id="ufBloco">
+      <div class="box-head"><div><button type="button" class="uf-volta" data-volta="1">‹ ${nomeC[CARGO]}</button><h2>${esc(titulo(x[2]))} <small>${esc(x[4])} · ${x[1]}</small></h2></div><span class="eyebrow">${esc(IDXG.ufs[UF].nome)} · ${nomeC[CARGO]} · ${esc(sit(x[5]) || 'situação não informada')}</span>${pngBtn('ufBloco')}</div>
+      <div class="uf-kpis"><div><b>${fmt(tvAll)}</b><small>votos</small></div><div><b>${pc(tvAll, T.v)}</b><small>dos votos válidos do cargo</small></div><div><b>${fmt(muns.size)}</b><small>municípios com voto</small></div><div><b>${fmt(m.size)}</b><small>locais com voto</small></div><div><b class="uf-mini">${esc(melhorM)}</b><small>melhor município</small></div></div>
+      <div class="uf-filtros"><div class="uf-seg" role="tablist" aria-label="Recorte">${vis.map(([k,t])=>`<button type="button" data-vis="${k}" aria-pressed="${k === VISAO}">${t}</button>`).join('')}</div>
+        ${VISAO !== 'mun' ? `<label>Município <select id="ufMun"><option value="-1">Todos (${lista.length})</option>${lista.map(mi=>`<option value="${mi}"${mi === MUNF ? ' selected' : ''}>${esc(rotMun(d, mi))} · ${fmt(muns.get(mi))}</option>`).join('')}</select></label>` : ''}${extra}</div>
+      ${corpo}
+      <p class="legend-proj">${nota ? nota + ' ' : ''}Votos de ${esc(titulo(x[2]))} no 1º turno de 2026, por seção eleitoral agrupada por ${VISAO === 'zona' ? 'zona' : VISAO === 'mun' ? 'município' : VISAO === 'bai' ? 'bairro do local de votação' : 'local de votação'}. “% dos válidos” é a parte dos votos válidos do cargo naquela unidade. Fonte: TSE (votação por seção e eleitorado por local de votação).</p></div>`;
+    $('ufCorpo').dataset.csvCabs = JSON.stringify(cabs); $('ufCorpo').dataset.csvLin = JSON.stringify(csv);
+    if (VISAO === 'mapa') mapaEventos();
+  }
+  // mapa de pontos: um círculo por local de votação, tamanho = votos, cor = % dos válidos do local
+  function mapa(d, m){
+    const g = d.geo, val = d.val[CARGO], P = [];
+    for (const [lid, v] of m) { const l = g.l[lid]; if (MUNF >= 0 && l[0] !== MUNF) continue; if (l[6] == null || l[7] == null) continue; P.push({lid, v, p:(val.get(lid) || 0) ? 100 * v / val.get(lid) : 0, la:l[6], lo:l[7], l}); }
+    if (!P.length) return '<div class="empty">Sem coordenadas de locais de votação para este recorte.</div>';
+    const q = (a, f) => { const s = [...a].sort((x,y)=>x-y); return s[Math.min(s.length - 1, Math.max(0, Math.floor(f * (s.length - 1))))]; };
+    const las = P.map(p=>p.la), los = P.map(p=>p.lo);
+    let la0 = q(las, .01), la1 = q(las, .99), lo0 = q(los, .01), lo1 = q(los, .99);
+    if (P.length < 30) { la0 = Math.min(...las); la1 = Math.max(...las); lo0 = Math.min(...los); lo1 = Math.max(...los); }
+    const kx = Math.cos(((la0 + la1) / 2) * Math.PI / 180), W = 640, pad = 18;
+    const dx = Math.max(1e-6, (lo1 - lo0) * kx), dy = Math.max(1e-6, la1 - la0), H = Math.max(260, Math.min(620, Math.round((W - 2 * pad) * dy / dx) + 2 * pad));
+    const sx = lo => pad + (W - 2 * pad) * ((lo - lo0) * kx) / dx, sy = la => H - pad - (H - 2 * pad) * (la - la0) / dy;
+    const vmax = Math.max(...P.map(p=>p.v)), pmax = Math.max(...P.map(p=>p.p), 1e-9);
+    const dentro = P.filter(p=>p.la >= la0 - (la1 - la0) * .05 && p.la <= la1 + (la1 - la0) * .05 && p.lo >= lo0 - (lo1 - lo0) * .05 && p.lo <= lo1 + (lo1 - lo0) * .05).sort((a,b)=>a.v - b.v);
+    const R = Math.max(4, Math.min(16, 300 / Math.sqrt(P.length) * 0.9));
+    const cor = t => `color-mix(in srgb, var(--accent) ${Math.round(25 + 75 * t)}%, var(--brand))`;
+    const circ = dentro.map(p=>`<circle cx="${sx(p.lo).toFixed(1)}" cy="${sy(p.la).toFixed(1)}" r="${(1.6 + R * Math.sqrt(p.v / vmax)).toFixed(1)}" fill="${cor(Math.sqrt(p.p / pmax))}" fill-opacity=".72" stroke="var(--panel)" stroke-width=".6"><title>${esc(titulo(p.l[4]))} · ${esc(rotMun(d, p.l[0]))}: ${fmt(p.v)} votos (${p.p.toLocaleString('pt-BR',{maximumFractionDigits:1})}% dos válidos)</title></circle>`).join('');
+    const sem = m.size - P.length;
+    return `<div class="uf-mapa"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Mapa dos locais de votação com votos da candidatura" id="ufSvg"><rect x="0" y="0" width="${W}" height="${H}" fill="color-mix(in srgb,var(--brand) 5%,var(--panel))" rx="8"/>${circ}</svg>
+      <div class="uf-leg"><span><i class="uf-bola" style="--s:6px"></i> poucos votos <i class="uf-bola" style="--s:16px"></i> muitos votos</span><span><i class="uf-grad"></i> menor → maior % dos válidos do local</span></div>
+      <p class="legend-proj">${fmt(P.length)} locais no mapa${sem > 0 ? ` (${fmt(sem)} sem coordenadas no TSE)` : ''}. Passe o mouse ou toque num círculo para ver o local e os votos.</p></div>`;
+  }
+  function mapaEventos(){}
+  // Brasil · Presidente
+  async function renderBrasil(meu){
+    const box = $T(); box.innerHTML = '<div class="empty">Carregando…</div>';
+    try { BRA = BRA || await pegar('brasil.json'); } catch(e) { if (meu === seq) box.innerHTML = `<div class="empty">Não foi possível carregar (${esc(e.message)}).</div>`; return; }
+    if (meu !== seq) return;
+    const top = BRA.cands.slice(0, 6), ufs = Object.keys(BRA.ufs).filter(u=>u !== 'ZZ').sort((a,b)=>BRA.ufs[a].nome.localeCompare(BRA.ufs[b].nome, 'pt-BR'));
+    const nac = {val:0, br:0, nu:0}; for (const u of Object.values(BRA.ufs)) { nac.val += u.val; nac.br += u.br; nac.nu += u.nu; }
+    const lin = u => { const o = BRA.ufs[u], mp = new Map(o.c); return `<tr data-uf="${u}"><td><b>${esc(o.nome)}</b></td><td class="r num">${fmt(o.val)}</td>${top.map(c=>`<td class="r num">${pc(mp.get(c[0]) || 0, o.val)}</td>`).join('')}</tr>`; };
+    const totC = c => c[5];
+    $T().innerHTML = selects(null).replace('<div class="uf-sel">', '<div class="uf-sel">') + `<div id="ufCorpo"><div class="box uf-bloco" id="ufBloco"><div class="box-head"><h2>Presidente · Brasil</h2><span class="eyebrow">1º turno 2026 · votos válidos por estado</span>${pngBtn('ufBloco')}</div>
+      <div class="uf-kpis">${top.map(c=>`<div><b>${fmt(totC(c))}</b><small>${esc(titulo(c[1]))} · ${esc(c[3])} (${pc(totC(c), nac.val)})</small></div>`).join('')}</div>
+      <div class="tbl-wrap scroll"><table class="uf-t" id="ufTab"><thead><tr><th>Estado</th><th class="r">Válidos</th>${top.map(c=>`<th class="r">${esc(titulo(c[1]).split(' ')[0])}<small class="uf-end">${esc(c[3])} ${c[0]}</small></th>`).join('')}</tr></thead><tbody>${ufs.map(lin).join('')}
+      <tr class="uf-tot"><td><b>Brasil (inclui exterior)</b></td><td class="r num">${fmt(nac.val)}</td>${top.map(c=>`<td class="r num">${pc(totC(c), nac.val)}</td>`).join('')}</tr></tbody></table></div>
+      <p class="legend-proj">% dos votos válidos de cada candidatura em cada estado. Clique num estado para ver a votação por município, bairro e local de votação. Fonte: TSE, votação por seção.</p></div></div>`;
+    $('ufCorpo').dataset.csvCabs = JSON.stringify(['Estado', 'Válidos', ...top.map(c=>titulo(c[1]) + ' %')]);
+    $('ufCorpo').dataset.csvLin = JSON.stringify(ufs.map(u=>{ const o = BRA.ufs[u], mp = new Map(o.c); return [o.nome, o.val, ...top.map(c=>o.val ? (100 * (mp.get(c[0]) || 0) / o.val).toFixed(2) : '')]; }));
+  }
+  function baixarCsv(){
+    const c = $('ufCorpo'); if (!c || !c.dataset.csvLin) return;
+    const cabs = JSON.parse(c.dataset.csvCabs), linhas = JSON.parse(c.dataset.csvLin);
+    const cel = v => { v = String(v == null ? '' : v); if (/^-?\d+\.\d+$/.test(v)) v = v.replace('.', ','); return /[";\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const txt = '﻿' + [cabs, ...linhas].map(r=>r.map(cel).join(';')).join('\r\n');
+    const nome = (ULT && NR != null && UF !== 'BR' ? `${UF}-${titulo(ULT.x[2])}-${VISAO}` : `${UF}-${UF === 'BR' ? 'presidente' : nomeC[CARGO]}`).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], {type:'text/csv;charset=utf-8'})); a.download = `painel-4013-${nome}.csv`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  }
+  function iniciar(){
+    if (iniciado || !$('telaUF')) return; iniciado = true;
+    const T = $('telaUF');
+    T.addEventListener('pointerdown', ()=>{ if (typeof tocando !== 'undefined' && tocando) setTocando(false); });
+    T.addEventListener('change', e=>{
+      if (e.target.id === 'ufUF') { UF = e.target.value; NR = null; MUNF = -1; FILTRO = ''; if (UF === 'BR') CARGO = 1; salvar(); render(); }
+      else if (e.target.id === 'ufCargo') { CARGO = +e.target.value; NR = null; MUNF = -1; FILTRO = ''; salvar(); render(); }
+      else if (e.target.id === 'ufMun') { MUNF = +e.target.value; MAIS = 200; desenhar(ULT.d, ULT.x, ULT.m); }
+      else if (e.target.id === 'ufOrd') { ORD = e.target.value; desenhar(ULT.d, ULT.x, ULT.m); }
+    });
+    T.addEventListener('input', e=>{ if (e.target.id === 'ufBusca') { FILTRO = e.target.value; const p = e.target.selectionStart; dados(UF).then(d=>{ renderRanking(d); const b = $('ufBusca'); if (b) { b.focus(); try { b.setSelectionRange(p, p); } catch(x){} } }); } });
+    T.addEventListener('click', e=>{
+      const t = e.target;
+      const png = t.closest('[data-png]'); if (png) { if (window.PNGX) PNGX.exportar($(png.dataset.png), png, `${UF}-${NR != null ? 'candidatura' : 'ranking'}`); return; }
+      if (t.closest('[data-baixa-csv]')) { baixarCsv(); return; }
+      const vis = t.closest('[data-vis]'); if (vis) { VISAO = vis.dataset.vis; MAIS = 200; if (ULT) desenhar(ULT.d, ULT.x, ULT.m); return; }
+      if (t.closest('[data-volta]')) { NR = null; MUNF = -1; ULT = null; render(); return; }
+      const lin = t.closest('tr[data-nr]'); if (lin) { NR = +lin.dataset.nr; VISAO = 'mun'; MUNF = -1; MAIS = 200; render(); return; }
+      const mu = t.closest('tr[data-mun]'); if (mu && ULT) { MUNF = +mu.dataset.mun; VISAO = 'loc'; desenhar(ULT.d, ULT.x, ULT.m); return; }
+      const bu = t.closest('tr[data-uf]'); if (bu) { UF = bu.dataset.uf; CARGO = 1; NR = null; salvar(); render(); return; }
+    });
+  }
+  function atualizar(){ iniciar(); render(); }
+  return { atualizar };
+})();
+window.IDX_UF = TELAS.findIndex(t=>t.id==='telaUF'); window.UFS = UFS;
+/* ==== UF FIM ==== */
+/* ==== PNGX INÍCIO ==== */
+// PNG de gráficos e tabelas: cada quadro ganha um botão “⤓ PNG”; também há “PNG desta tela” e “PNG do quadro de detalhe”.
+const PNGX = (()=>{
+  const slug = t => String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'quadro';
+  const hoje = () => new Date().toISOString().slice(0, 10);
+  // copia os estilos calculados para o clone (o PNG é desenhado fora da página, sem as folhas de estilo)
+  function inlineEstilos(orig, copia){
+    const cs = getComputedStyle(orig); let s = '';
+    for (let i = 0; i < cs.length; i++) { const p = cs[i]; s += p + ':' + cs.getPropertyValue(p) + ';'; }
+    copia.setAttribute('style', s);
+    const a = orig.children, b = copia.children;
+    for (let i = 0; i < a.length; i++) inlineEstilos(a[i], b[i]);
+  }
+  function preparar(el){
+    const c = el.cloneNode(true); inlineEstilos(el, c);
+    // canvas vira imagem; campos viram texto; botões e controles saem
+    const c1 = el.querySelectorAll('canvas'), c2 = c.querySelectorAll('canvas');
+    c1.forEach((cv, i)=>{ try { const im = document.createElement('img'); im.setAttribute('src', cv.toDataURL('image/png')); im.setAttribute('style', c2[i].getAttribute('style') + ';width:' + cv.getBoundingClientRect().width + 'px;height:' + cv.getBoundingClientRect().height + 'px'); c2[i].replaceWith(im); } catch(e){} });
+    const s1 = el.querySelectorAll('select'), s2 = c.querySelectorAll('select');
+    s1.forEach((s, i)=>{ const t = document.createElement('span'); t.setAttribute('style', s2[i].getAttribute('style') + ';border:0;background:none'); t.textContent = s.selectedOptions[0] ? s.selectedOptions[0].textContent : ''; s2[i].replaceWith(t); });
+    c.querySelectorAll('input,textarea,button,script,video,iframe,[hidden],.png-mini,.uf-acoes,.pdf-btn,.dica').forEach(n=>n.remove());
+    // tabelas muito longas: as primeiras linhas e um aviso (a imagem fica legível e leve)
+    c.querySelectorAll('tbody').forEach(tb=>{ const L = [...tb.children].filter(r=>r.tagName === 'TR'), MAX = 45;
+      if (L.length > MAX + 5) { L.slice(MAX).forEach(r=>r.remove()); const n = L[0].children.length, tr = document.createElement('tr'), td = document.createElement('td');
+        td.setAttribute('colspan', n); td.setAttribute('style', 'padding:8px 6px;font-style:italic;opacity:.7'); td.textContent = '… mostrando ' + MAX + ' de ' + L.length + ' linhas · a tabela completa está no CSV'; tr.appendChild(td); tb.appendChild(tr); } });
+    // contêineres com rolagem mostram tudo; cabeçalhos fixos voltam ao fluxo normal
+    [c, ...c.querySelectorAll('*')].forEach(n=>{ const st = n.style; if (!st) return;
+      if (st.overflowY && st.overflowY !== 'visible' || st.overflow && st.overflow !== 'visible') { st.overflow = 'visible'; st.maxHeight = 'none'; st.height = 'auto'; st.minHeight = '0'; }
+      if (st.position === 'sticky' || st.position === 'fixed') st.position = 'static'; });
+    return c;
+  }
+  function exportar(el, btn, nome){
+    if (!el) return;
+    const rotulo = btn ? btn.textContent : '', fim = msg => { if (!btn) return; btn.disabled = false; btn.textContent = msg || rotulo; if (msg) setTimeout(()=>{ btn.textContent = rotulo; }, 3000); };
+    if (btn) { btn.disabled = true; btn.textContent = 'Gerando…'; }
+    try {
+      const PAD = 20, w = Math.ceil(Math.max(el.getBoundingClientRect().width, Math.min(el.scrollWidth, el.getBoundingClientRect().width * 1.6)));
+      const copia = preparar(el); copia.style.margin = '0'; copia.style.width = w + 'px'; copia.style.maxWidth = 'none';
+      const cb = getComputedStyle(document.body), bg = cb.backgroundColor, ink = cb.color;
+      const rotTela = (document.querySelector('.tela.ativa') || {dataset:{}}).dataset.nome || 'Painel';
+      const nm = (el.querySelector('h2,h3') || {}).textContent;
+      const tit = document.createElement('div'); tit.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+      tit.setAttribute('style', 'font:800 16px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:' + ink + ';margin:0 0 10px');
+      tit.textContent = (nm && nm.trim() ? nm.trim() : rotTela);
+      const rod = document.createElement('div');
+      rod.setAttribute('style', 'font:12px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:' + ink + ';opacity:.65;margin:10px 0 0');
+      rod.textContent = 'Painel de Apuração · Tatiana Roque 4013 · Fonte: Tribunal Superior Eleitoral (TSE) · ' + new Date().toLocaleDateString('pt-BR');
+      const raiz = document.createElement('div'); raiz.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+      raiz.setAttribute('style', 'box-sizing:border-box;padding:' + PAD + 'px;background:' + bg + ';width:' + (w + PAD * 2) + 'px');
+      raiz.append(tit, copia, rod);
+      const medidor = document.createElement('div'); medidor.style.cssText = 'position:fixed;left:-99999px;top:0;visibility:hidden';
+      medidor.appendChild(raiz.cloneNode(true)); document.body.appendChild(medidor);
+      const H = Math.ceil(medidor.firstChild.getBoundingClientRect().height) + 8, W = w + PAD * 2; medidor.remove();
+      const esc2 = Math.max(0.5, Math.min(2, 15000 / H, 15000 / W));
+      const xml = new XMLSerializer().serializeToString(raiz);
+      const svgTxt = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '"><foreignObject x="0" y="0" width="100%" height="100%">' + xml + '</foreignObject></svg>';
+      const img = new Image();
+      img.onload = ()=>{
+        try {
+          const cv = document.createElement('canvas'); cv.width = Math.round(W * esc2); cv.height = Math.round(H * esc2);
+          const cx = cv.getContext('2d'); cx.scale(esc2, esc2); cx.fillStyle = bg; cx.fillRect(0, 0, W, H); cx.drawImage(img, 0, 0, W, H);
+          cv.toBlob(bl=>{
+            if (!bl) { fim('Não foi possível gerar'); return; }
+            const a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = 'painel-4013-' + slug(nome || (nm && nm.trim()) || rotTela) + '-' + hoje() + '.png';
+            document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); fim('Baixado ✓');
+          }, 'image/png');
+        } catch(e) { fim('Use o Chrome para baixar'); }
+      };
+      img.onerror = ()=>fim('Não foi possível gerar');
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgTxt);
+    } catch(e) { fim('Não foi possível gerar'); }
+  }
+  const tela = btn => { const t = document.querySelector('.tela.ativa'); if (t) exportar(t, btn, (t.dataset.nome || 'tela')); };
+  const det = btn => { const c = document.getElementById('detCorpo'); if (c) exportar(c, btn, (document.getElementById('detTit') || {}).textContent || 'detalhe'); };
+  // botão “⤓ PNG” em cada quadro com cabeçalho
+  function marcar(){
+    document.querySelectorAll('.tela .box > .box-head, .tela .tr-box > .tr-head, #dlgDet .det-corpo .box > .box-head').forEach(h=>{
+      if (h.querySelector(':scope > .png-mini')) return;
+      const box = h.parentElement; if (!box || box.id === 'ufBloco') return;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'png-mini'; b.textContent = '⤓ PNG'; b.title = 'Baixar este quadro como imagem PNG'; b.setAttribute('data-nopng', '1');
+      b.addEventListener('click', ev=>{ ev.stopPropagation(); exportar(box, b); });
+      h.appendChild(b);
+    });
+  }
+  function iniciar(){
+    const ct = document.getElementById('controles');
+    if (ct && !document.getElementById('btnPng')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'btnPng'; b.className = 'pdf-btn'; b.title = 'Baixar esta tela como imagem PNG'; b.textContent = '⤓ PNG desta tela'; b.onclick = ()=>tela(b); ct.insertBefore(b, document.getElementById('btnFull') || null); }
+    if (!document.getElementById('pngFab')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'pngFab'; b.className = 'pdf-fab png-fab'; b.title = 'Baixar esta tela como imagem PNG'; b.setAttribute('aria-label', 'Baixar esta tela como imagem PNG'); b.textContent = '⤓ PNG'; b.onclick = ()=>tela(b); document.body.appendChild(b); }
+    const dh = document.querySelector('#dlgDet .det-head');
+    if (dh && !document.getElementById('detPng')) { const b = document.createElement('button'); b.type = 'button'; b.id = 'detPng'; b.className = 'det-pdf pdf-btn'; b.title = 'Baixar este quadro como imagem PNG'; b.textContent = '⤓ PNG'; b.onclick = ()=>det(b); dh.insertBefore(b, document.getElementById('detPdf') || document.getElementById('detX')); }
+    let t; const mo = new MutationObserver(()=>{ clearTimeout(t); t = setTimeout(marcar, 200); });
+    const raiz = document.getElementById('telas'); if (raiz) mo.observe(raiz, {childList:true, subtree:true});
+    const dd = document.getElementById('dlgDet'); if (dd) mo.observe(dd, {childList:true, subtree:true});
+    marcar();
+  }
+  iniciar();
+  return { exportar, tela, det, marcar };
+})();
+window.PNGX = PNGX;
+/* ==== PNGX FIM ==== */
 </script>
 
 <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
