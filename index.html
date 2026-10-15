@@ -236,7 +236,6 @@ td.p5-cand, th.p5-cand{background:rgba(246,135,18,.08)}
 .p5-cols td .zinfo{font-size:10.5px}
 body.mob .p5-soma{display:none}
 body.mob #p5MunH th, body.mob #p5BaiH th{white-space:normal;font-size:8.5px}
-body.mob #p5MunH th .seta, body.mob #p5BaiH th .seta{display:none}
 body.mob .p5-cols table{font-size:11.5px}
 body.mob .p5-cols td, body.mob .p5-cols th{padding-left:2px;padding-right:2px}
 /* tela Evolução 22·24·26 */
@@ -266,7 +265,6 @@ body.mob .p5-cols td, body.mob .p5-cols th{padding-left:2px;padding-right:2px}
 .rg-cols table{font-size:12.5px}
 body.mob .rg-cols table{font-size:11px}
 body.mob .rg-cols td,body.mob .rg-cols th{padding-left:2px;padding-right:2px}
-body.mob .rg-cols th .seta{display:none}
 body.mob .rg-cols th{font-size:9px;white-space:normal!important}
 body.mob .rg-dv{white-space:normal;font-size:8.5px}
 body.mob .rg-cols .zmun{display:none}
@@ -391,7 +389,6 @@ body.apres .pt-cols .tt-col{overflow:hidden}
 body.mob td.pt-cad{font-size:14px}
 body.mob .pt-cols table{font-size:11.5px}
 body.mob .pt-cols th{white-space:normal!important;font-size:9.5px}
-body.mob .pt-cols th .seta{display:none}
 body.mob .pt-fed{display:none}
 @media (max-width:400px){ .pt-cols th:nth-child(3), .pt-cols td:nth-child(3){display:none} .pt-cols .pt-80{display:none} }
 td.cp-cai{color:#b42318;font-weight:700}
@@ -588,7 +585,10 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
   body.mob table{font-size:12.5px}
   body.mob td{padding:4px 3px}
   body.mob th{padding:4px 3px;font-size:9px;letter-spacing:.01em}
-  body.mob th.ord .seta{display:none}
+  body.mob th.ord{white-space:normal}
+  body.mob th.ord .seta{font-size:8px;margin-left:1px;opacity:.6;letter-spacing:0}
+  body.mob th.ord.r .seta{margin:0 1px 0 0}
+  body.mob th.ord.ativa .seta{opacity:1}
   body.mob td.num, body.mob td.r{white-space:nowrap}
   body.mob .zmun{font-size:10.5px}
   body.mob .rkp{font-size:10px}
@@ -1040,6 +1040,16 @@ body.apres #telaUF.ativa{display:block}
 #telaUF,.uf-wrap,.uf-bloco{min-width:0;max-width:100%}
 body.mob .uf-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
 body.mob .uf-t th,body.mob .uf-t td{padding:6px 3px}
+body.mob #telaUF .tbl-wrap{overflow-x:auto}
+body.mob .crz-t th,body.mob .crz-t td{padding-left:2px;padding-right:2px}
+body.mob #telaUF .uf-t{font-size:11px}
+body.mob #telaUF .uf-t th,body.mob #telaUF .uf-t td{padding:5px 2px}
+body.mob #ufBloco table.uf-t:not(#ufTab) td:nth-child(2){min-width:64px}
+body.mob #ufBloco table.uf-t:not(#ufTab) td:last-child{font-size:10px}
+body.mob #ufBloco table.uf-t:not(#ufTab) th:nth-child(3){width:42px;max-width:48px}
+body.mob #ufBloco table.uf-t:not(#ufTab) td:nth-child(3){max-width:48px;overflow:hidden;text-overflow:ellipsis}
+body.mob #ufBloco table.uf-t:not(#ufTab) th:nth-child(4),body.mob #ufBloco table.uf-t:not(#ufTab) td:nth-child(4){display:none}
+body.mob #ufBloco table.uf-t:not(#ufTab) td:last-child{white-space:normal;line-height:1.15}
 .pdf-pag .png-mini,.pdf-pag .uf-acoes,.pdf-pag .png-fab{display:none!important}
 /* ==== /UF CSS ==== */
 </style>
@@ -3771,8 +3781,102 @@ const ORD = (()=>{
       salvar(); aplicar(chave);
     });
   });
-  return { aplicar, est };
+  return { aplicar, est, ids: IDS };
 })();
+
+/* ==== GEN ORDEM INÍCIO ==== */
+/* Setinhas de ordenar nas demais tabelas (Congresso, Estados, Cruzamento e as que surgirem): mesmo gesto do ORD
+   (1º toque: maior primeiro, nomes em ordem crescente; 2º inverte; 3º volta à ordem original). */
+const GEN = (()=>{
+  const EX = new Set(ORD.ids), ST = {};
+  const rot = th => { const c = th.cloneNode(true); c.querySelectorAll('select,.seta,small').forEach(n=>n.remove()); return c.textContent.replace(/\s+/g,' ').trim(); };
+  const TXT = /^(estado|uf\b|munic|bairro|zona|candidatura|regi|partido|local|nome)/i, SIT = /^situa/i, POS = /^(#|pos|n[ºo°]$)/i;
+  const chaveSit = t => { t = t.toUpperCase(); const m = t.match(/(\d+)\s*º\s*SUPL/);
+    if (/ELEIT/.test(t) && !/NÃO ELEIT|NAO ELEIT/.test(t)) return /✓/.test(t) ? 0 : 1; if (m) return 2 + (+m[1])/1000; if (/LEGENDA/.test(t)) return 9; return 5; };
+  const numDe = td => { const m = (td ? td.textContent : '').replace(/\s+/g,' ').trim().match(/^[^\d\-−]{0,2}([\-−]?\d[\d.]*(?:,\d+)?)/); return m ? parseFloat(m[1].replace('−','-').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.')) : NaN; };
+  const txtDe = td => (td ? td.textContent : '').replace(/\s+/g,' ').trim().replace(/^\d+\.\s*/, '');
+  const hospedeId = t => { const h = t.closest('dialog,.tela'); return (h && (h.id || h.dataset.nome)) || 'x'; };
+  const chaveT = t => hospedeId(t) + '|' + [...t.querySelectorAll('thead th')].map(rot).join('|');
+  const fixa = tr => !!tr.querySelector('td[colspan],th') || /(^|\s)(crz-tot|uf-tot|leg|cg-sep|tot|sep)(\s|$)/.test(tr.className);
+  function unidades(tb){
+    const rows = [...tb.rows], un = [];
+    if (rows.some(r=>r.classList.contains('crz-g1'))) rows.forEach(r=>{ if (r.classList.contains('crz-g1') || !un.length) un.push([r]); else un[un.length-1].push(r); });
+    else rows.forEach(r=>un.push([r]));
+    return un;
+  }
+  function marca(t){
+    const ths = [...t.querySelectorAll('thead tr:last-child th')];
+    const e = ST[chaveT(t)];
+    ths.forEach((th,i)=>{
+      if (!th.querySelector('.seta')) { th.classList.add('ord'); th.dataset.gen = '1'; th.insertAdjacentHTML(th.classList.contains('r') ? 'afterbegin' : 'beforeend', '<span class="seta" aria-hidden="true">⇅</span>'); th.title = 'Ordenar por esta coluna'; }
+      if (!th.dataset.gen) return;
+      const at = e && e.col === i; th.classList.toggle('ativa', !!at); th.querySelector('.seta').textContent = at ? (e.dir > 0 ? '▲' : '▼') : '⇅';
+      th.setAttribute('aria-sort', at ? (e.dir > 0 ? 'ascending' : 'descending') : 'none');
+    });
+    return ths;
+  }
+  function aplicar(t){
+    const tb = t.tBodies[0]; if (!tb) return;
+    const ths = marca(t), e = ST[chaveT(t)];
+    const rows = [...tb.rows]; if (!rows.length || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) return;
+    rows.forEach((r,i)=>{ if (r.dataset.go === undefined) r.dataset.go = i; });
+    const un = unidades(tb); let a = 0, b = un.length;
+    while (a < b && fixa(un[a][0])) a++; while (b > a && fixa(un[b-1][0])) b--;
+    const meio = un.slice(a, b);
+    const th = e ? ths[e.col] : null, lab = th ? rot(th) : '';
+    const txt = th && (TXT.test(lab) || SIT.test(lab)), sit = th && SIT.test(lab);
+    meio.sort((x,y)=>{
+      if (!e || !th) return x[0].dataset.go - y[0].dataset.go;
+      const cx = x[0].children[e.col], cy = y[0].children[e.col];
+      if (sit) return e.dir * (chaveSit(cx ? cx.textContent : '') - chaveSit(cy ? cy.textContent : ''));
+      if (txt) return e.dir * txtDe(cx).localeCompare(txtDe(cy), 'pt-BR', {numeric:true, sensitivity:'base'});
+      const va = numDe(cx), vb = numDe(cy), na = isNaN(va), nb = isNaN(vb); if (na || nb) return na - nb;
+      return e.dir * (va - vb) || (x[0].dataset.go - y[0].dataset.go);
+    });
+    const ordem = [...un.slice(0, a), ...meio, ...un.slice(b)].flat();
+    if (ordem.some((r,i)=>r !== tb.rows[i])) tb.append(...ordem);
+  }
+  function candidata(t){
+    if (!t || t.tagName !== 'TABLE' || !t.tHead || !t.tBodies[0] || t.dataset.nogen) return false;
+    const tb = t.tBodies[0]; if (tb.id && EX.has(tb.id)) return false;
+    if (t.closest('#detCorpo') && !t.classList.contains('crz-t')) return false;
+    return !t.querySelector('thead th.ord:not([data-gen])');
+  }
+  let sujas = new Set(), agendado = false, mo = null;
+  function flush(){
+    agendado = false; const L = [...sujas]; sujas.clear();
+    L.forEach(t=>{ if (t.isConnected && candidata(t)) aplicar(t); });
+    if (mo) mo.takeRecords();
+  }
+  function suja(n){
+    if (n.nodeType !== 1) return;
+    const ts = n.tagName === 'TABLE' ? [n] : [...n.querySelectorAll('table')];
+    const pai = n.closest && n.closest('table'); if (pai) ts.push(pai);
+    ts.forEach(t=>sujas.add(t));
+    if (sujas.size && !agendado) { agendado = true; requestAnimationFrame(flush); }
+  }
+  function iniciar(){
+    mo = new MutationObserver(rs=>rs.forEach(r=>{ r.addedNodes.forEach(suja); if (r.target.nodeType === 1 && r.target.closest('table')) suja(r.target); }));
+    ['telas','dlgDet'].forEach(id=>{ const el = $(id); if (el) mo.observe(el, {childList:true, subtree:true}); });
+    document.querySelectorAll('#telas table, #dlgDet table').forEach(t=>sujas.add(t)); flush();
+    document.addEventListener('click', ev=>{
+      const th = ev.target.closest('th[data-gen]'); if (!th || ev.target.closest('select,option')) return;
+      const t = th.closest('table'), ths = [...t.querySelectorAll('thead tr:last-child th')], col = ths.indexOf(th), k = chaveT(t), e = ST[k];
+      const lab = rot(th), primeiro = (TXT.test(lab) || POS.test(lab) || SIT.test(lab)) ? 1 : -1;
+      if (!e || e.col !== col) ST[k] = {col, dir: primeiro}; else if (e.dir === primeiro) ST[k] = {col, dir: -primeiro}; else delete ST[k];
+      aplicar(t); if (mo) mo.takeRecords();
+    });
+    // trocar município, cargo, candidatura… traz dados novos: volta à ordem padrão (menos o "Var." do Cruzamento)
+    document.addEventListener('change', ev=>{
+      const sel = ev.target; if (!sel.closest || sel.tagName !== 'SELECT' || sel.matches('.crz-de,.crz-ate')) return;
+      const h = sel.closest('.tela,dialog'); if (!h) return; const id = h.id || h.dataset.nome;
+      Object.keys(ST).forEach(k=>{ if (k.startsWith(id + '|')) delete ST[k]; });
+    }, true);
+  }
+  iniciar();
+  return { ST, aplicar };
+})();
+/* ==== GEN ORDEM FIM ==== */
 
 /* ============ DETALHE AO CLICAR ============
    Candidatura (Federais, Estaduais, PSB) -> municípios, zonas e bairros do Rio onde foi mais votada.
@@ -5364,7 +5468,7 @@ const PNGX = (()=>{
     c1.forEach((cv, i)=>{ try { const im = document.createElement('img'); im.setAttribute('src', cv.toDataURL('image/png')); im.setAttribute('style', c2[i].getAttribute('style') + ';width:' + cv.getBoundingClientRect().width + 'px;height:' + cv.getBoundingClientRect().height + 'px'); c2[i].replaceWith(im); } catch(e){} });
     const s1 = el.querySelectorAll('select'), s2 = c.querySelectorAll('select');
     s1.forEach((s, i)=>{ const t = document.createElement('span'); t.setAttribute('style', s2[i].getAttribute('style') + ';border:0;background:none'); t.textContent = s.selectedOptions[0] ? s.selectedOptions[0].textContent : ''; s2[i].replaceWith(t); });
-    c.querySelectorAll('input,textarea,button,script,video,iframe,[hidden],.png-mini,.uf-acoes,.pdf-btn,.dica').forEach(n=>n.remove());
+    c.querySelectorAll('input,textarea,button,script,video,iframe,[hidden],.png-mini,.uf-acoes,.pdf-btn,.dica,.seta').forEach(n=>n.remove());
     // tabelas muito longas: as primeiras linhas e um aviso (a imagem fica legível e leve)
     c.querySelectorAll('tbody').forEach(tb=>{ const L = [...tb.children].filter(r=>r.tagName === 'TR'), MAX = 45;
       if (L.length > MAX + 5) { L.slice(MAX).forEach(r=>r.remove()); const n = L[0].children.length, tr = document.createElement('tr'), td = document.createElement('td');
