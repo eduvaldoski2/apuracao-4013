@@ -3853,7 +3853,7 @@ const GEN = (()=>{
     const ts = n.tagName === 'TABLE' ? [n] : [...n.querySelectorAll('table')];
     const pai = n.closest && n.closest('table'); if (pai) ts.push(pai);
     ts.forEach(t=>sujas.add(t));
-    if (sujas.size && !agendado) { agendado = true; requestAnimationFrame(flush); }
+    if (sujas.size && !agendado) { agendado = true; setTimeout(flush, 30); }
   }
   function iniciar(){
     mo = new MutationObserver(rs=>rs.forEach(r=>{ r.addedNodes.forEach(suja); if (r.target.nodeType === 1 && r.target.closest('table')) suja(r.target); }));
