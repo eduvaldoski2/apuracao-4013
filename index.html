@@ -2672,8 +2672,8 @@ function tabelaBairros(ids, comb, ctx){
     : pctReal > 0 ? `<span class="tt-fonte real">${fmtP(pctReal,0)} REAL</span>` : `<span class="tt-fonte">ESTIMATIVA</span>`;
   let txt = !ctx.podeReal
     ? 'Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026). Votos reais por bairro existem só para Deputado Federal.'
-    : pctReal >= 99.5 ? 'Votos reais, somados seção a seção pelo bairro do local de votação (boletins de urna).'
-    : pctReal > 0 ? `${fmtP(pctReal,0)} dos votos já vêm dos boletins de urna (reais); o restante é estimado pelo eleitorado dos bairros de cada zona até o boletim ser lido. "≈" marca bairro com parte estimada.`
+    : pctReal >= 99.5 ? 'Votos reais, somados seção a seção pelo bairro do local de votação (TSE).'
+    : pctReal > 0 ? `${fmtP(pctReal,0)} dos votos são reais por seção; o restante é estimado pelo eleitorado dos bairros de cada zona. "≈" marca bairro com parte estimada.`
     : 'Estimativa: votos de cada zona repartidos pelos bairros conforme o eleitorado dos locais de votação (TSE 2026). Os votos reais dos boletins de urna entram assim que forem lidos.';
   const R = ctx.real;
   if (ctx.podeReal && R && R.totalizadas) txt += ` Boletins lidos: ${fmt(R.lidas)} de ${fmt(R.totalizadas)} seções totalizadas no estado${R.fonte==='github' ? ` (atualizado às ${new Date(R.atualizado).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})` : ''}.`;
@@ -2963,7 +2963,7 @@ function renderMapa(comb, c){
   const top = MAPA_RIO.p.map(([nm],i)=>({nm, i, a:porPol[i]})).filter(x=>x.a && x.a.v >= 0.5).sort((x,y)=>val(y.a)-val(x.a));
   $('mpLista').innerHTML = top.map((x,k)=>`<tr data-loc="p:${x.i}"><td><div class="zname">${k+1}. ${esc(x.nm)}</div>${apurTag((infoBairro(x.i)||{}).apur, true)}</td><td class="r num">${x.a.est?'≈ ':''}${fmt(x.a.v)}</td><td class="r num">${fmtP(x.a.pct,1)}</td><td class="r num">${(()=>{ const f = infoBairro(x.i)||{}; return f.pos ? (f.real ? '' : '≈') + f.pos + 'º' : '—'; })()}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem votos na capital ainda.</td></tr>';
   $('mpMeta').textContent = top.length ? `${top.length} bairros com votos` : '';
-  $('mpNota').textContent = 'Limites dos bairros: Prefeitura do Rio (data.rio). Votos pelo bairro do local de votação (TSE); "≈" = parte ainda estimada pelo eleitorado da zona.' + (semMapa.length ? ` Sem correspondência no mapa oficial: ${[...new Set(semMapa)].map(titulo).join(', ')}.` : '');
+  $('mpNota').textContent = 'Limites dos bairros: Prefeitura do Rio (data.rio). Votos pelo bairro do local de votação (TSE); "≈" = parte estimada pelo eleitorado da zona (só se faltar o voto real).' + (semMapa.length ? ` Sem correspondência no mapa oficial: ${[...new Set(semMapa)].map(titulo).join(', ')}.` : '');
 }
 document.addEventListener('click', e=>{ const b = e.target.closest('#mpModo button, #mrModo button'); if (!b) return; MAPA_MODO = b.dataset.m; try { localStorage.setItem('painelMapaModo', MAPA_MODO); } catch(err){} renderTatiana(); });
 
@@ -4037,7 +4037,7 @@ const DET = (()=>{
     const totCap = RC.reduce((s2,r)=>s2+r.v,0);
     const V = VISTA_C, sec = (v, cls, html) => `<section class="${cls}${V!==v?' oculta':''}" data-v="${v}">${html}</section>`;
     const abas = `<div class="det-tabs" role="tablist">${[['reg','Regiões'],['mun','Municípios'],['bai','Bairros'],['zon','Zonas']].map(([k,r])=>`<button type="button" role="tab" data-vista="${k}" class="${k===V?'on':''}">${r}</button>`).join('')}</div>`;
-    const notaB = cargo===6 ? 'Bairros pelos boletins de urna já lidos; "≈" = parte estimada pelo eleitorado da zona.' : 'Bairros estimados pelo eleitorado de cada zona (os boletins de urna são lidos só para Deputado Federal).';
+    const notaB = cargo===6 ? (comb.lista.some(b=>b.v >= 0.5 && b.parcialReal < 0.995) ? 'Bairros pelos votos reais por seção já lidos; "≈" = parte estimada pelo eleitorado da zona.' : 'Votos reais, somados seção a seção pelo bairro do local de votação (TSE).') : 'Bairros estimados pelo eleitorado de cada zona (votos reais por bairro só para Deputado Federal).';
     const notaG = '"% local" = dos votos válidos do local; "% do total" = da votação total da candidatura.';
     $('detCorpo').classList.add('duas');
     $('detCorpo').innerHTML = abas
@@ -4115,13 +4115,13 @@ const DET = (()=>{
         zv = (Z||[]).filter(z=>z.munRio).map(z=>({zc:z.zona, votos:z.votos})); }
       sub = `Bairro · ${nomeMun}${mun==='60011' && regiaoBairro(tit.replace(/&[^;]+;/g,'')) ? ' (' + regiaoBairro(tit.replace(/&[^;]+;/g,'')) + ')' : ''} · ${CARGO_NOME[cg] || titulo(CARGOS_MUN[cg]||'')}`;
       if (cg === 6) {                                    // boletins de urna: votos reais de todos os candidatos no bairro
-        abrirL(tit, sub, '<p class="det-msg">Carregando os boletins de urna…</p>');
+        abrirL(tit, sub, '<p class="det-msg">Carregando os votos do bairro…</p>');
         const T = await carregarTop(); if (meu !== seq) return;
         const P = T && T.mz && T.mz[mun];
         if (P) { const v = {}; let t = 0; for (const k of idx) { const e = P[k]; if (!e) continue; t += e.t; for (const [nn, vv] of e.c) v[nn] = (v[nn]||0) + vv; }
-          if (t) { votos = v; total = t; nota = `Votos reais dos boletins de urna já lidos${parcial ? ' (parte do bairro ainda não lida)' : ''}; mostra até os 40 mais votados de cada parte do bairro.`; } }
+          if (t) { votos = v; total = t; nota = `Votos reais por seção, somados no bairro do local de votação (TSE)${parcial ? ' (parte do bairro ainda sem voto real)' : ''}; mostra até os 40 mais votados de cada parte do bairro.`; } }
       }
-      if (!votos && zv) { votos = estimarBairro(mun, idx, zv); total = Object.values(votos).reduce((s,v)=>s+v,0); nota = 'Estimativa: votos de cada zona repartidos pelo eleitorado do bairro (boletins de urna ainda não lidos para este bairro).'; }
+      if (!votos && zv) { votos = estimarBairro(mun, idx, zv); total = Object.values(votos).reduce((s,v)=>s+v,0); nota = 'Estimativa: votos de cada zona repartidos pelo eleitorado do bairro (votos reais ainda não disponíveis para este bairro).'; }
     }
     if (meu !== seq) return;
     if (!votos) { abrirL(tit, sub, '<p class="det-msg">Sem dados deste local ainda.</p>'); return; }
@@ -4173,7 +4173,7 @@ const DET = (()=>{
     const zo = zs.filter(z=>z.v > 0).sort((a,b)=>b.v-a.v);
     const linhasZ = zo.map((z,k)=>`<tr${cargo===6 ? ` data-loc="z:Zona ${Number(z.zc)}" data-cargo="6"` : ''}><td class="rk">${k+1}</td><td><div class="zname">Zona ${Number(z.zc)}</div>${apurTag(z.ap)}</td><td class="r num">${fmt(z.v)}</td><td class="r num">${z.t?fmtP(100*z.v/z.t,1):'—'}</td><td class="r num">${vMun?fmtP(100*z.v/vMun,1):'—'}</td></tr>`).join('');
     const pReal = comb.total ? 100*comb.real/comb.total : 0;
-    const nota = cargo === 6 && pReal > 0 ? `${fmtP(pReal,0)} dos votos nos bairros vêm dos boletins de urna já lidos; o restante ("≈") é estimado pelo eleitorado de cada zona.` : 'Votos por bairro estimados pelo eleitorado de cada zona ("≈").';
+    const nota = cargo === 6 && pReal >= 99.5 ? 'Votos reais, somados seção a seção pelo bairro do local de votação (TSE).' : cargo === 6 && pReal > 0 ? `${fmtP(pReal,0)} dos votos nos bairros são reais por seção; o restante ("≈") é estimado pelo eleitorado de cada zona.` : 'Votos por bairro estimados pelo eleitorado de cada zona ("≈").';
     abrir(tit, `${nomeMun}${regiaoMun(mun) && mun!=='60011' ? ' (' + regiaoMun(mun) + ')' : ''} · ${fmt(vMun)} votos${valMun ? ' · ' + fmtP(100*vMun/valMun,2) + ' dos válidos do município' : ''}${totC ? ' · ' + fmtP(100*vMun/totC,1) + ' da votação total' : ''}`,
       secReg + `<section><h3>Bairros mais votados</h3>${tabela(['#','Bairro','Votos','% bairro','% no município'], linhasB, 'Sem votos nos bairros ainda.')}<p class="det-nota">${nota}</p></section>`
       + `<section><h3>Zonas eleitorais</h3>${tabela(['#','Zona','Votos','% zona','% no município'], linhasZ)}</section>` + voltarBtn, true, AP);
@@ -4363,7 +4363,7 @@ const COMP = (()=>{
         .filter(b=>(b.v26 >= 0.5) || (b.v22 >= 0.5)).sort((a,b)=>b.v26-a.v26 || (b.v22||0)-(a.v22||0));
       $('cpBairros').innerHTML = linhasB.map(b=>linha(titulo(b.nome), '', b.v26, b.t26, b.v22 == null ? null : Math.round(b.v22), b.t22, b.est, {p:apurBairro(SEL.mun, b.nome), est:true})).join('') || '<tr><td colspan="6" class="empty">Sem votos nos bairros ainda.</td></tr>';
       $('cpBMeta').textContent = `${linhasB.length} bairros`;
-      $('cpBNota').textContent = `2026: ${cargo===6 ? 'boletins de urna já lidos + estimativa do restante ("≈").' : 'estimado pelo eleitorado de cada zona.'} ${fonte22} "Dif." = % de 2026 menos % de 2022, em pontos percentuais.`;
+      $('cpBNota').textContent = `2026: ${cargo===6 ? 'votos reais por seção, somados no bairro do local de votação ("≈" só se algum bairro ainda for estimado).' : 'estimado pelo eleitorado de cada zona.'} ${fonte22} "Dif." = % de 2026 menos % de 2022, em pontos percentuais.`;
       // ---- municípios do estado ----
       const m26 = await munis26(cargo); if (meu !== token) return;
       const munsAll = Object.keys(RJB.mun);
@@ -4711,7 +4711,7 @@ const EVOL = (()=>{
     $('hmBai').innerHTML = L.map(b=>`<tr data-loc="b:${mun}:${esc(b.nome)}" data-cargo="6"><td><div class="zname">${esc(b.nome)}</div>${apurTag(apurBairro(mun, b.nome), true)}</td>${anos.map((a,k)=>`<td class="r num">${a===24 && b.v[a] && b.est[24] ? '≈ ' : ''}${a===26 && b.est[26] && b.v[a] ? '≈ ' : ''}${fmt(Math.round(b.v[a]))}${TB[a] ? `<span class="rg-pt">${fmtP(100*b.v[a]/TB[a],1)}</span>` : ''}${k ? setaVar(Math.round(b.v[a]), Math.round(b.v[anos[k-1]]), ANOS[anos[k-1]].rot) : ''}</td>`).join('')}${varTd(Math.round(b.v[22]), Math.round(b.v[26]))}</tr>`).join('')
       || `<tr><td colspan="${anos.length+3}" class="empty">Sem votos nos bairros de ${esc(nomeMun)}.</td></tr>`;
     grafico($('hmBaiG'), L.slice(0, document.body.classList.contains('apres') ? 7 : 12).map(b=>({rot:b.nome, v:{22:Math.round(b.v[22]), 24:Math.round(b.v[24]), 26:Math.round(b.v[26])}, est:b.est})), anos);
-    $('hmNota').textContent = `2022: votos reais por seção, somados no bairro do local de votação. ${cap ? '2024 (vereadora, nº 40123): votos por bairro da planilha da campanha. ' : ''}2026: boletins de urna já lidos + estimativa do restante ("≈"), apuração em andamento. Embaixo de cada número: % da votação dela na cidade naquele ano. Clique num bairro para ver os mais votados ali.`;
+    $('hmNota').textContent = `2022: votos reais por seção, somados no bairro do local de votação. ${cap ? '2024 (vereadora, nº 40123): votos por bairro da planilha da campanha. ' : ''}2026: votos reais por seção, somados no bairro do local de votação ("≈" só se algum bairro ainda for estimado). Embaixo de cada número: % da votação dela na cidade naquele ano. Clique num bairro para ver os mais votados ali.`;
   }
   ['hmMun','hmMunG'].forEach(id=>$(id).addEventListener('click', e=>{ const tr = e.target.closest('[data-hm]'); if (!tr) return;
     SEL.mun = tr.dataset.hm; salvar(); document.querySelectorAll('#hmMun tr').forEach(t=>t.classList.toggle('sel', t.dataset.hm===SEL.mun));
@@ -4819,7 +4819,7 @@ const REG = (()=>{
       const linhas = L.map((b,j)=>`<tr data-loc="b:${CAP}:${esc(b.nome)}" data-cargo="6"><td class="rk">${j+1}</td><td><div class="zname">${esc(titulo(b.nome))}</div>${apurTag(apurBairro(CAP, b.nome), true)}</td><td class="r num">${fmt(b.v18)}${pt(b.v18, T[18], 'da região')}</td><td class="r num">${fmt(b.v22)}${setaVar(b.v22, b.v18, '2018')}${pt(b.v22, T[22], 'da região')}</td><td class="r num">${fmt(b.v24)}${setaVar(b.v24, b.v22, '2022')}${pt(b.v24, T[24], 'da região')}</td><td class="r num">${b.v26 >= 0.5 ? (b.est ? '≈ ' : '') + fmt(Math.round(b.v26)) : '0'}${setaVar(Math.round(b.v26), b.v24, '2024')}${pt(b.v26, T[26], 'da região')}</td>${varTd(b.v24, Math.round(b.v26))}${varTd(b.v22, Math.round(b.v26))}</tr>`).join('');
       const graf = graficosRegiao({id:'', rot:r.nome, v:{18:r.v18, 22:r.v22, 24:r.v24, 26:r.v26}, tot:TOTC}, ZONAS ? [18,22,24,26] : [18,22,24], L.slice(0,10).map(b=>({rot:titulo(b.nome), v:{18:b.v18, 22:b.v22, 24:b.v24, 26:Math.round(b.v26)}})), 'bairros');
       DET.abrir(esc(r.nome), `Capital · ${L.length} bairros · 2018: ${fmt(r.v18)} · 2022: ${fmt(r.v22)} · 2024: ${fmt(r.v24)} · 2026: ${ZONAS ? fmt(Math.round(r.v26)) : 'carregando…'}`,
-        graf + `<table><thead><tr><th>#</th><th>Bairro</th><th class="r">2018</th><th class="r">2022</th><th class="r">2024</th><th class="r">2026</th><th class="r">Var. 24→26</th><th class="r">Var. 22→26</th></tr></thead><tbody>${linhas}</tbody></table><p class="det-nota">Em cada ano: votos e % da votação da região. 2018, 2022 e 2024: planilha da campanha. 2026: boletins de urna já lidos + estimativa ("≈"). Clique num bairro para ver os mais votados ali.</p>`, false, {p: apurMun(CAP), rot:'na capital'});
+        graf + `<table><thead><tr><th>#</th><th>Bairro</th><th class="r">2018</th><th class="r">2022</th><th class="r">2024</th><th class="r">2026</th><th class="r">Var. 24→26</th><th class="r">Var. 22→26</th></tr></thead><tbody>${linhas}</tbody></table><p class="det-nota">Em cada ano: votos e % da votação da região. 2018, 2022 e 2024: planilha da campanha. 2026: votos reais por seção, somados no bairro do local de votação. Clique num bairro para ver os mais votados ali.</p>`, false, {p: apurMun(CAP), rot:'na capital'});
     } else { const e = ESTR && ESTR[k]; if (!e) return;
       const L = [...e.muns].filter(m=>m.v18||m.v22||m.v26).sort((a,b)=>b.v26-a.v26 || b.v22-a.v22);
       const T = somaAnos(L);
@@ -4860,7 +4860,7 @@ const IA = (()=>{
       if (typeof REG_DADOS === 'object') Object.entries(REG_DADOS.cap).forEach(([nm, x])=>cap[semAcento(nm)] = {nm, reg: REG_DADOS.capRegs[x[0]], v18:x[1], v22:x[2], v24:x[3]});
       const b26 = new Map(bairrosCap(c).map(b=>[semAcento(b.nome), b]));
       const ks = [...new Set([...b26.keys(), ...(c==='4013' ? Object.keys(cap) : [])])];
-      return bloco(`Votação de ${c} por bairro do Rio de Janeiro`, '2026: boletins de urna já lidos + estimativa pelo eleitorado da zona (parcial_real = fração vinda dos boletins). 2018/2022/2024 (vereadora, 40123): planilha da campanha, só para a Tatiana.', ['bairro','regiao','votos_2026','pct_bairro_2026','parcial_real','votos_2024','votos_2022','votos_2018'],
+      return bloco(`Votação de ${c} por bairro do Rio de Janeiro`, '2026: votos reais por seção somados no bairro do local de votação (parcial_real = fração real; 1 = exato). 2018/2022/2024 (vereadora, 40123): planilha da campanha, só para a Tatiana.', ['bairro','regiao','votos_2026','pct_bairro_2026','parcial_real','votos_2024','votos_2022','votos_2018'],
         ks.map(k=>{ const b = b26.get(k), x = cap[k] || {}; return [b ? b.nome : x.nm, x.reg||'', b ? Math.round(b.v) : 0, b ? b.pct : NaN, b ? b.parcialReal : NaN, c==='4013' ? x.v24 : '', c==='4013' ? x.v22 : '', c==='4013' ? x.v18 : '']; }).sort((a,b)=>b[2]-a[2])); } },
     { id:'zon', rot:'Candidata por zona eleitoral', on:false, f:()=>{ if (!ZONAS) return ''; const c = n();
       return bloco(`Votação de ${c} por zona eleitoral`, '', ['zona','municipios','votos','validos','pct','pct_apurado'], ZONAS.map(z=>[z.rotulo, z.sub||'', z.votos[c]||0, z.validos, z.validos ? 100*(z.votos[c]||0)/z.validos : NaN, z.pctApurado]).sort((a,b)=>b[2]-a[2])); } },
